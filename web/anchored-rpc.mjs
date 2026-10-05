@@ -1,3 +1,4 @@
+import { fetchRpc } from "./rpc-retry.mjs";
 // Read-only transport and replay. RPC values stay provisional until verified against proofs.
 const PRIME = (1n << 251n) + 17n * (1n << 192n) + 1n;
 const METHODS = new Set([
@@ -62,14 +63,18 @@ export function liveTransport(
       throw Error("Only supported read-only methods are allowed");
     cancelled(signal);
     const request = { jsonrpc: "2.0", id: ++id, method, params };
-    const response = await fetchImpl(url.href, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
-      signal,
-      credentials: "omit",
-      redirect: "error",
-    });
+    const response = await fetchRpc(
+      url.href,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request),
+        signal,
+        credentials: "omit",
+        redirect: "error",
+      },
+      { fetchImpl },
+    );
     if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
     const reader = response.body.getReader();
     let size = 0;

@@ -1,3 +1,4 @@
+import { fetchRpc } from "./rpc-retry.mjs";
 import { pedersen, poseidonHashMany, keccak } from "@scure/starknet";
 export const CHAIN = "0x534e5f5345504f4c4941";
 export const STRK =
@@ -241,7 +242,7 @@ export function proofApiVersion(versions) {
   );
 }
 export async function rpc(method, params) {
-  const response = await fetch(RPC, {
+  const response = await fetchRpc(RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),

@@ -1,3 +1,4 @@
+import { fetchRpc } from "../web/rpc-retry.mjs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -49,7 +50,7 @@ const same = (a, b) => {
   return a === b;
 };
 async function rpc(method, params) {
-  const response = await fetch(RPC, {
+  const response = await fetchRpc(RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
