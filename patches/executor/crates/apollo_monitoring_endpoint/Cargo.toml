@@ -1,0 +1,47 @@
+[package]
+name = "apollo_monitoring_endpoint"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "Monitoring and observability endpoints for the Starknet sequencer."
+
+[features]
+testing = ["apollo_metrics/testing", "num-traits", "thiserror", "tower"]
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+apollo_infra.workspace = true
+apollo_infra_utils.workspace = true
+apollo_l1_events_types.workspace = true
+apollo_mempool_types.workspace = true
+apollo_metrics.workspace = true
+apollo_monitoring_endpoint_config.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+hyper-util.workspace = true
+metrics-exporter-prometheus.workspace = true
+num-traits = { workspace = true, optional = true }
+thiserror = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["net", "rt", "time"] }
+tower = { workspace = true, optional = true }
+tracing.workspace = true
+
+[dev-dependencies]
+apollo_l1_events_types = { workspace = true, features = ["testing"] }
+apollo_mempool_types = { workspace = true, features = ["testing"] }
+apollo_metrics = { workspace = true, features = ["testing"] }
+metrics.workspace = true
+num-traits.workspace = true
+pretty_assertions.workspace = true
+serde_json.workspace = true
+starknet-types-core.workspace = true
+starknet_api = { workspace = true, features = ["testing"] }
+thiserror.workspace = true
+tokio.workspace = true
+tower.workspace = true

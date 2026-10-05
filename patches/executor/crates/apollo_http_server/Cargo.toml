@@ -1,0 +1,65 @@
+[package]
+name = "apollo_http_server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "HTTP server for exposing node APIs."
+
+[features]
+testing = [
+  "apollo_config_manager_types/testing",
+  "apollo_gateway_types/testing",
+  "blockifier_test_utils",
+  "mempool_test_utils",
+  "reqwest",
+  "starknet_api/testing",
+]
+
+[lints]
+workspace = true
+
+[dependencies]
+apollo_config_manager_types.workspace = true
+apollo_gateway_types.workspace = true
+apollo_http_server_config.workspace = true
+apollo_infra.workspace = true
+apollo_infra_utils.workspace = true
+apollo_metrics.workspace = true
+apollo_proc_macros.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+blockifier_test_utils = { workspace = true, optional = true }
+futures.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+mempool_test_utils = { workspace = true, optional = true }
+regex.workspace = true
+reqwest = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+starknet_api.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt"] }
+tower-http = { workspace = true, features = ["decompression-full", "limit"] }
+tracing.workspace = true
+
+
+[dev-dependencies]
+apollo_config_manager_types = { workspace = true, features = ["testing"] }
+apollo_gateway_types = { workspace = true, features = ["testing"] }
+apollo_metrics = { workspace = true, features = ["testing"] }
+assert_matches.workspace = true
+base64.workspace = true
+blockifier = { workspace = true, features = ["testing"] }
+blockifier_test_utils.workspace = true
+flate2.workspace = true
+mempool_test_utils.workspace = true
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+reqwest.workspace = true
+rstest.workspace = true
+serde_json.workspace = true
+starknet-types-core.workspace = true
+tracing-test.workspace = true
+zstd.workspace = true

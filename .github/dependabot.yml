@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /patches/executor
+    schedule:
+      interval: weekly
+    # Keep security updates enabled without scheduling general version bumps.
+    open-pull-requests-limit: 0
+    allow:
+      - dependency-type: all
+    groups:
+      cargo:
+        applies-to: security-updates
+        patterns:
+          - "*"

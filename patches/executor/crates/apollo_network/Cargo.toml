@@ -1,0 +1,75 @@
+[package]
+name = "apollo_network"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "Peer-to-peer networking layer for Starknet nodes using libp2p."
+
+[features]
+testing = []
+
+[dependencies]
+apollo_config.workspace = true
+apollo_metrics.workspace = true
+apollo_network_types.workspace = true
+apollo_propeller.workspace = true
+apollo_protobuf.workspace = true
+async-stream.workspace = true
+async-trait.workspace = true
+asynchronous-codec.workspace = true
+bytes.workspace = true
+derive_more = { workspace = true, features = ["display"] }
+futures.workspace = true
+indexmap.workspace = true
+lazy_static.workspace = true
+libp2p = { workspace = true, features = [
+  "dns",
+  "gossipsub",
+  "identify",
+  "kad",
+  "macros",
+  "noise",
+  "ping",
+  "quic",
+  "serde",
+  "tcp",
+  "tokio",
+  "yamux",
+] }
+prost.workspace = true
+replace_with.workspace = true
+serde = { workspace = true, features = ["derive"] }
+sha2.workspace = true
+starknet_api.workspace = true
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["full", "sync"] }
+tokio-retry.workspace = true
+tracing.workspace = true
+unsigned-varint = { workspace = true, features = ["std"] }
+validator = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+apollo_network_types = { workspace = true, features = ["testing"] }
+assert_matches.workspace = true
+deadqueue = { workspace = true, features = ["unlimited"] }
+defaultmap.workspace = true
+expect-test.workspace = true
+libp2p-swarm-test.workspace = true
+pretty_assertions.workspace = true
+rstest.workspace = true
+tokio = { workspace = true, features = ["full", "sync", "test-util"] }
+tokio-stream.workspace = true
+waker-fn.workspace = true
+
+[[test]]
+name = "e2e_broadcast_test"
+required-features = ["testing"]
+
+[[test]]
+name = "e2e_discovery_test"
+required-features = ["testing"]
+
+[lints]
+workspace = true

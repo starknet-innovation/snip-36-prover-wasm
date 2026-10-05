@@ -1,0 +1,32 @@
+[package]
+name = "apollo_deployments"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+description = "Deployment configurations and utilities for various Starknet environments."
+
+[lints]
+workspace = true
+
+[dependencies]
+apollo_config.workspace = true
+apollo_infra.workspace = true
+apollo_infra_utils.workspace = true
+apollo_node_config.workspace = true
+phf = { workspace = true, features = ["macros"] }
+serde.workspace = true
+serde_json.workspace = true
+static_assertions.workspace = true
+strum = { workspace = true, features = ["derive"] }
+url.workspace = true
+
+[dev-dependencies]
+apollo_infra_utils = { workspace = true, features = ["testing"] }
+apollo_node_config = { workspace = true, features = ["testing"] }
+tempfile.workspace = true
+url = { workspace = true, features = ["serde"] }
+
+[[bin]]
+name = "deployment_generator"
+path = "src/bin/deployment_generator.rs"

@@ -1,0 +1,44 @@
+[package]
+name = "starknet_patricia_storage"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "Library for storage traits and serde for Patricia-Merkle tree commitment types."
+
+[features]
+aerospike_storage = ["aerospike"]
+mdbx_storage = ["libmdbx", "page_size"]
+rocksdb_storage = ["rust-rocksdb"]
+short_key_storage = ["blake2", "digest"]
+testing = []
+
+[lints]
+workspace = true
+
+[dependencies]
+aerospike = { workspace = true, optional = true, features = ["rt-tokio"] }
+apollo_config.workspace = true
+async-trait.workspace = true
+blake2 = { workspace = true, optional = true }
+digest = { workspace = true, optional = true }
+futures.workspace = true
+hex.workspace = true
+libmdbx = { workspace = true, optional = true }
+lru.workspace = true
+page_size = { workspace = true, optional = true }
+rust-rocksdb = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+starknet-types-core.workspace = true
+starknet_api.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+validator = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+libmdbx.workspace = true
+page_size.workspace = true
+rstest.workspace = true
+rust-rocksdb.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread"] }

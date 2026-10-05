@@ -6,6 +6,19 @@ on:
 permissions:
   contents: read
 jobs:
+  executor-dependencies:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Test executor manifest consistency guards
+        run: python3 -m unittest discover -s tests -p 'test_executor_manifests.py'
+      - name: Prepare the pinned executor workspace
+        run: python3 scripts/prepare-sources.py executor
+      - name: Resolve the mirror and real sources with the reviewed lock
+        run: python3 scripts/executor_manifests.py resolve
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

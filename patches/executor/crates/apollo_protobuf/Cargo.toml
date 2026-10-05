@@ -1,0 +1,54 @@
+[package]
+name = "apollo_protobuf"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "Protocol buffer definitions and serialization for P2P communication."
+
+[features]
+bin-deps = ["prost-build", "protoc-prebuilt", "tracing-subscriber"]
+testing = ["apollo_test_utils", "rand", "rand_chacha"]
+
+[[bin]]
+name = "generate_protoc_output"
+path = "src/bin/generate_protoc_output.rs"
+required-features = ["bin-deps"]
+
+[dependencies]
+apollo_batcher_types.workspace = true
+apollo_test_utils = { workspace = true, optional = true }
+asynchronous-codec.workspace = true
+bytes.workspace = true
+derive_more = { workspace = true, features = ["deref", "display"] }
+indexmap.workspace = true
+lazy_static.workspace = true
+papyrus_common.workspace = true
+primitive-types.workspace = true
+prost.workspace = true
+rand = { workspace = true, optional = true }
+rand_chacha = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+starknet-types-core.workspace = true
+starknet_api.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, optional = true, features = ["env-filter"] }
+unsigned-varint.workspace = true
+
+# Binaries dependencies
+prost-build = { workspace = true, optional = true }
+protoc-prebuilt = { workspace = true, optional = true }
+
+[dev-dependencies]
+apollo_test_utils.workspace = true
+prost-build.workspace = true
+protoc-prebuilt.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

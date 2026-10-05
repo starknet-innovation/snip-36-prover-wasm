@@ -1,0 +1,24 @@
+[package]
+name = "apollo_reverts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Handles blockchain revert detection and management."
+
+[features]
+os_input = ["apollo_storage/os_input"]
+
+[lints]
+workspace = true
+
+[dependencies]
+apollo_config.workspace = true
+apollo_metrics.workspace = true
+apollo_storage.workspace = true
+futures.workspace = true
+serde.workspace = true
+starknet_api.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+validator.workspace = true

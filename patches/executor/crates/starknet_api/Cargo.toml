@@ -1,0 +1,62 @@
+[package]
+name = "starknet_api"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "Starknet Rust types related to computation and execution."
+
+[features]
+testing = ["expect-test", "json-patch"]
+
+[dependencies]
+apollo_infra_utils.workspace = true
+apollo_sizeof.workspace = true
+base64.workspace = true
+bitvec.workspace = true
+cached.workspace = true
+cairo-lang-runner.workspace = true
+cairo-lang-starknet-classes.workspace = true
+cairo-lang-utils.workspace = true
+derive_more = { workspace = true, features = [
+  "add",
+  "add_assign",
+  "deref",
+  "display",
+  "from",
+  "into_iterator",
+  "mul",
+  "sum",
+] }
+expect-test = { workspace = true, optional = true }
+flate2.workspace = true
+hex.workspace = true
+indexmap = { workspace = true, features = ["serde"] }
+itertools.workspace = true
+json-patch = { workspace = true, optional = true }
+num-bigint.workspace = true
+num-traits.workspace = true
+paste.workspace = true
+pretty_assertions.workspace = true
+primitive-types = { workspace = true, features = ["serde"] }
+rand.workspace = true
+semver.workspace = true
+serde = { workspace = true, features = ["derive", "rc"] }
+serde_json.workspace = true
+sha3.workspace = true
+starknet-core.workspace = true
+starknet-crypto.workspace = true
+starknet-types-core = { workspace = true, features = ["hash"] }
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+assert_matches.workspace = true
+expect-test.workspace = true
+json-patch.workspace = true
+rstest.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,67 @@
+[package]
+name = "apollo_node"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+description = "Main Starknet sequencer node orchestrating all components."
+
+[features]
+cairo_native = ["apollo_batcher/cairo_native", "apollo_gateway/cairo_native"]
+testing = ["tokio-util"]
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+apollo_batcher.workspace = true
+apollo_batcher_types.workspace = true
+apollo_class_manager.workspace = true
+apollo_class_manager_types.workspace = true
+apollo_committer.workspace = true
+apollo_committer_types.workspace = true
+apollo_compile_to_casm.workspace = true
+apollo_compile_to_casm_types.workspace = true
+apollo_config.workspace = true
+apollo_config_manager.workspace = true
+apollo_config_manager_types.workspace = true
+apollo_consensus_manager.workspace = true
+apollo_gateway.workspace = true
+apollo_gateway_types.workspace = true
+apollo_http_server.workspace = true
+apollo_infra.workspace = true
+apollo_infra_utils.workspace = true
+apollo_l1_events.workspace = true
+apollo_l1_events_types.workspace = true
+apollo_l1_gas_price.workspace = true
+apollo_l1_gas_price_types.workspace = true
+apollo_mempool.workspace = true
+apollo_mempool_p2p.workspace = true
+apollo_mempool_p2p_types.workspace = true
+apollo_mempool_types.workspace = true
+apollo_monitoring_endpoint.workspace = true
+apollo_node_config.workspace = true
+apollo_proof_manager.workspace = true
+apollo_proof_manager_types.workspace = true
+apollo_signature_manager.workspace = true
+apollo_signature_manager_types.workspace = true
+apollo_state_sync.workspace = true
+apollo_state_sync_metrics.workspace = true
+apollo_state_sync_types.workspace = true
+futures.workspace = true
+metrics-exporter-prometheus.workspace = true
+papyrus_base_layer.workspace = true
+tokio.workspace = true
+tokio-util = { workspace = true, optional = true, features = ["rt"] }
+tracing.workspace = true
+
+[dev-dependencies]
+apollo_config = { workspace = true, features = ["testing"] }
+apollo_infra_utils = { workspace = true, features = ["testing"] }
+nix.workspace = true
+pretty_assertions.workspace = true
+rstest.workspace = true
+tokio-util = { workspace = true, features = ["rt"] }
+tracing-subscriber.workspace = true
+tracing-test.workspace = true

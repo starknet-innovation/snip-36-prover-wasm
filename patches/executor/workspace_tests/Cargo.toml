@@ -1,0 +1,18 @@
+[package]
+name = "workspace_tests"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "Workspace-level tests."
+
+[dev-dependencies]
+expect-test.workspace = true
+toml_test_utils.path = "../toml_test_utils"
+
+[[test]]
+name = "workspace_tests"
+path = "main.rs"
+
+[lints]
+workspace = true

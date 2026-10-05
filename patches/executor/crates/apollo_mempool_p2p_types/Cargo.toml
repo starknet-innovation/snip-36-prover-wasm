@@ -1,0 +1,27 @@
+[package]
+name = "apollo_mempool_p2p_types"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Type definitions for Apollo mempool P2P communication."
+
+[lints]
+workspace = true
+
+[dependencies]
+apollo_infra.workspace = true
+apollo_metrics.workspace = true
+apollo_network_types.workspace = true
+async-trait.workspace = true
+mockall = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+starknet_api.workspace = true
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+
+[dev-dependencies]
+mockall.workspace = true
+
+[features]
+testing = ["mockall"]

@@ -1,6 +1,7 @@
 """Fetch pinned source trees and apply reviewed browser portability patches once."""
 from pathlib import Path
 import json,subprocess,sys,tarfile,hashlib
+from executor_manifests import check_manifests, patch_fingerprint
 root=Path(__file__).resolve().parents[1];build=root/'build';pins=json.loads((root/'pins.json').read_text())
 def run(*args):subprocess.run(args,check=True)
 def clone(name,url,rev):
@@ -22,13 +23,17 @@ elif mode=='native':
  (p/'crates/privacy_prove/examples/spike_native.rs').write_bytes((root/'native/spike_native.rs').read_bytes())
 elif mode=='executor':
  p=clone('sequencer','https://github.com/starkware-libs/sequencer.git',pins['sequencer']);marker=p/'.wasm-patches-complete'
- fingerprint=hashlib.sha256(b''.join(f.read_bytes() for f in sorted((root/'patches/executor').iterdir()) if f.is_file())).hexdigest()
+ fingerprint=patch_fingerprint(root/'patches/executor')
  if marker.exists():
   assert marker.read_text()==fingerprint,'Executor patch set changed; use a fresh build/sequencer'
+  check_manifests(p)
+  assert (p/'Cargo.lock').read_bytes()==(root/'patches/executor/Cargo.lock').read_bytes(),'Prepared executor lock differs'
   print('Executor source already prepared');raise SystemExit(0)
  for name in ['sequencer.patch','program-compression.patch','signed-account-fixture.patch','partial-state-cache.patch','execution-capacity.patch']:apply(p,root/'patches/executor'/name)
  with tarfile.open(root/'patches/executor/cairo-classes-portable.tar.gz') as archive:archive.extractall(p,filter='data')
  apply(p,root/'patches/executor/public-state.patch')
+ # Dependabot resolves this same patched workspace; manifest edits need matching source patches.
+ check_manifests(p)
  # Check the portability patches' original lock before applying reviewed security updates.
  assert hashlib.sha256((p/'Cargo.lock').read_bytes()).hexdigest()=='da9fb55917ef1c4cba51050c0cc7e4ee9a4a9fe8c18bfad4b77d6720ec67dcb4','Executor base lock differs'
  (p/'Cargo.lock').write_bytes((root/'patches/executor/Cargo.lock').read_bytes());marker.write_text(fingerprint)

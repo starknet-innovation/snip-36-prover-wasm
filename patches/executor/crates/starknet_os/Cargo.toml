@@ -1,0 +1,92 @@
+[package]
+name = "starknet_os"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "The Starknet OS."
+
+[features]
+deserialize = [
+  "blockifier/transaction_serde",
+  "shared_execution_objects/deserialize",
+  "starknet-types-core/serde",
+  "starknet_patricia/deserialize",
+]
+include_program_output = []
+testing = [
+  "blockifier/testing",
+  "expect-test",
+  "itertools",
+  "num-bigint/rand",
+  "starknet_patricia/testing",
+]
+
+[dependencies]
+apollo_starknet_os_program.workspace = true
+ark-bls12-381.workspace = true
+ark-ff.workspace = true
+ark-poly.workspace = true
+ark-secp256k1.workspace = true
+ark-secp256r1.workspace = true
+blake2.workspace = true
+blockifier.workspace = true
+cairo-lang-casm.workspace = true
+cairo-lang-runner.workspace = true
+cairo-lang-starknet-classes.workspace = true
+cairo-vm = { workspace = true, features = [
+  "cairo-0-data-availability-hints",
+  "cairo-0-secp-hints",
+  "extensive_hints",
+] }
+derive_more = { workspace = true, features = ["display"] }
+digest.workspace = true
+expect-test = { workspace = true, optional = true }
+indexmap.workspace = true
+indoc.workspace = true
+itertools = { workspace = true, optional = true }
+log.workspace = true
+num-bigint.workspace = true
+num-integer.workspace = true
+num-traits.workspace = true
+papyrus_common.workspace = true
+paste.workspace = true
+rand.workspace = true
+regex.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["raw_value"] }
+serde_with.workspace = true
+sha2.workspace = true
+sha3.workspace = true
+shared_execution_objects.workspace = true
+starknet-types-core.workspace = true
+starknet_api.workspace = true
+starknet_committer.workspace = true
+starknet_patricia.workspace = true
+starknet_patricia_storage.workspace = true
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+apollo_infra_utils = { workspace = true, features = ["testing"] }
+apollo_starknet_os_program = { workspace = true, features = ["test_programs"] }
+assert_matches.workspace = true
+blockifier = { workspace = true, features = ["testing"] }
+blockifier_test_utils.workspace = true
+cairo-lang-utils.workspace = true
+ethnum.workspace = true
+expect-test.workspace = true
+itertools.workspace = true
+num-bigint = { workspace = true, features = ["rand"] }
+rstest.workspace = true
+starknet_committer.workspace = true
+starknet_patricia = { workspace = true, features = ["testing"] }
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[lints]
+workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+c-kzg.workspace = true

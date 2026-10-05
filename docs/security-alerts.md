@@ -26,6 +26,14 @@ This review covers the 40 open [Dependabot alerts](https://github.com/starknet-i
 
 Associated derive, macro, system and helper crates changed as required by Cargo. `ruint` 1.17.2 declares `reciprocal_mg10` unsafe with an explicit input precondition; 1.17.0 exposed it as a safe function. The advisory currently has no `first_patched_version`, so this update was also checked against the downloaded crate source, rather than relying only on that metadata field.
 
+## Dependabot resolver follow-up
+
+After PR #1 merged, GitHub reported 31 fixed and nine open dependency alerts. The [automatic Cargo security update run](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/37294275402) failed during file fetching because `patches/executor/Cargo.toml` was missing: the reviewed lock was stored outside its fetched workspace.
+
+The executor patch directory now includes all 117 manifests from the pinned, patched source tree, with the same workspace members and path dependencies. Dependabot can fetch the complete manifest graph. Security updates include transitive dependencies; general version update PRs remain disabled. Source preparation rejects manifest drift, and CI checks fresh preparation plus identical dependency resolution with the committed lock. A manifest-changing update needs matching source patches and any required API migration before it can pass CI. See [resolver maintenance](../patches/executor/README.md).
+
+This follow-up repairs the missing-manifest input. The lock, dependency versions, upstream pins and released binaries are unchanged; the nine dependency alerts below remain open. GitHub's hosted security-update job must run again after merge to confirm its result. The single remaining CodeQL JSON-evidence flow is also unchanged (reported as alert 12 after the merge).
+
 ## Nine dependency alerts remain affected
 
 Reachability was checked using the **normal and build dependencies** of `browser_virtual_os` for `wasm32-unknown-unknown`, not just a package's presence in the workspace lock:
