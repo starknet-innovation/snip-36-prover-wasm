@@ -11,7 +11,12 @@ import {
 } from "./anchored-rpc.mjs";
 import { preparePublicInvocation } from "./public-pipeline.mjs";
 const encode = (v) => new TextEncoder().encode(JSON.stringify(v));
-self.onmessage = async ({ data: { id, request, source } }) => {
+self.onmessage = async (event) => {
+  // Dedicated Worker messages have an empty origin and no Window source.
+  // Reject window-style and synthetic events before reading their payload.
+  if (event.origin !== "" || event.source !== null || !event.isTrusted) return;
+  if (!event.data || typeof event.data !== "object") return;
+  const { id, request, source } = event.data;
   const start = performance.now(),
     send = (data) => self.postMessage({ id, ...data });
   try {

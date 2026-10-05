@@ -2,6 +2,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mode=${1:?Usage: build.sh prover|executor|native}
+if [[ -n "${STARKNET_PRIVATE_KEY:-}" ]]; then
+  echo 'Source builds must run without STARKNET_PRIVATE_KEY' >&2
+  exit 1
+fi
 export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-2}
 python3 scripts/prepare-sources.py "$mode"
 rustup toolchain install nightly-2026-01-15 --profile minimal --component rust-src --target wasm32-unknown-unknown

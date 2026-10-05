@@ -8,6 +8,7 @@ import {
   feeCeiling,
   bounds,
   proofFacts,
+  gatewayTransaction,
 } from "../scripts/transaction.mjs";
 const vector = JSON.parse(
   await readFile(new URL("../fixtures/hash-vector.json", import.meta.url)),
@@ -46,4 +47,39 @@ test("resource bounds are checked without numeric precision loss", () => {
 });
 test("wrong public program cannot become proof facts", () => {
   assert.throws(() => proofFacts(["0x1", "0x2", "0x1"]), /program/);
+});
+
+test("gateway projection preserves signed fields and omits unrelated file properties", () => {
+  const tx = {
+    ...signTransaction(vector.request.transaction, "0x1").transaction,
+    type: "INVOKE",
+    version: "0x3",
+    proof: "AQID",
+    unrelated_file_data: "must not be transmitted",
+  };
+  tx.resource_bounds.l2_gas.extra = "must not be transmitted";
+  const projected = gatewayTransaction(tx);
+  assert.equal(projected.type, "INVOKE_FUNCTION");
+  assert.equal(projected.proof, "AQID");
+  assert.ok(!("unrelated_file_data" in projected));
+  assert.ok(!("extra" in projected.resource_bounds.L2_GAS));
+  const roundTrip = {
+    ...projected,
+    resource_bounds: Object.fromEntries(
+      Object.entries(projected.resource_bounds).map(([k, v]) => [
+        k.toLowerCase(),
+        v,
+      ]),
+    ),
+  };
+  assert.equal(transactionHash(roundTrip), vector.transaction_hash);
+  for (const changes of [
+    { version: "0x1" },
+    { proof: "AQID\n" },
+    { signature: [] },
+    { proof_facts: [] },
+    { paymaster_data: ["0x1"] },
+    { sender_address: "0x" + "f".repeat(64) },
+  ])
+    assert.throws(() => gatewayTransaction({ ...tx, ...changes }), /Invalid/);
 });

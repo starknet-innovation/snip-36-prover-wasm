@@ -18,11 +18,32 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm audit
       - run: npm test
       - name: Check JavaScript and shell syntax
         run: |
           for f in scripts/*.mjs web/*.mjs; do node --check "$f"; done
           bash -n scripts/build.sh
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run demo:build
+      - run: npx playwright install --with-deps chromium
+      - name: Verify dedicated Worker message boundaries
+        run: node scripts/worker-security-test.mjs
+      - name: Replay both recorded rounds in Chromium
+        run: npm run demo:test
+      - name: Check wallet UI safety scenarios
+        run: npm run demo:test:live
   contracts:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

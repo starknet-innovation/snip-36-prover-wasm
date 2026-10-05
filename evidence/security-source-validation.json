@@ -1,0 +1,122 @@
+{
+  "date": "2026-10-05",
+  "scope": "Source-built executor with reviewed dependency updates; unchanged released prover and native verifier. No new Sepolia submission or release promotion.",
+  "executor_lock_sha256": "40b7066ec16eda4869c451e71d08b5626d6a7e6835f9dad43989b07ca23cbe6e",
+  "executor_wasm_sha256": "d57b47734ecf82ee3f9f4364c4447d9a7d016623ceca644ae737a64854300832",
+  "pins": {
+    "backend": "4c8dfb1d0d63c47284e5da0ee1068415d47f9f78",
+    "sequencer": "e6b6fd2e9932909107833579e5b6efd6c75fa0af",
+    "transaction_service_proving_utils": "3035dd00421daa541894297bd754db6e2787807b",
+    "stwo": "489a0f3ee44a59e03944ad9aa4f3e5a91a3d3f08",
+    "stwo_cairo": "9b6be2710e4d7124bc93fe80a5af36556d42ed29",
+    "stwo_circuits": "5ef951a12727e3489a2ee991c580a5b925c59c69",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1"
+  },
+  "dependabot_alerts_outside_affected_ranges": [
+    2,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    31,
+    32,
+    33,
+    36,
+    37,
+    38,
+    39
+  ],
+  "dependabot_alerts_remaining": [
+    1,
+    3,
+    4,
+    13,
+    29,
+    30,
+    34,
+    35,
+    40
+  ],
+  "source_executor_coinflip_pie_hashes": {
+    "heads": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+    "tails": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13"
+  },
+  "browser_proof": {
+    "runtime": "browser Worker memory64",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+    "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+    "proof_bytes": 231962,
+    "init_ms": 5506.850000023842,
+    "prove_ms": 76320.94499999285,
+    "total_ms": 82030.83999997377,
+    "wasm_linear_memory_bytes": 14100267008,
+    "webcrypto_random_calls": 0,
+    "webcrypto_random_bytes": 0,
+    "rust_requested_live_bytes": 10486908137,
+    "rust_requested_peak_bytes": 13828577826,
+    "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate"
+  },
+  "proof_output_matches_reconstructed_fixture_statement": true,
+  "native_verification": {
+    "origin": "verify",
+    "output_matches_fixture": true,
+    "precomputes_ms": 0,
+    "proof_bytes": 231962,
+    "prove_ms": 0,
+    "total_ms": 69,
+    "verified": true,
+    "verify_ms": 68
+  },
+  "node_tests": {
+    "passed": 54,
+    "failed": 0
+  },
+  "contract_tests": {
+    "passed": 6,
+    "failed": 0,
+    "local_scarb": "2.18.0",
+    "ci_scarb": "2.18.0"
+  },
+  "codeql": {
+    "cli": "2.26.4",
+    "queries": "codeql/javascript-queries@2.4.6",
+    "suite": "javascript-security-extended",
+    "remaining_reviewed_flows": [
+      {
+        "alert": 6,
+        "rule": "js/http-to-file-access",
+        "path": "scripts/e2e.mjs"
+      }
+    ]
+  },
+  "release_assets_changed": false,
+  "sepolia_acceptance_for_source_rebuild": "not run; required before promoting replacement release assets",
+  "integration_base": "b145700506b692e375e934937517c176d60fd6cb",
+  "wallet_smoke_scenarios_passed": [
+    "unsupported",
+    "wrong-network",
+    "pending"
+  ]
+}

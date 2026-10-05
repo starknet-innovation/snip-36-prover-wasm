@@ -11,7 +11,9 @@ PYTHON310=python3.10 ./scripts/build.sh executor
 ./scripts/build.sh native
 ```
 
-The source-preparation script verifies exact upstream commits before applying patches. Executor layers: sequencer, program compression, public test fixture, partial state cache, execution capacity, public-state execution/compiler/authentication. The portable Cairo compiler archive is extracted before the final layer. Native3035dd proving/verifying uses upstream code and its pinned lockfile; the only added file is the CLI example.
+The source-preparation script verifies exact upstream commits before applying patches. Executor layers: sequencer, program compression, public test fixture, partial state cache, execution capacity, public-state execution/compiler/authentication. The portable Cairo compiler archive is extracted before the final layer. Preparation checks the SHA256 of the original patched lock before installing the reviewed `patches/executor/Cargo.lock` security updates. Use a fresh `build/sequencer` after changing patches or the lock. Native3035dd proving/verifying uses upstream code and its pinned lockfile; the only added file is the CLI example.
+
+Do not pass signing credentials to source builds. `scripts/build.sh` rejects `STARKNET_PRIVATE_KEY`. See [security alert tracking](security-alerts.md) for the remaining upstream dependencies and the distinction between source fixes and released binaries.
 
 To verify a browser proof natively, export its bytes as `proof.bin` and its `output_preimage` as JSON, then run:
 

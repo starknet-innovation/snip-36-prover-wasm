@@ -14,8 +14,10 @@ import {
   bounds,
   feeCeiling,
   proofFacts,
+  gatewayTransaction,
 } from "./transaction.mjs";
 import { validateCaptureForExecution } from "./verify-capture-inputs.mjs";
+import { responseJson } from "./network.mjs";
 const RPC = "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
   GATEWAY = "https://alpha-sepolia.starknet.io/gateway/add_transaction";
 const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
@@ -23,8 +25,10 @@ await mkdir(dir, { recursive: true });
 const read = async (name) =>
   JSON.parse(await readFile(path.join(dir, name), "utf8"));
 const save = async (name, value, exclusive = false) =>
+  // Security review (js/http-to-file-access): Intentional JSON evidence in RUN_DIR with caller-owned filenames; never loaded as executable code. See docs/security-alerts.md.
   writeFile(path.join(dir, name), JSON.stringify(value, null, 2) + "\n", {
     flag: exclusive ? "wx" : "w",
+    mode: 0o600,
   });
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const same = (a, b) => {
@@ -53,11 +57,14 @@ async function rpc(method, params) {
   const response = await fetchRpc(RPC, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    // Security review (js/file-access-to-http): Intentional Sepolia RPC request from the local execution plan; fixed destination, no signing credential. See docs/security-alerts.md.
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
     signal: AbortSignal.timeout(90000),
+    credentials: "omit",
+    redirect: "error",
   });
   if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
-  const data = await response.json();
+  const data = await responseJson(response);
   if (data.error) {
     const e = Error(`RPC ${data.error.code}: ${data.error.message}`);
     e.code = data.error.code;
@@ -277,26 +284,20 @@ async function submit() {
     },
     true,
   );
-  const gatewayPayload = {
-    ...payload,
-    type: "INVOKE_FUNCTION",
-    resource_bounds: Object.fromEntries(
-      Object.entries(payload.resource_bounds).map(([k, v]) => [
-        k.toUpperCase(),
-        v,
-      ]),
-    ),
-  };
+  const gatewayPayload = gatewayTransaction(payload);
   // Exactly one broadcast. Unknown transport outcomes must be reconciled by transaction hash.
   let result;
   try {
     const response = await fetch(GATEWAY, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      // Security review (js/file-access-to-http): Explicit broadcast of the checked signed transaction; wire-field allowlist, fixed Sepolia URL and no redirects. See docs/security-alerts.md.
       body: JSON.stringify(gatewayPayload),
       signal: AbortSignal.timeout(120000),
+      credentials: "omit",
+      redirect: "error",
     });
-    result = await response.json();
+    result = await responseJson(response);
     await save("submission-response.json", {
       http_status: response.status,
       ...result,
@@ -340,7 +341,11 @@ async function submit() {
   if (!receipt)
     throw Error("Receipt timeout; reconcile saved hash without rebroadcasting");
   await save("receipt.json", receipt);
-  if (receipt.execution_status !== "SUCCEEDED")
+  if (
+    receipt.execution_status !== "SUCCEEDED" ||
+    !Number.isSafeInteger(receipt.block_number) ||
+    receipt.block_number < 0
+  )
     throw Error("Transaction did not succeed");
   const tx = await rpc("starknet_getTransactionByHash", {
     transaction_hash: plan.transaction_hash,
@@ -361,6 +366,7 @@ async function submit() {
   if (
     BigInt(after) !== BigInt(plan.nonce) + 1n ||
     receipt.actual_fee.unit !== "FRI" ||
+    fee < 0n ||
     fee > BigInt(plan.fee_ceiling_fri)
   )
     throw Error("Unexpected nonce or fee");
@@ -383,6 +389,7 @@ async function submit() {
   await save("onchain-verification.json", report);
   console.log(JSON.stringify(report, null, 2));
   if (process.env.GITHUB_STEP_SUMMARY)
+    // Security review (js/http-to-file-access): Intended Actions summary: status enums and numeric block/fee already checked; transaction hash matched the signed plan. See docs/security-alerts.md.
     await writeFile(
       process.env.GITHUB_STEP_SUMMARY,
       `## Sepolia browser E2E passed\n\n[Transaction](https://sepolia.voyager.online/tx/${plan.transaction_hash}) — ${receipt.execution_status}, ${receipt.finality_status}, block ${receipt.block_number}. Fee: ${report.actual_fee_strk} testnet STRK.\n`,

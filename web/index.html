@@ -81,12 +81,14 @@
                 spellcheck="false"
                 placeholder="Paste the request from browser-input.json"
               ></textarea
-              ><label for="endpoint">Public Sepolia RPC URL</label
-              ><input
-                id="endpoint"
-                type="url"
-                value="https://api.zan.top/public/starknet-sepolia/rpc/v0_10"
-              /><label for="block">Fixed block number or hash</label
+              ><label for="endpoint">Public Sepolia RPC</label
+              ><select id="endpoint">
+                <option
+                  value="https://api.zan.top/public/starknet-sepolia/rpc/v0_10"
+                >
+                  ZAN · Sepolia
+                </option></select
+              ><label for="block">Fixed block number or hash</label
               ><input
                 id="block"
                 type="text"
@@ -95,7 +97,7 @@
               <p class="help">
                 Prepare a signed <code>CoinFlip.play</code> request locally with
                 your sncast account, then paste its request and block. The RPC
-                must support storage proofs and browser CORS. Never paste a
+                uses the supported public Sepolia endpoint. Never paste a
                 private key.
               </p>
             </div>

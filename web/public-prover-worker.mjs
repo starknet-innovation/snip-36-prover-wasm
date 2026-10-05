@@ -1,5 +1,10 @@
 import { loadMemory64 } from "./sequencer-memory64.mjs";
-self.onmessage = async ({ data: { id, pie } }) => {
+self.onmessage = async (event) => {
+  // Dedicated Worker messages have an empty origin and no Window source.
+  // Reject window-style and synthetic events before reading their payload.
+  if (event.origin !== "" || event.source !== null || !event.isTrusted) return;
+  if (!event.data || typeof event.data !== "object") return;
+  const { id, pie } = event.data;
   const start = performance.now(),
     send = (data) => self.postMessage({ id, ...data });
   try {
