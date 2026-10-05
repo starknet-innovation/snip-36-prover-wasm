@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       name="description"
-      content="Execute a Sepolia transaction and generate a SNIP-36 proof in your browser."
+      content="Execute CoinFlip on recorded Sepolia state and prove the outcome in your browser."
     />
-    <title>SNIP-36 · Browser proving lab</title>
+    <title>SNIP-36 · CoinFlip</title>
     <link rel="stylesheet" href="./demo.css" />
   </head>
   <body>
@@ -26,11 +26,11 @@
       </header>
       <main>
         <section class="hero">
-          <div class="eyebrow">SNIP-36 · WASM PROVER</div>
-          <h1>Your browser.<br />A real Starknet proof.</h1>
+          <div class="eyebrow">SNIP-36 · COINFLIP</div>
+          <h1>Flip a coin.<br />Prove the outcome.</h1>
           <p class="intro">
-            Execute a Sepolia invocation, authenticate its state, and generate a
-            recursive proof. The computation happens here, on your machine.
+            A coinflip, executed and proved in your browser. Based on the
+            SNIP-36 CoinFlip app and its real Sepolia contract.
           </p>
           <div class="tags">
             <span>Web Workers</span><span>Public state verification</span
@@ -40,23 +40,38 @@
         <section class="workspace">
           <div class="panel setup">
             <div class="section-label">01 / CONFIGURE</div>
-            <h2>Try the proving pipeline</h2>
+            <h2>Choose your side</h2>
             <p>
-              Start with a recorded, signed STRK balance query from Sepolia. No
-              wallet or test tokens required.
+              Replay a signed CoinFlip round from Sepolia. The fixed seed and
+              player make this a reproducible demonstration, not a random game.
+              No deposits or payouts.
             </p>
+            <div class="coin-stage">
+              <div id="coin" class="coin" aria-label="Coin awaiting result">
+                ?
+              </div>
+              <p id="coin-result" role="status">
+                Choose heads or tails, then execute the recorded round.
+              </p>
+            </div>
+            <div class="side-picker" role="group" aria-label="Choose a side">
+              <button id="heads" aria-pressed="true" type="button">Heads</button
+              ><button id="tails" aria-pressed="false" type="button">
+                Tails
+              </button>
+            </div>
             <label for="mode">State source</label
             ><select id="mode">
               <option value="replay">
-                Recorded Sepolia state · reproducible replay
+                Recorded CoinFlip round · reproducible replay
               </option>
               <option value="live">
                 Live Sepolia RPC · bring a signed request
               </option>
             </select>
             <p id="source-note" class="help">
-              Replays historical state, not today's account balance. Nothing is
-              submitted to the network.
+              Fixed historical Sepolia round. Nothing is submitted to the
+              network.
             </p>
             <div id="advanced" hidden>
               <label for="request">Signed execution request (JSON)</label
@@ -77,9 +92,10 @@
                 placeholder="Block number or 0x block hash from browser-input.json"
               />
               <p class="help">
-                Use <code>npm run e2e:prepare</code> locally with your sncast
-                account, then paste its request and block. The RPC must support
-                storage proofs and browser CORS. Never paste a private key.
+                Prepare a signed <code>CoinFlip.play</code> request locally with
+                your sncast account, then paste its request and block. The RPC
+                must support storage proofs and browser CORS. Never paste a
+                private key.
               </p>
             </div>
             <label class="check"
@@ -147,14 +163,41 @@
             </details>
           </div>
         </section>
+        <section class="panel game-explanation">
+          <div class="section-label">WHAT THIS DEMONSTRATES</div>
+          <h2>One flip. An execution you can prove.</h2>
+          <p>
+            The upstream contract computes
+            <code>pedersen(seed, player) mod 2</code> and emits
+            <code>[player, seed, choice, outcome, matched]</code> as a virtual
+            L2→L1 message. The browser validates the account and state, executes
+            that exact contract, and can prove the resulting public output.
+          </p>
+          <p>
+            This recorded round has a known outcome. It does not implement the
+            backend's commit/reveal service, deposits, or bank settlement, and
+            does not claim unpredictable randomness. A locally generated proof
+            is not an on-chain acceptance receipt.
+          </p>
+          <a
+            href="https://github.com/starknet-innovation/snip-36-prover-backend/tree/main/apps/coinflip"
+            >Based on the upstream CoinFlip app ↗</a
+          >
+        </section>
+        <p class="help">
+          <a
+            href="https://sepolia.voyager.online/contract/0x002a2afbcfb434e7e0d74fe6cd1f6b1b469227f98f34cb508ace50cb25ad7355"
+            >Inspect the deployed Sepolia CoinFlip contract ↗</a
+          >
+        </p>
         <section class="evidence panel">
           <div>
             <div class="section-label">03 / ON-CHAIN EVIDENCE</div>
-            <h2>Browser proof. Sepolia accepted.</h2>
+            <h2>Separate daily pipeline: Sepolia accepted.</h2>
             <p>
-              A separate automated test executes, proves, signs, and submits a
-              fresh invocation every day at 06:00 UTC. This demo does not hold
-              the CI account's key.
+              The existing balance-query test executes, proves, signs, and
+              submits a fresh invocation every day at 06:00 UTC. This demo does
+              not hold the CI account's key.
             </p>
             <div class="links">
               <a
@@ -178,7 +221,7 @@
           </div>
         </section>
         <footer>
-          <span>SNIP-36 / Browser proving lab</span
+          <span>SNIP-36 / CoinFlip demo</span
           ><span
             >Experimental · Desktop recommended ·
             <a

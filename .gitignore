@@ -12,3 +12,4 @@ __pycache__/
 web/demo-data/
 
 contracts/**/target/
+web/coinflip-runtime.mjs

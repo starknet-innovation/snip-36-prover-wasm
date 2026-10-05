@@ -2,7 +2,9 @@
 
 **[Open the Sepolia browser demo](https://starknet-innovation.github.io/snip-36-prover-wasm/)**
 
-Replay a recorded Sepolia invocation, verify state witnesses and account validation, generate a Cairo PIE, and optionally run the full recursive prover. Download execution and proof artifacts, or supply a fresh signed request for live Sepolia state acquisition. The default sample is historical replay, not a new on-chain transaction; signing and submission remain in the CLI. A live receipt check connects the demo to the confirmed daily-test transaction.
+The demo is based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip-36-prover-backend/tree/main/apps/coinflip). Choose heads or tails, replay a real signed invocation of the deployed CoinFlip contract, and optionally prove it entirely in the browser. The displayed result comes from the contract's message and is independently checked against Pedersen and the public output's Poseidon commitment. Download execution and proof artifacts, or supply a signed request for live Sepolia state acquisition.
+
+These are reproducible recorded rounds with fixed public seeds, not unpredictable live games. No deposits, payouts, commit/reveal service, or bank settlement are included. Proof generation does not submit a transaction. The existing daily on-chain balance-query test is labeled separately from the coinflip demo. See [CoinFlip architecture and provenance](docs/coinflip-demo.md).
 
 Run locally with `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium and approximately 14 GiB available memory. Execution alone downloads 36 MB and is much lighter. The Pages workflow checks asset hashes, runs real browser execution against the recorded PIE hash, then deploys the static site. No account keys or signing secrets are included in the website or Pages workflow.
 

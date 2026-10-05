@@ -22,9 +22,7 @@ try {
     kind: window.runComplete?.kind,
     sha: window.runComplete?.report.pie_sha256,
   }));
-  const fixture = JSON.parse(
-    await readFile("fixtures/captured-execution.json"),
-  );
+  const fixture = JSON.parse(await readFile("fixtures/coinflip/heads.json"));
   if (
     result.error ||
     result.kind !== "execution" ||
@@ -33,6 +31,27 @@ try {
     throw Error(JSON.stringify(result));
   if ((await page.locator("#downloads a").count()) !== 2)
     throw Error("Missing downloads");
+  const firstResult = await page.locator("#coin-result").textContent();
+  if (!firstResult.includes("Contract executed"))
+    throw Error("CoinFlip result missing");
+  await page.click("#tails");
+  await page.getByRole("button", { name: "Run execution" }).click();
+  await page.waitForFunction(
+    () => window.runComplete || window.runError,
+    null,
+    { timeout: 120000 },
+  );
+  const tailsFixture = JSON.parse(
+    await readFile("fixtures/coinflip/tails.json"),
+  );
+  const tails = await page.evaluate(() => ({
+    error: window.runError,
+    sha: window.runComplete?.report.pie_sha256,
+  }));
+  if (tails.error || tails.sha !== tailsFixture.report.pie_sha256)
+    throw Error("Tails execution failed: " + JSON.stringify(tails));
+  if (firstResult === (await page.locator("#coin-result").textContent()))
+    throw Error("Choice did not change the matching result");
   await page.getByRole("button", { name: "Check receipt on Sepolia" }).click();
   await page.waitForFunction(
     () => !document.querySelector("#check-chain").disabled,

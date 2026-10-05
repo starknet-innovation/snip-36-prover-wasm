@@ -1,14 +1,47 @@
+import { coinflipResult, PLAY_SELECTOR } from "./coinflip-runtime.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
 const $ = (s) => document.querySelector(s);
 let timer,
   started,
   sequence = 0;
 const urls = [];
+let side = "heads";
+let roundResult = null;
+for (const name of ["heads", "tails"])
+  $("#" + name).onclick = () => {
+    if (controller.active) return;
+    side = name;
+    for (const n of ["heads", "tails"])
+      $("#" + n).setAttribute("aria-pressed", String(n === name));
+    $("#coin").textContent = "?";
+    $("#coin-result").textContent = "Ready to replay the " + name + " round.";
+  };
+async function readCoinflip(receipt) {
+  const response = await fetch("./demo-data/coinflip-config.json");
+  if (!response.ok) throw Error("CoinFlip deployment metadata unavailable");
+  const config = await response.json();
+  return coinflipResult(receipt, config.contract_address);
+}
+function showRound(proved = false) {
+  if (!roundResult) return;
+  const inputs = $("#round-inputs");
+  if (inputs)
+    inputs.textContent = `Seed ${BigInt(roundResult.seed).toString()} · Player ${roundResult.player.slice(0, 10)}…${roundResult.player.slice(-6)}`;
+  $("#coin").textContent = roundResult.outcome === 0 ? "H" : "T";
+  $("#coin").setAttribute(
+    "aria-label",
+    roundResult.outcome === 0 ? "Heads" : "Tails",
+  );
+  $("#coin-result").textContent =
+    `${roundResult.outcome === 0 ? "Heads" : "Tails"} · ${roundResult.matched ? "Your choice matches" : "Your choice does not match"}. ${proved ? "Recursive proof generated locally." : "Contract executed; recursive proof not yet generated."}`;
+}
 const size = (n) => (n ? `${(n / 1024).toFixed(1)} KB` : "—");
 const step = (name, state) => {
   $("#step-" + name).className = state;
 };
 function finish(label) {
+  $("#coin").classList.remove("spinning");
+  for (const n of ["heads", "tails"]) $("#" + n).disabled = false;
   clearInterval(timer);
   $("#state").textContent = label;
   $("#run").disabled = false;
@@ -28,6 +61,10 @@ const controller = new PublicRunController({
     window.receipts.push(data);
     if (window.saveReceipt) await window.saveReceipt(data);
     if (data.kind === "execution") {
+      if (data.request?.transaction?.calldata?.[2] === PLAY_SELECTOR) {
+        roundResult = await readCoinflip(data);
+        showRound();
+      }
       step("state", "done");
       step("execution", "done");
       $("#pie-size").textContent = size(data.report.pie_bytes);
@@ -68,6 +105,7 @@ const controller = new PublicRunController({
   },
   onComplete: (data) => {
     window.runComplete = data;
+    showRound(data.kind === "proof");
     finish("COMPLETE");
     $("#details").textContent = JSON.stringify(
       { anchor: data.anchor, report: data.report, output: data.output },
@@ -82,6 +120,10 @@ const controller = new PublicRunController({
 });
 window.startRun = (request, source, options = {}) => {
   window.runError = null;
+  roundResult = null;
+  $("#coin").textContent = "?";
+  $("#coin-result").textContent = "Executing the signed request…";
+  $("#coin").classList.add("spinning");
   window.runComplete = null;
   window.receipts = [];
   urls.splice(0).forEach((url) => URL.revokeObjectURL(url));
@@ -95,6 +137,7 @@ window.startRun = (request, source, options = {}) => {
   if (controller.active) {
     $("#state").textContent = "RUNNING";
     $("#run").disabled = true;
+    for (const n of ["heads", "tails"]) $("#" + n).disabled = true;
     $("#cancel").disabled = false;
     started = performance.now();
     clearInterval(timer);
@@ -111,7 +154,7 @@ $("#mode").onchange = () => {
   $("#advanced").hidden = $("#mode").value !== "live";
   $("#source-note").textContent =
     $("#mode").value === "replay"
-      ? "Replays historical state, not today's account balance. Nothing is submitted to the network."
+      ? "Fixed historical CoinFlip round. Nothing is submitted to the network."
       : "Fetches public witnesses from Sepolia for your signed request at a fixed block. Signing and submission happen separately.";
 };
 $("#full-proof").onchange = () => {
@@ -120,6 +163,8 @@ $("#full-proof").onchange = () => {
     : "Run execution <span>↗</span>";
 };
 $("#run").onclick = async () => {
+  window.runComplete = null;
+  window.runError = null;
   const generation = ++sequence;
   $("#run").disabled = true;
   $("#cancel").disabled = false;
@@ -127,8 +172,9 @@ $("#run").onclick = async () => {
   try {
     let request, source;
     if ($("#mode").value === "replay") {
-      const response = await fetch("./demo-data/sample.json");
-      if (!response.ok) throw Error("Could not load the Sepolia sample");
+      const response = await fetch(`./demo-data/coinflip-${side}.json`);
+      if (!response.ok)
+        throw Error("Could not load the Sepolia CoinFlip round");
       ({ request, source } = await response.json());
     } else {
       const input = $("#request").value;
@@ -137,6 +183,20 @@ $("#run").onclick = async () => {
           "Private keys and recovery phrases must never be entered here",
         );
       request = JSON.parse(input);
+      if (request.transaction?.calldata?.[2] !== PLAY_SELECTOR)
+        throw Error(
+          "Provide a signed CoinFlip.play request, not a balance query",
+        );
+      const configResponse = await fetch("./demo-data/coinflip-config.json");
+      if (!configResponse.ok)
+        throw Error("CoinFlip deployment metadata unavailable");
+      const config = await configResponse.json();
+      if (
+        BigInt(request.transaction.calldata[1]) !==
+        BigInt(config.contract_address)
+      )
+        throw Error("Request targets a different CoinFlip contract");
+
       if (BigInt(request.captured_chain_id) !== 0x534e5f5345504f4c4941n)
         throw Error("Only Sepolia requests are supported");
       const endpoint = new URL($("#endpoint").value);

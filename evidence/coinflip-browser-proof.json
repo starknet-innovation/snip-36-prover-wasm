@@ -1,0 +1,42 @@
+{
+  "scope": "Recorded Sepolia CoinFlip heads invocation executed and proved in real Chromium; proof accepted by unchanged native verifier. No CoinFlip proof submission or bank settlement is claimed.",
+  "browser": {
+    "runtime": "browser Worker memory64",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "pie_sha256": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+    "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+    "proof_bytes": 235339,
+    "init_ms": 5275.675000011921,
+    "prove_ms": 74677.625,
+    "total_ms": 80053.19499999285,
+    "wasm_linear_memory_bytes": 14350483456,
+    "webcrypto_random_calls": 0,
+    "webcrypto_random_bytes": 0,
+    "rust_requested_live_bytes": 10484822298,
+    "rust_requested_peak_bytes": 13826136709,
+    "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate"
+  },
+  "native_verifier": {
+    "origin": "verify",
+    "output_matches_fixture": true,
+    "precomputes_ms": 0,
+    "proof_bytes": 235339,
+    "prove_ms": 0,
+    "total_ms": 69,
+    "verified": true,
+    "verify_ms": 69
+  },
+  "native_verifier_sha256": "7e8e2c10515931e0285401d22cfd49d4f708ab9422f321ef2006234694203567",
+  "output_preimage": [
+    "0x1",
+    "0x8",
+    "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+    "0x5649525455414c5f534e4f5330",
+    "0xf5de4d",
+    "0x11baf41521fb4643aad32762f95912f2c9c451400e0ca9a89f8ce9573eff79e",
+    "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+    "0x1",
+    "0x2ee1d0a51cf022c9a1136707aba0ce70dc425895b1671e6cf5489fcca0052cb"
+  ],
+  "both_choices_browser_execution_passed": true
+}

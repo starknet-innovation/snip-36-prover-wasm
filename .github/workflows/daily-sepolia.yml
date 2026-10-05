@@ -28,6 +28,8 @@ jobs:
       - run: npm test
       - name: Fetch checksum-pinned browser modules
         run: npm run assets
+      - name: Assemble browser demo modules
+        run: node scripts/build-demo.mjs
       - name: Install actual Chromium
         run: npx playwright install --with-deps chromium
       - name: Sign fresh virtual invocation locally
