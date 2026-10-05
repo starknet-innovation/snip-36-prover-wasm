@@ -85,7 +85,12 @@ try {
               return true;
             }
             if (r.type === "wallet_supportedWalletApi")
-              return scenario === "unsupported" ? ["0.10.2"] : ["0.10.3"];
+              return scenario === "unsupported" ? ["0.10.2"] : ["0.10.4-rc.0"];
+            if (
+              r.type === "wallet_addInvokeTransaction" &&
+              r.params.api_version !== "0.10.4-rc.0"
+            )
+              throw Error("Wallet API version was not preserved");
             return window.walletTestCall();
           },
         };

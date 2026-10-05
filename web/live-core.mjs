@@ -236,9 +236,14 @@ export function proofApiVersion(versions) {
   if (!Array.isArray(versions)) return null;
   return (
     versions
-      .filter((v) => /^0\.10\.(?:[3-9]|[1-9]\d+)$/.test(v))
-      .sort((a, b) => Number(b.split(".")[2]) - Number(a.split(".")[2]))[0] ??
-    null
+      .filter(
+        (v) => v === "0.10.4-rc.0" || /^0\.10\.(?:[3-9]|[1-9]\d+)$/.test(v),
+      )
+      .sort(
+        (a, b) =>
+          parseInt(b.split(".")[2], 10) - parseInt(a.split(".")[2], 10) ||
+          Number(a.includes("-")) - Number(b.includes("-")),
+      )[0] ?? null
   );
 }
 export async function rpc(method, params) {

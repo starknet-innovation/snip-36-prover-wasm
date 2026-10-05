@@ -107,5 +107,8 @@ test("proof attachment must bind the exact round and message", () => {
 test("proof API gate rejects unsupported and malformed versions", () => {
   assert.equal(proofApiVersion(["0.9.0", "0.10.2"]), null);
   assert.equal(proofApiVersion(["0.10.3", "0.10.4"]), "0.10.4");
-  assert.equal(proofApiVersion(["0.10.3-rc.0", "junk"]), null);
+  assert.equal(proofApiVersion(["0.10.3-rc.0", "0.10.4-rc.1", "junk"]), null);
+  assert.equal(proofApiVersion(["0.10.4-rc.0"]), "0.10.4-rc.0");
+  assert.equal(proofApiVersion(["0.10.4-rc.0", "0.10.4"]), "0.10.4");
+  assert.equal(proofApiVersion(["0.10.3", "0.10.4-rc.0"]), "0.10.4-rc.0");
 });
