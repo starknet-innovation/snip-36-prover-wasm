@@ -275,6 +275,18 @@ async function submit() {
     throw Error("Submission plan changed");
   if (!same(await nonce(plan.account), plan.nonce))
     throw Error("Nonce changed before broadcast");
+  // Finish local wire validation before reserving the one-shot broadcast intent.
+  const gatewayPayload = gatewayTransaction(payload);
+  const includedFields = {
+    ...gatewayPayload,
+    type: "INVOKE",
+    resource_bounds: Object.fromEntries(
+      Object.entries(gatewayPayload.resource_bounds).map(([key, value]) => [
+        key.toLowerCase(),
+        value,
+      ]),
+    ),
+  };
   await save(
     "submission-intent.json",
     {
@@ -284,7 +296,6 @@ async function submit() {
     },
     true,
   );
-  const gatewayPayload = gatewayTransaction(payload);
   // Exactly one broadcast. Unknown transport outcomes must be reconciled by transaction hash.
   let result;
   try {
@@ -351,7 +362,8 @@ async function submit() {
     transaction_hash: plan.transaction_hash,
   });
   await save("transaction.json", tx);
-  for (const [k, v] of Object.entries(payload))
+  // Compare exactly what was sent, translated back to RPC naming conventions.
+  for (const [k, v] of Object.entries(includedFields))
     if (!["proof", "proof_facts"].includes(k) && !same(v, tx[k]))
       throw Error("Included signed field differs: " + k);
   const block = { block_hash: receipt.block_hash };
