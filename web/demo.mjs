@@ -142,15 +142,16 @@ $("#run").onclick = async () => {
       const endpoint = new URL($("#endpoint").value);
       if (endpoint.protocol !== "https:")
         throw Error("Use an HTTPS RPC endpoint");
-      const raw = $("#block").value;
-      if (!/^\d+$/.test(raw) || !Number.isSafeInteger(Number(raw)))
+      const raw = $("#block").value.trim();
+      let block_id;
+      if (/^0x[0-9a-fA-F]{1,64}$/.test(raw)) block_id = { block_hash: raw };
+      else if (/^\d+$/.test(raw) && Number.isSafeInteger(Number(raw)))
+        block_id = { block_number: Number(raw) };
+      else
         throw Error(
-          "Enter the fixed block number used to prepare your request",
+          "Enter the fixed block number or hash used to prepare your request",
         );
-      source = {
-        endpoint: endpoint.href,
-        block_id: { block_number: Number(raw) },
-      };
+      source = { endpoint: endpoint.href, block_id };
     }
     if (generation !== sequence) return;
     window.startRun(request, source, {

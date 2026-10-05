@@ -70,11 +70,11 @@
                 id="endpoint"
                 type="url"
                 value="https://api.zan.top/public/starknet-sepolia/rpc/v0_10"
-              /><label for="block">Fixed block number</label
+              /><label for="block">Fixed block number or hash</label
               ><input
                 id="block"
-                inputmode="numeric"
-                placeholder="Block used to prepare the request"
+                type="text"
+                placeholder="Block number or 0x block hash from browser-input.json"
               />
               <p class="help">
                 Use <code>npm run e2e:prepare</code> locally with your sncast

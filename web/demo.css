@@ -142,7 +142,7 @@ label {
 }
 select,
 input[type="url"],
-input[inputmode],
+input[type="text"],
 textarea {
   width: 100%;
   padding: 12px;
