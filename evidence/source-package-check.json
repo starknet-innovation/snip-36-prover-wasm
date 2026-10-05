@@ -1,0 +1,25 @@
+{
+  "checked_revisions": {
+    "sequencer": "e6b6fd2e9932909107833579e5b6efd6c75fa0af",
+    "proving-utils": "3035dd00421daa541894297bd754db6e2787807b",
+    "stwo": "489a0f3ee44a59e03944ad9aa4f3e5a91a3d3f08",
+    "stwo-cairo": "9b6be2710e4d7124bc93fe80a5af36556d42ed29"
+  },
+  "executor_patch_layers_apply": true,
+  "prover_patch_layers_apply": true,
+  "executor_lock_matches": true,
+  "native_verifier_source_and_prover_parameters_unchanged": true,
+  "prover_locked_metadata_resolves": true,
+  "scope": "Fresh source assembly and locked dependency graph checks; initial released modules were built and browser/Sepolia-tested in the development workspace",
+  "patch_sha256": {
+    "patches/prover/proving-utils.patch": "da327dc54b3eca7a8de1e501b6458dc1a7c173cea323d538fd19793ae3a6e558",
+    "patches/prover/stwo-cairo.patch": "a55e0bf9ebc0e6329515435a09cfbfb2f9a1ba3243f363a82d198382f1038f63",
+    "patches/prover/stwo.patch": "89344f3d484e527ecc4bd76e5ae24ba953d8cc4bff7b7e97499c36ef66d3811e",
+    "patches/executor/sequencer.patch": "90e0e54ba4e219b11606a9515f8cdfd19775055ecdbe39e1460f2a40b6f90cdd",
+    "patches/executor/program-compression.patch": "b8a3f1adc3558a17bc800fab1c34f0acc693e7a459b08834361283520c67aee3",
+    "patches/executor/public-state.patch": "9158c019a3c5378cb43ab5942ae2fe7650c5bc725292acd6464967d0486c791a",
+    "patches/executor/signed-account-fixture.patch": "442928d6a83a41b18e78505cabdde9429eef6858f06ec903e0d90b1f484f275e",
+    "patches/executor/execution-capacity.patch": "757fcba65ceba7606e84df3d73ffd16c2b46d693e6f9f08ea73e609fa6f40e7c",
+    "patches/executor/partial-state-cache.patch": "429532e639bab3c057db36fab72527ff1fb50a4d0a625e86a6aa1f427adc653c"
+  }
+}
