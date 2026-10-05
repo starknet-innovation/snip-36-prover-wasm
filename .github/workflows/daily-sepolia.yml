@@ -1,0 +1,63 @@
+name: Daily Sepolia Browser E2E
+on:
+  schedule:
+    - cron: '0 6 * * *' # Daily 06:00 UTC, apart from backend's 08:00 UTC run.
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sepolia-browser-account
+  cancel-in-progress: false
+jobs:
+  browser-e2e:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: sepolia
+    timeout-minutes: 35
+    env:
+      RUN_DIR: artifacts/run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - name: Fetch checksum-pinned browser modules
+        run: npm run assets
+      - name: Install actual Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Sign fresh virtual invocation locally
+        env:
+          STARKNET_ACCOUNT_ADDRESS: ${{ vars.STARKNET_ACCOUNT_ADDRESS }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.STARKNET_PRIVATE_KEY }}
+        run: npm run e2e:prepare
+      - name: Execute, prove and replay in Chromium Workers
+        # Deliberately no signing credential in this process or its Chromium child.
+        run: npm run e2e:browser
+      - name: Check evidence and sign proof-bearing transaction locally
+        env:
+          STARKNET_PRIVATE_KEY: ${{ secrets.STARKNET_PRIVATE_KEY }}
+        run: npm run e2e:sign
+      - name: Persist intended transaction before broadcast
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: submission-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/run/submission-plan.json
+            artifacts/run/signed-payload.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Submit once and require successful closed-block receipt
+        run: npm run e2e:submit
+      - name: Preserve proof, capture and transaction evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: sepolia-browser-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/run/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,91 @@
+diff --git a/crates/browser_virtual_os/src/preexecute.rs b/crates/browser_virtual_os/src/preexecute.rs
+index 0c6a0a686a..5e6ead6f3f 100644
+--- a/crates/browser_virtual_os/src/preexecute.rs
++++ b/crates/browser_virtual_os/src/preexecute.rs
+@@ -35,22 +35,46 @@ fn default_execution_mode() -> String {
+     "upstream_fixture".into()
+ }
+ struct SnapshotReader {
++    strict_missing: bool,
+     state: StateMaps,
+     classes: HashMap<ClassHash, RunnableCompiledClass>,
+     hashes_v2: BTreeMap<ClassHash, CompiledClassHash>,
+ }
++impl SnapshotReader {
++    fn absent<T: Default>(&self, request: serde_json::Value) -> StateResult<T> {
++        if self.strict_missing {
++            Err(StateError::StateReadError(format!("BROWSER_STATE_MISS:{request}")))
++        } else {
++            Ok(T::default())
++        }
++    }
++}
+ impl StateReader for SnapshotReader {
+     fn get_storage_at(&self, a: ContractAddress, k: StorageKey) -> StateResult<Felt> {
+-        Ok(self.state.storage.get(&(a, k)).copied().unwrap_or_default())
++        self.state.storage.get(&(a, k)).copied().map(Ok).unwrap_or_else(|| {
++            self.absent(serde_json::json!({"kind":"storage","address":a,"key":k}))
++        })
+     }
+     fn get_nonce_at(&self, a: ContractAddress) -> StateResult<Nonce> {
+-        Ok(self.state.nonces.get(&a).copied().unwrap_or_default())
++        self.state
++            .nonces
++            .get(&a)
++            .copied()
++            .map(Ok)
++            .unwrap_or_else(|| self.absent(serde_json::json!({"kind":"nonce","address":a})))
+     }
+     fn get_class_hash_at(&self, a: ContractAddress) -> StateResult<ClassHash> {
+-        Ok(self.state.class_hashes.get(&a).copied().unwrap_or_default())
++        self.state
++            .class_hashes
++            .get(&a)
++            .copied()
++            .map(Ok)
++            .unwrap_or_else(|| self.absent(serde_json::json!({"kind":"class_hash","address":a})))
+     }
+     fn get_compiled_class_hash(&self, h: ClassHash) -> StateResult<CompiledClassHash> {
+-        Ok(self.state.compiled_class_hashes.get(&h).copied().unwrap_or_default())
++        self.state.compiled_class_hashes.get(&h).copied().map(Ok).unwrap_or_else(|| {
++            self.absent(serde_json::json!({"kind":"compiled_class_hash","class_hash":h}))
++        })
+     }
+     fn get_compiled_class(&self, h: ClassHash) -> StateResult<RunnableCompiledClass> {
+         self.classes.get(&h).cloned().ok_or(StateError::UndeclaredClassHash(h))
+@@ -79,11 +103,11 @@ pub fn preexecute_with_witness(
+     database_json: Option<&[u8]>,
+ ) -> Result<String, Box<dyn std::error::Error>> {
+     let snapshot: Snapshot = serde_json::from_slice(snapshot_json)?;
+-    if snapshot.scope != "complete synthetic test-chain state; absence means zero" {
+-        return Err("only complete synthetic snapshots are supported by this local fixture \
+-                    adapter"
+-            .into());
+-    }
++    let strict_missing = match snapshot.scope.as_str() {
++        "complete synthetic test-chain state; absence means zero" => false,
++        "partial state cache; unknown entries are errors" => true,
++        _ => return Err("unsupported state snapshot scope".into()),
++    };
+     if hints.os_input.os_block_inputs.len() != 1 {
+         return Err("expected one block".into());
+     }
+@@ -117,6 +141,7 @@ pub fn preexecute_with_witness(
+         );
+     }
+     let reader = SnapshotReader {
++        strict_missing,
+         state: snapshot.state_maps,
+         classes,
+         hashes_v2: snapshot.compiled_class_hashes_v2,
+@@ -157,8 +182,8 @@ pub fn preexecute_with_witness(
+     let context =
+         BlockContext::new(block.block_info.clone(), snapshot.chain_info, constants, bouncer);
+     let execution = transaction.execute(&mut state, &context)?;
+-    if execution.revert_error.is_some() {
+-        return Err("virtual transaction reverted".into());
++    if let Some(error) = execution.revert_error {
++        return Err(format!("virtual transaction reverted: {error}").into());
+     }
+     if let Some(database_json) = database_json {
+         // Same extended-read collection used by the upstream flow-test builder.

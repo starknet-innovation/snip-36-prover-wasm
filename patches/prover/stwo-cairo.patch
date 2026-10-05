@@ -1,0 +1,137 @@
+diff --git a/stwo_cairo_prover/crates/prover/src/witness/components/cube_252.rs b/stwo_cairo_prover/crates/prover/src/witness/components/cube_252.rs
+index 08f667b9..6068b52b 100644
+--- a/stwo_cairo_prover/crates/prover/src/witness/components/cube_252.rs
++++ b/stwo_cairo_prover/crates/prover/src/witness/components/cube_252.rs
+@@ -37,22 +37,30 @@ impl ClaimGenerator {
+         self.packed_inputs
+             .resize(packed_size, *self.packed_inputs.first().unwrap());
+ 
+-        // Decreasing this value may cause a stack-overflow during witness generation.
+-        // NOTE: This is not autogened, when updating the code, re-add this.
+-        // TODO(Ohad): remove.
+-        const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
+-        let pool = rayon::ThreadPoolBuilder::new()
+-            .stack_size(RAYON_THREAD_STACK_SIZE)
+-            .build()
+-            .unwrap();
+-        let (trace, lookup_data, sub_component_inputs) = pool.install(|| {
++        let write_trace = || {
+             write_trace_simd(
+                 self.packed_inputs,
+                 n_rows,
+                 range_check_9_9_state,
+                 range_check_20_state,
+             )
+-        });
++        };
++        // Web Workers cannot spawn this native pool. The Wasm linker stack must
++        // provide at least the 8 MiB used by the native witness-generation pool.
++        #[cfg(target_family = "wasm")]
++        let (trace, lookup_data, sub_component_inputs) = write_trace();
++        #[cfg(not(target_family = "wasm"))]
++        let (trace, lookup_data, sub_component_inputs) = {
++            // Decreasing this value may cause a stack-overflow during witness generation.
++            // NOTE: This is not autogened, when updating the code, re-add this.
++            // TODO(Ohad): remove.
++            const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
++            let pool = rayon::ThreadPoolBuilder::new()
++                .stack_size(RAYON_THREAD_STACK_SIZE)
++                .build()
++                .unwrap();
++            pool.install(write_trace)
++        };
+         for inputs in sub_component_inputs.range_check_9_9 {
+             range_check_9_9_state.add_packed_inputs(&inputs, 0);
+         }
+diff --git a/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs b/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs
+index 2a758654..0a178cb6 100644
+--- a/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs
++++ b/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs
+@@ -42,15 +42,7 @@ impl ClaimGenerator {
+         self.packed_inputs
+             .resize(packed_size, *self.packed_inputs.first().unwrap());
+ 
+-        // Decreasing this value may cause a stack-overflow during witness generation.
+-        // NOTE: This is not autogened, when updating the code, re-add this.
+-        // TODO(Ohad): remove.
+-        const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
+-        let pool = rayon::ThreadPoolBuilder::new()
+-            .stack_size(RAYON_THREAD_STACK_SIZE)
+-            .build()
+-            .unwrap();
+-        let (trace, lookup_data, sub_component_inputs) = pool.install(|| {
++        let write_trace = || {
+             write_trace_simd(
+                 self.packed_inputs,
+                 n_rows,
+@@ -58,7 +50,23 @@ impl ClaimGenerator {
+                 range_check_9_9_state,
+                 range_check_20_state,
+             )
+-        });
++        };
++        // Web Workers cannot spawn this native pool. The Wasm linker stack must
++        // provide at least the 8 MiB used by the native witness-generation pool.
++        #[cfg(target_family = "wasm")]
++        let (trace, lookup_data, sub_component_inputs) = write_trace();
++        #[cfg(not(target_family = "wasm"))]
++        let (trace, lookup_data, sub_component_inputs) = {
++            // Decreasing this value may cause a stack-overflow during witness generation.
++            // NOTE: This is not autogened, when updating the code, re-add this.
++            // TODO(Ohad): remove.
++            const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
++            let pool = rayon::ThreadPoolBuilder::new()
++                .stack_size(RAYON_THREAD_STACK_SIZE)
++                .build()
++                .unwrap();
++            pool.install(write_trace)
++        };
+         sub_component_inputs
+             .pedersen_points_table_window_bits_18
+             .iter()
+diff --git a/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs b/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs
+index f6964480..1fcf94e6 100644
+--- a/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs
++++ b/stwo_cairo_prover/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs
+@@ -42,15 +42,7 @@ impl ClaimGenerator {
+         self.packed_inputs
+             .resize(packed_size, *self.packed_inputs.first().unwrap());
+ 
+-        // Decreasing this value may cause a stack-overflow during witness generation.
+-        // NOTE: This is not autogened, when updating the code, re-add this.
+-        // TODO(Ohad): remove.
+-        const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
+-        let pool = rayon::ThreadPoolBuilder::new()
+-            .stack_size(RAYON_THREAD_STACK_SIZE)
+-            .build()
+-            .unwrap();
+-        let (trace, lookup_data, sub_component_inputs) = pool.install(|| {
++        let write_trace = || {
+             write_trace_simd(
+                 self.packed_inputs,
+                 n_rows,
+@@ -58,7 +50,23 @@ impl ClaimGenerator {
+                 range_check_9_9_state,
+                 range_check_20_state,
+             )
+-        });
++        };
++        // Web Workers cannot spawn this native pool. The Wasm linker stack must
++        // provide at least the 8 MiB used by the native witness-generation pool.
++        #[cfg(target_family = "wasm")]
++        let (trace, lookup_data, sub_component_inputs) = write_trace();
++        #[cfg(not(target_family = "wasm"))]
++        let (trace, lookup_data, sub_component_inputs) = {
++            // Decreasing this value may cause a stack-overflow during witness generation.
++            // NOTE: This is not autogened, when updating the code, re-add this.
++            // TODO(Ohad): remove.
++            const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
++            let pool = rayon::ThreadPoolBuilder::new()
++                .stack_size(RAYON_THREAD_STACK_SIZE)
++                .build()
++                .unwrap();
++            pool.install(write_trace)
++        };
+         sub_component_inputs
+             .pedersen_points_table_window_bits_9
+             .iter()

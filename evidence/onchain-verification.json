@@ -1,0 +1,25 @@
+{
+  "network": "SN_SEPOLIA",
+  "transaction_hash": "0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d",
+  "block_number": 16111332,
+  "block_hash": "0x31fa1746f8a20696ee5e9e698717948a7667f469cd02f7239d528f3086f37be",
+  "execution_status": "SUCCEEDED",
+  "finality_status": "ACCEPTED_ON_L2",
+  "actual_fee_fri": "1172821106001977728",
+  "actual_fee_strk": 1.1728211060019778,
+  "execution_resources": {
+    "l1_data_gas": 128,
+    "l1_gas": 0,
+    "l2_gas": 76076800
+  },
+  "included_in_closed_block": true,
+  "returned_signed_fields_match": true,
+  "submitted_browser_proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+  "nonce_before": "0x451",
+  "nonce_after": "0x452",
+  "balance_delta_equals_fee": true,
+  "proof_and_facts_returned_by_rpc": false,
+  "proof_linkage": "Saved signed payload and gateway accepted hash; RPC read schema omits proof and proof_facts",
+  "trace_available": false,
+  "scope": "Real successful proof-bearing Sepolia transaction; L2 inclusion confirmed, not independent L1 finality"
+}

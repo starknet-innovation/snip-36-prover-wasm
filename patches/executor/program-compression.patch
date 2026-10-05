@@ -1,0 +1,98 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 1f8e8c09c4..dc67e0e815 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -2680,6 +2680,7 @@ dependencies = [
+  "blockifier",
+  "cairo-vm",
+  "expect-test",
++ "flate2",
+  "rstest",
+  "serde",
+  "serde_json",
+diff --git a/crates/apollo_starknet_os_program/Cargo.toml b/crates/apollo_starknet_os_program/Cargo.toml
+index d8a528ec92..e014b8bf1e 100644
+--- a/crates/apollo_starknet_os_program/Cargo.toml
++++ b/crates/apollo_starknet_os_program/Cargo.toml
+@@ -21,7 +21,11 @@ serde_json.workspace = true
+ starknet-types-core.workspace = true
+ thiserror.workspace = true
+ 
++[target.'cfg(target_family = "wasm")'.dependencies]
++flate2.workspace = true
++
+ [build-dependencies]
++flate2.workspace = true
+ apollo_infra_utils.workspace = true
+ serde_json.workspace = true
+ tempfile.workspace = true
+diff --git a/crates/apollo_starknet_os_program/build/compile_program.rs b/crates/apollo_starknet_os_program/build/compile_program.rs
+index 22ae476918..065963922e 100644
+--- a/crates/apollo_starknet_os_program/build/compile_program.rs
++++ b/crates/apollo_starknet_os_program/build/compile_program.rs
+@@ -31,6 +31,18 @@ pub async fn compile_and_output_program(
+     println!(
+         "cargo::warning=Done compiling {program_name}. Writing compiled bytes to output directory."
+     );
++    // Browser packaging only: retain the exact compiler output, compressed losslessly.
++    // Native program loading and Cairo compilation are unchanged.
++    if std::env::var("CARGO_CFG_TARGET_FAMILY").as_deref() == Ok("wasm") {
++        use std::io::{Read, Write};
++        let mut encoder=flate2::write::GzEncoder::new(Vec::new(),flate2::Compression::best());
++        encoder.write_all(&bytes).expect("compress program");
++        let compressed=encoder.finish().expect("finish program compression");
++        let mut roundtrip=Vec::new();
++        flate2::read::GzDecoder::new(compressed.as_slice()).read_to_end(&mut roundtrip).expect("check program compression");
++        assert_eq!(roundtrip,bytes,"program compression changed bytes");
++        std::fs::write(out_dir.join(format!("{program_name}_bytes.gz")),&compressed).expect("write compressed program");
++    }
+     let bytes_path = out_dir.join(format!("{program_name}_bytes"));
+     std::fs::write(&bytes_path, &bytes).unwrap_or_else(|error| {
+         panic!("Failed to write the compiled {program_name} bytes to {bytes_path:?}: {error}.")
+diff --git a/crates/apollo_starknet_os_program/src/lib.rs b/crates/apollo_starknet_os_program/src/lib.rs
+index c273310f31..172829452c 100644
+--- a/crates/apollo_starknet_os_program/src/lib.rs
++++ b/crates/apollo_starknet_os_program/src/lib.rs
+@@ -38,14 +38,27 @@ pub const VIRTUAL_OS_PROGRAM_BYTES: &[u8] =
+     include_bytes!(concat!(env!("OUT_DIR"), "/virtual_os_bytes"));
+ 
+ pub static OS_PROGRAM: LazyLock<Program> = LazyLock::new(|| {
+-    Program::from_bytes(OS_PROGRAM_BYTES, Some("main")).expect("Failed to load the OS bytes.")
++    #[cfg(not(target_family = "wasm"))]
++    let bytes = OS_PROGRAM_BYTES;
++    #[cfg(target_family = "wasm")]
++    let bytes = decompress_browser_program(include_bytes!(concat!(env!("OUT_DIR"), "/starknet_os_bytes.gz")));
++    Program::from_bytes(&bytes[..], Some("main"))
++        .expect("Failed to load the OS bytes.")
+ });
+ pub static AGGREGATOR_PROGRAM: LazyLock<Program> = LazyLock::new(|| {
+-    Program::from_bytes(AGGREGATOR_PROGRAM_BYTES, Some("main"))
++    #[cfg(not(target_family = "wasm"))]
++    let bytes = AGGREGATOR_PROGRAM_BYTES;
++    #[cfg(target_family = "wasm")]
++    let bytes = decompress_browser_program(include_bytes!(concat!(env!("OUT_DIR"), "/starknet_aggregator_bytes.gz")));
++    Program::from_bytes(&bytes[..], Some("main"))
+         .expect("Failed to load the aggregator bytes.")
+ });
+ pub static VIRTUAL_OS_PROGRAM: LazyLock<Program> = LazyLock::new(|| {
+-    Program::from_bytes(VIRTUAL_OS_PROGRAM_BYTES, Some("main"))
++    #[cfg(not(target_family = "wasm"))]
++    let bytes = VIRTUAL_OS_PROGRAM_BYTES;
++    #[cfg(target_family = "wasm")]
++    let bytes = decompress_browser_program(include_bytes!(concat!(env!("OUT_DIR"), "/virtual_os_bytes.gz")));
++    Program::from_bytes(&bytes[..], Some("main"))
+         .expect("Failed to load the virtual OS bytes.")
+ });
+ 
+@@ -55,3 +68,11 @@ pub static PROGRAM_HASHES: LazyLock<ProgramHashes> = LazyLock::new(|| {
+     serde_json::from_str(include_str!("program_hash.json"))
+         .expect("Failed to deserialize program_hash.json.")
+ });
++
++#[cfg(target_family = "wasm")]
++fn decompress_browser_program(compressed: &[u8]) -> Vec<u8> {
++    use std::io::Read;
++    let mut bytes=Vec::new();
++    flate2::read::GzDecoder::new(compressed).read_to_end(&mut bytes).expect("decompress pinned browser program");
++    bytes
++}

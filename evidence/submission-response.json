@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": 69,
+    "message": "The proof field in the invoke v3 transaction is invalid"
+  },
+  "id": 1,
+  "jsonrpc": "2.0"
+}

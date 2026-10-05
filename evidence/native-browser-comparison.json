@@ -1,0 +1,15 @@
+{
+  "native_sha256": "d5bf49efdd88ba5c9ed056a0f3c5d8f3a1327684ff329ea8db9ca474b61809fd",
+  "browser_sha256": "d5bf49efdd88ba5c9ed056a0f3c5d8f3a1327684ff329ea8db9ca474b61809fd",
+  "byte_identical": true,
+  "native_verified": {
+    "origin": "prove",
+    "output_matches_fixture": true,
+    "precomputes_ms": 1660,
+    "proof_bytes": 231266,
+    "prove_ms": 25878,
+    "total_ms": 27615,
+    "verified": true,
+    "verify_ms": 53
+  }
+}

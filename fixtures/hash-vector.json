@@ -1,0 +1,55 @@
+{
+  "request": {
+    "captured_chain_id": "0x534e5f5345504f4c4941",
+    "chain_info": {
+      "chain_id": "SN_SEPOLIA",
+      "fee_token_addresses": {
+        "eth_fee_token_address": "0x216e06f4761eb833ec9fbc9d08ae554427a2e6f23539d669a26d7e9997222b3",
+        "strk_fee_token_address": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+      },
+      "is_l3": false
+    },
+    "transaction": {
+      "sender_address": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+      "calldata": [
+        "0x1",
+        "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        "0x35a73cd311a05d46deda634c5ee045db92f811b4e74bca4437fcb5302b7af33",
+        "0x1",
+        "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa"
+      ],
+      "signature": [],
+      "nonce": "0x451",
+      "resource_bounds": {
+        "l1_gas": {
+          "max_amount": "0x10000",
+          "max_price_per_unit": "0xb074db816a92"
+        },
+        "l2_gas": {
+          "max_amount": "0x7000000",
+          "max_price_per_unit": "0x72daf07de"
+        },
+        "l1_data_gas": {
+          "max_amount": "0x1b0",
+          "max_price_per_unit": "0xb92af15e36"
+        }
+      },
+      "tip": "0x0",
+      "paymaster_data": [],
+      "account_deployment_data": [],
+      "nonce_data_availability_mode": "L1",
+      "fee_data_availability_mode": "L1",
+      "proof_facts": [
+        "0x50524f4f4631",
+        "0x5649525455414c5f534e4f53",
+        "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+        "0x5649525455414c5f534e4f5330",
+        "0xf5d334",
+        "0x31d7e77a1a55236f80df9a3e57b0f6e08e3e6f3a3caf5efbf03cbb1b9006a93",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x0"
+      ]
+    }
+  },
+  "transaction_hash": "0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d"
+}

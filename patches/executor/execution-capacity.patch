@@ -1,0 +1,34 @@
+diff --git a/crates/browser_virtual_os/src/preexecute.rs b/crates/browser_virtual_os/src/preexecute.rs
+--- a/crates/browser_virtual_os/src/preexecute.rs
++++ b/crates/browser_virtual_os/src/preexecute.rs
+@@ -2,6 +2,8 @@
+ //! No RPC, implicit remote state, or fallback to native execution.
+ use std::collections::{BTreeMap, HashMap};
+ 
++use blockifier::blockifier::config::TransactionExecutorConfig;
++use blockifier::blockifier::transaction_executor::TransactionExecutor;
+ use blockifier::blockifier_versioned_constants::VersionedConstants;
+ use blockifier::bouncer::BouncerConfig;
+ use blockifier::context::{BlockContext, ChainInfo};
+@@ -10,7 +12,6 @@
+ use blockifier::state::errors::StateError;
+ use blockifier::state::state_api::{StateReader, StateResult};
+ use blockifier::transaction::transaction_execution::Transaction;
+-use blockifier::transaction::transactions::ExecutableTransaction;
+ use serde::Deserialize;
+ use shared_execution_objects::central_objects::CentralTransactionExecutionInfo;
+ use starknet_api::contract_class::SierraVersion;
+@@ -181,7 +182,12 @@
+     };
+     let context =
+         BlockContext::new(block.block_info.clone(), snapshot.chain_info, constants, bouncer);
+-    let execution = transaction.execute(&mut state, &context)?;
++    // Same single-transaction execution and capacity gate as the RPC backend.
++    // No block preprocessing or native worker pool is used.
++    let mut executor =
++        TransactionExecutor::new(state, context.clone(), TransactionExecutorConfig::default());
++    let (execution, _) = executor.execute(&transaction)?;
++    state = executor.block_state.take().ok_or("transaction executor state unavailable")?;
+     if let Some(error) = execution.revert_error {
+         return Err(format!("virtual transaction reverted: {error}").into());
+     }

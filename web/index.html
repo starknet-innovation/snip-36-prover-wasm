@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>SNIP-36 browser prover</title>
+<style>body{font:16px system-ui;max-width:900px;margin:2rem auto}textarea{width:100%;height:160px}pre{white-space:pre-wrap}</style>
+<h1>SNIP-36 browser prover</h1><p>Execute and prove a signed Sepolia invocation using public authenticated state. Signing and submission happen separately. This browser never needs a private key.</p>
+<label>Signed request<textarea id="request"></textarea></label><label>Source: public HTTPS RPC and fixed block, or saved capture<textarea id="source"></textarea></label><button id="run">Execute and prove</button><button id="cancel">Cancel</button><pre id="status">Ready</pre>
+<script type="module">
+import {PublicRunController} from './public-run-controller.mjs';
+const status=document.querySelector('#status');window.receipts=[];
+const controller=new PublicRunController({save:async data=>{window.receipts.push(data);if(window.saveReceipt)await window.saveReceipt(data);},onStatus:data=>{status.textContent=JSON.stringify(data,null,2);if(data.kind==='error')window.runError=data.error;},onComplete:data=>{window.runComplete=data;status.textContent=JSON.stringify({id:data.id,kind:data.kind,report:data.report},null,2);}});
+window.startRun=(request,source)=>{window.runError=null;window.runComplete=null;window.receipts=[];return controller.start(request,source);};
+document.querySelector('#run').onclick=()=>{try{window.startRun(JSON.parse(document.querySelector('#request').value),JSON.parse(document.querySelector('#source').value));}catch(e){status.textContent=String(e);}};
+document.querySelector('#cancel').onclick=()=>controller.cancel();
+</script>

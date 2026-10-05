@@ -1,0 +1,32 @@
+{
+  "actual_fee": {
+    "amount": "0x1046b29500542180",
+    "unit": "FRI"
+  },
+  "block_hash": "0x31fa1746f8a20696ee5e9e698717948a7667f469cd02f7239d528f3086f37be",
+  "block_number": 16111332,
+  "events": [
+    {
+      "data": [
+        "0x1046b29500542180",
+        "0x0"
+      ],
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+        "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"
+      ]
+    }
+  ],
+  "execution_resources": {
+    "l1_data_gas": 128,
+    "l1_gas": 0,
+    "l2_gas": 76076800
+  },
+  "execution_status": "SUCCEEDED",
+  "finality_status": "ACCEPTED_ON_L2",
+  "messages_sent": [],
+  "transaction_hash": "0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d",
+  "type": "INVOKE"
+}

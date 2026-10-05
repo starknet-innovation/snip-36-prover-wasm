@@ -1,0 +1,26 @@
+{
+  "browser_receipt_id": "1f2b877d-f5d5-41f9-89f8-a4bcb3cf515c",
+  "browser_proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+  "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+  "proof_bytes": 231962,
+  "native_transaction_service_verifier_accepted": true,
+  "native_verifier_sha256": "7e8e2c10515931e0285401d22cfd49d4f708ab9422f321ef2006234694203567",
+  "proving_utils_revision": "3035dd00421daa541894297bd754db6e2787807b",
+  "same_browser_execution_and_statement": true,
+  "report": {
+    "runtime": "browser Worker memory64",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+    "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+    "proof_bytes": 231962,
+    "init_ms": 5284.899999976158,
+    "prove_ms": 80944.40000003576,
+    "total_ms": 87036.19999998808,
+    "wasm_linear_memory_bytes": 14100267008,
+    "webcrypto_random_calls": 0,
+    "webcrypto_random_bytes": 0,
+    "rust_requested_live_bytes": 10486908137,
+    "rust_requested_peak_bytes": 13828577826,
+    "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate"
+  }
+}

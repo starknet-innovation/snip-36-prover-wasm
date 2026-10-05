@@ -1,0 +1,7 @@
+{
+  "http_status": 400,
+  "body": {
+    "code": "StarknetErrorCode.INVALID_PROOF",
+    "message": "Proof verification error: Proof verification failed: field element value out of range"
+  }
+}

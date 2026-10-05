@@ -1,0 +1,59 @@
+diff --git a/crates/starknet_os_flow_tests/src/virtual_os_test.rs b/crates/starknet_os_flow_tests/src/virtual_os_test.rs
+index 1b44a8aa5e..19f96b5397 100644
+--- a/crates/starknet_os_flow_tests/src/virtual_os_test.rs
++++ b/crates/starknet_os_flow_tests/src/virtual_os_test.rs
+@@ -384,9 +384,22 @@ async fn export_browser_virtual_os_fixture() {
+     );
+     std::fs::create_dir_all(&dir).unwrap();
+     let test_contract = FeatureContract::TestContract(CairoVersion::Cairo1(RunnableCairo1::Casm));
+-    let (mut builder, [contract_address]) =
+-        TestBuilder::create_standard_virtual([(test_contract, calldata![Felt::ONE, Felt::TWO])])
+-            .await;
++    let signed_account = std::env::var("BROWSER_SIGNED_ACCOUNT").as_deref() == Ok("1");
++    // Public, deliberately insecure fixture key. Never a wallet/user credential.
++    let fixture_private_key = Felt::ONE;
++    let (mut builder, contract_address, signed_address) = if signed_account {
++        let public_key = starknet_crypto::get_public_key(&fixture_private_key);
++        let (builder, [contract, account]) = TestBuilder::create_standard_virtual([
++            (test_contract, calldata![Felt::ONE, Felt::TWO]),
++            (FeatureContract::AccountWithRealValidate(RunnableCairo1::Casm), calldata![public_key]),
++        ]).await;
++        (builder, contract, Some(account))
++    } else {
++        let (builder, [contract]) = TestBuilder::create_standard_virtual([
++            (test_contract, calldata![Felt::ONE, Felt::TWO]),
++        ]).await;
++        (builder, contract, None)
++    };
+     let to_address = Felt::from(85);
+     let payload_first =
+         std::env::var("BROWSER_MESSAGE_VALUE").map(|v| v.parse::<u64>().unwrap()).unwrap_or(12);
+@@ -426,6 +439,20 @@ async fn export_browser_virtual_os_fixture() {
+         bounds.l1_data_gas.max_price_per_unit = starknet_api::block::GasPrice(0);
+         bounds.l2_gas.max_amount = starknet_api::execution_resources::GasAmount(100_000_000);
+         api.tip = starknet_api::transaction::fields::Tip(0);
++        if let Some(address) = signed_address {
++            api.sender_address = address;
++            api.nonce = builder.next_nonce(address);
++            // AccountWithRealValidate expects an Array<Call>, hence one call before
++            // the existing target, selector, calldata-length and calldata words.
++            let mut calls = vec![Felt::ONE];
++            calls.extend(api.calldata.0.iter().copied());
++            api.calldata = starknet_api::transaction::fields::Calldata(std::sync::Arc::new(calls));
++            let unsigned = starknet_api::executable_transaction::InvokeTransaction::create(
++                ApiInvokeTransaction::V3(api.clone()), &builder.chain_id(),
++            ).unwrap();
++            let signature = starknet_core::crypto::ecdsa_sign(&fixture_private_key, &unsigned.tx_hash.0).unwrap();
++            api.signature = TransactionSignature(std::sync::Arc::new(vec![signature.r, signature.s]));
++        }
+         let rpc =
+             starknet_api::rpc_transaction::RpcInvokeTransactionV3::try_from(api.clone()).unwrap();
+         std::fs::write(dir.join("rpc_transaction.json"), serde_json::to_vec_pretty(&rpc).unwrap())
+@@ -437,6 +464,7 @@ async fn export_browser_virtual_os_fixture() {
+         .unwrap();
+         builder.add_browser_zero_fee_invoke(tx);
+     } else {
++        assert!(!signed_account, "signed account fixture requires BROWSER_ZERO_FEE=1");
+         builder.add_funded_account_invoke(invoke_tx_args! { calldata });
+     }
+     if !storage_write {

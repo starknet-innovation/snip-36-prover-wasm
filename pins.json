@@ -1,0 +1,11 @@
+{
+  "backend": "4c8dfb1d0d63c47284e5da0ee1068415d47f9f78",
+  "sequencer": "e6b6fd2e9932909107833579e5b6efd6c75fa0af",
+  "transaction_service_proving_utils": "3035dd00421daa541894297bd754db6e2787807b",
+  "stwo": "489a0f3ee44a59e03944ad9aa4f3e5a91a3d3f08",
+  "stwo_cairo": "9b6be2710e4d7124bc93fe80a5af36556d42ed29",
+  "stwo_circuits": "5ef951a12727e3489a2ee991c580a5b925c59c69",
+  "rust": "nightly-2026-01-15",
+  "executor_wasm_bindgen": "0.2.105",
+  "program_hash": "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1"
+}

@@ -1,0 +1,55 @@
+diff --git a/crates/stwo/src/prover/mempool.rs b/crates/stwo/src/prover/mempool.rs
+index 7b16b7b..9244cb7 100644
+--- a/crates/stwo/src/prover/mempool.rs
++++ b/crates/stwo/src/prover/mempool.rs
+@@ -24,6 +24,15 @@ impl<B: ColumnOps<BaseField>> BaseColumnPool<B> {
+         }
+     }
+ 
++    /// Drops buffers currently idle in the pool, leaving checked-out buffers untouched.
++    ///
++    /// Call between proving stages to make cached allocations available for reuse elsewhere.
++    /// Concurrent returns may add buffers again. After clearing, `take` requires a new
++    /// reservation or returned buffer; `take_or_alloc` can allocate as usual.
++    pub fn release_unused(&self) {
++        self.pools.clear();
++    }
++
+     /// Pre-allocates `count` zero-initialized buffers of size `1 << log_size`.
+     pub fn reserve(&self, log_size: u32, count: usize) {
+         let mut pool = self.pools.entry(log_size).or_default();
+@@ -67,3 +76,34 @@ impl<B: ColumnOps<BaseField>> Default for BaseColumnPool<B> {
+         Self::new()
+     }
+ }
++
++#[cfg(test)]
++mod tests {
++    use super::BaseColumnPool;
++    use crate::core::fields::m31::BaseField;
++    use crate::prover::backend::cpu::CpuBackend;
++
++    #[test]
++    fn release_unused_preserves_checked_out_buffers_and_allows_reuse() {
++        let pool = BaseColumnPool::<CpuBackend>::new();
++        pool.reserve(3, 2);
++        let mut checked_out = pool.take(3);
++        checked_out.fill(BaseField::from(7));
++        let returned = pool.take(3);
++        pool.give_back(3, returned);
++
++        pool.release_unused();
++        assert!(pool.pools.is_empty());
++        assert_eq!(checked_out, vec![BaseField::from(7); 8]);
++
++        // Fresh pool buffers are uninitialized: write every element before reading.
++        let mut fresh = pool.take_or_alloc(3);
++        assert_eq!(fresh.len(), 8);
++        fresh.fill(BaseField::from(11));
++        pool.give_back(3, fresh);
++        assert_eq!(pool.take(3), vec![BaseField::from(11); 8]);
++
++        pool.give_back(3, checked_out);
++        assert_eq!(pool.take_or_alloc(3), vec![BaseField::from(7); 8]);
++    }
++}

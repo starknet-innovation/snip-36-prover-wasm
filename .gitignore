@@ -1,0 +1,11 @@
+node_modules/
+.cache/
+build/
+artifacts/
+web/**/*.wasm
+web/*.wasm
+.env*
+*.log
+.DS_Store
+__pycache__/
+*.pyc
