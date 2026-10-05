@@ -1,6 +1,6 @@
 """Fetch pinned source trees and apply reviewed browser portability patches once."""
 from pathlib import Path
-import json,subprocess,sys,tarfile,hashlib
+import json,subprocess,sys,tarfile,hashlib,shutil
 from executor_manifests import check_manifests, patch_fingerprint
 root=Path(__file__).resolve().parents[1];build=root/'build';pins=json.loads((root/'pins.json').read_text())
 def run(*args):subprocess.run(args,check=True)
@@ -32,9 +32,12 @@ elif mode=='executor':
  for name in ['sequencer.patch','program-compression.patch','signed-account-fixture.patch','partial-state-cache.patch','execution-capacity.patch']:apply(p,root/'patches/executor'/name)
  with tarfile.open(root/'patches/executor/cairo-classes-portable.tar.gz') as archive:archive.extractall(p,filter='data')
  apply(p,root/'patches/executor/public-state.patch')
- # Dependabot resolves this same patched workspace; manifest edits need matching source patches.
- check_manifests(p)
  # Check the portability patches' original lock before applying reviewed security updates.
  assert hashlib.sha256((p/'Cargo.lock').read_bytes()).hexdigest()=='da9fb55917ef1c4cba51050c0cc7e4ee9a4a9fe8c18bfad4b77d6720ec67dcb4','Executor base lock differs'
+ # This repository supports the browser executor, not the upstream sequencer node/bindings.
+ apply(p,root/'patches/executor/dependency-scope.patch')
+ shutil.copytree(root/'patches/executor/browser-vendor/num-prime-0.4.4',p/'browser-vendor/num-prime-0.4.4',dirs_exist_ok=True)
+ # Dependabot resolves this same patched workspace; manifest edits need matching source patches.
+ check_manifests(p)
  (p/'Cargo.lock').write_bytes((root/'patches/executor/Cargo.lock').read_bytes());marker.write_text(fingerprint)
 else:raise SystemExit('prover | native | executor')

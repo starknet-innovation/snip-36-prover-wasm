@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MIRROR = ROOT / "patches/executor"
 
 
-def manifests(tree):
+def all_manifests(tree):
     return {
         file.relative_to(tree).as_posix(): file.read_bytes()
         for file in sorted(tree.rglob("Cargo.toml"))
@@ -26,8 +26,39 @@ def manifests(tree):
     }
 
 
+def manifests(tree):
+    """Follow the same workspace/path closure needed by Cargo and Dependabot."""
+    queue = [tree / "Cargo.toml"]
+    found = {}
+    while queue:
+        file = queue.pop().resolve()
+        if not file.is_relative_to(tree.resolve()):
+            raise ValueError(f"Manifest path escapes executor workspace: {file}")
+        name = file.relative_to(tree.resolve()).as_posix()
+        if name in found:
+            continue
+        content = file.read_bytes()
+        found[name] = content
+        document = tomllib.loads(content.decode())
+        workspace = document.get("workspace", {})
+        for pattern in workspace.get("members", []):
+            queue.extend(member / "Cargo.toml" for member in file.parent.glob(pattern))
+        tables = [document, workspace, *document.get("target", {}).values()]
+        dependencies = []
+        for table in tables:
+            for kind in ("dependencies", "dev-dependencies", "build-dependencies"):
+                dependencies.extend(table.get(kind, {}).values())
+        dependencies.extend(document.get("replace", {}).values())
+        for table in document.get("patch", {}).values():
+            dependencies.extend(table.values())
+        for dependency in dependencies:
+            if isinstance(dependency, dict) and "path" in dependency:
+                queue.append(file.parent / dependency["path"] / "Cargo.toml")
+    return dict(sorted(found.items()))
+
+
 def check_manifests(source, mirror=MIRROR):
-    expected, actual = manifests(source), manifests(mirror)
+    expected, actual = manifests(source), all_manifests(mirror)
     if "Cargo.toml" not in expected:
         raise ValueError(f"No executor workspace at {source}")
     missing = sorted(expected.keys() - actual.keys())
@@ -63,7 +94,7 @@ def sync(source):
     files = manifests(source)
     if "Cargo.toml" not in files:
         raise ValueError("Manifest source has no workspace")
-    for name in manifests(MIRROR).keys() - files.keys():
+    for name in all_manifests(MIRROR).keys() - files.keys():
         (MIRROR / name).unlink()
     for name, content in files.items():
         target = MIRROR / name

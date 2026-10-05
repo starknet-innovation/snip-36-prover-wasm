@@ -3,6 +3,7 @@
 from pathlib import Path
 import sys
 import tempfile
+import tomllib
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -49,6 +50,26 @@ class ExecutorManifestTests(unittest.TestCase):
         before = patch_fingerprint(self.mirror)
         (self.mirror / "crates/member/Cargo.toml").rename(self.mirror / "crates/Cargo.toml")
         self.assertNotEqual(before, patch_fingerprint(self.mirror))
+
+    def test_unused_upstream_manifest_is_not_a_resolver_input(self):
+        (self.source / "unsupported").mkdir()
+        (self.source / "unsupported/Cargo.toml").write_text('[package]\nname = "unsupported"\nversion = "0.1.0"\n')
+        self.assertEqual(len(check_manifests(self.source, self.mirror)), 2)
+
+    def test_committed_executor_lock_is_outside_remaining_advisory_ranges(self):
+        root = Path(__file__).resolve().parents[1]
+        packages = tomllib.loads((root / "patches/executor/Cargo.lock").read_text())["package"]
+        minima = {"lru": (0, 16, 3), "pyo3": (0, 29, 0),
+                  "hickory-proto": (0, 26, 1), "yamux": (0, 13, 10),
+                  "jsonwebtoken": (10, 3, 0)}
+        for package in packages:
+            minimum = minima.get(package["name"])
+            if minimum is not None:
+                self.assertNotIn("-", package["version"])
+                version = tuple(map(int, package["version"].split(".")))
+                self.assertGreaterEqual(version, minimum, package)
+        requirements = (root / "patches/executor/python-requirements.txt").read_text()
+        self.assertFalse(any(line.startswith("ecdsa==") for line in requirements.splitlines()))
 
 
 if __name__ == "__main__":
