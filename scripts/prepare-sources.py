@@ -28,5 +28,8 @@ elif mode=='executor':
   print('Executor source already prepared');raise SystemExit(0)
  for name in ['sequencer.patch','program-compression.patch','signed-account-fixture.patch','partial-state-cache.patch','execution-capacity.patch']:apply(p,root/'patches/executor'/name)
  with tarfile.open(root/'patches/executor/cairo-classes-portable.tar.gz') as archive:archive.extractall(p,filter='data')
- apply(p,root/'patches/executor/public-state.patch');assert (p/'Cargo.lock').read_bytes()==(root/'patches/executor/Cargo.lock').read_bytes(),'Executor lock differs';marker.write_text(fingerprint)
+ apply(p,root/'patches/executor/public-state.patch')
+ # Check the portability patches' original lock before applying reviewed security updates.
+ assert hashlib.sha256((p/'Cargo.lock').read_bytes()).hexdigest()=='da9fb55917ef1c4cba51050c0cc7e4ee9a4a9fe8c18bfad4b77d6720ec67dcb4','Executor base lock differs'
+ (p/'Cargo.lock').write_bytes((root/'patches/executor/Cargo.lock').read_bytes());marker.write_text(fingerprint)
 else:raise SystemExit('prover | native | executor')

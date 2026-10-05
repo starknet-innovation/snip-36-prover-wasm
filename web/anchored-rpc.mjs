@@ -1,5 +1,7 @@
 import { fetchRpc } from "./rpc-retry.mjs";
 // Read-only transport and replay. RPC values stay provisional until verified against proofs.
+export const SEPOLIA_RPC_ENDPOINT =
+  "https://api.zan.top/public/starknet-sepolia/rpc/v0_10";
 const PRIME = (1n << 251n) + 17n * (1n << 192n) + 1n;
 const METHODS = new Set([
   "starknet_chainId",
@@ -54,9 +56,10 @@ export function liveTransport(
   endpoint,
   { fetchImpl = fetch, signal, maxBytes = 64 * 1024 * 1024 } = {},
 ) {
-  const url = new URL(endpoint);
-  if (url.protocol !== "https:" || url.username || url.password)
-    throw Error("Use a public HTTPS RPC endpoint without credentials");
+  // Select a reviewed endpoint, including its path. HTTPS alone does not stop
+  // a pasted request from targeting another service on the user's network.
+  if (endpoint !== SEPOLIA_RPC_ENDPOINT)
+    throw Error("Use the supported public Sepolia RPC endpoint");
   let id = 0;
   return async (method, params) => {
     if (!METHODS.has(method))
@@ -64,7 +67,7 @@ export function liveTransport(
     cancelled(signal);
     const request = { jsonrpc: "2.0", id: ++id, method, params };
     const response = await fetchRpc(
-      url.href,
+      SEPOLIA_RPC_ENDPOINT,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

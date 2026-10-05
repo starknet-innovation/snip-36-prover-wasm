@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   AnchoredRpc,
   RpcError,
+  SEPOLIA_RPC_ENDPOINT,
   canonical,
   digest,
   felt,
@@ -202,17 +203,44 @@ test("chunking preserves query order and counts each key at most 100 per request
 test("transport forbids writes and rejects wrong response ids and oversized payloads", async () => {
   const fake = async (_url, options) =>
     new Response(JSON.stringify({ jsonrpc: "2.0", id: 99, result: "0x0" }));
-  const send = liveTransport("https://example.com", { fetchImpl: fake });
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, { fetchImpl: fake });
   await assert.rejects(
     () => send("starknet_addInvokeTransaction", {}),
     /read-only/,
   );
   await assert.rejects(() => send("starknet_chainId", []), /envelope/);
-  const large = liveTransport("https://example.com", {
+  const large = liveTransport(SEPOLIA_RPC_ENDPOINT, {
     fetchImpl: async () => new Response("x".repeat(100)),
     maxBytes: 10,
   });
   await assert.rejects(() => large("starknet_chainId", []), /byte limit/);
+});
+
+test("transport only selects the exact reviewed Sepolia URL", async () => {
+  for (const endpoint of [
+    "https://example.com",
+    "http://127.0.0.1",
+    "https://127.0.0.1",
+    "https://api.zan.top.attacker.example/public/starknet-sepolia/rpc/v0_10",
+    SEPOLIA_RPC_ENDPOINT + "/../admin",
+    SEPOLIA_RPC_ENDPOINT + "?redirect=https://example.com",
+    SEPOLIA_RPC_ENDPOINT + "#fragment",
+    SEPOLIA_RPC_ENDPOINT.replace("https://", "https://user:password@"),
+    SEPOLIA_RPC_ENDPOINT.replace("sepolia", "mainnet"),
+  ])
+    assert.throws(() => liveTransport(endpoint), /supported public Sepolia/);
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    fetchImpl: async (url, options) => {
+      assert.equal(url, SEPOLIA_RPC_ENDPOINT);
+      assert.equal(options.redirect, "error");
+      assert.equal(options.credentials, "omit");
+      const { id } = JSON.parse(options.body);
+      return new Response(
+        JSON.stringify({ jsonrpc: "2.0", id, result: "0x1" }),
+      );
+    },
+  });
+  assert.deepEqual(await send("starknet_chainId", []), { result: "0x1" });
 });
 
 test("concurrent resolution cannot replace the selected block", async () => {

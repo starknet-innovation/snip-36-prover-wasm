@@ -14,6 +14,66 @@ export const PROGRAM =
 export const hex = (n) => "0x" + BigInt(n).toString(16);
 const ascii = (s) => BigInt("0x" + Buffer.from(s).toString("hex"));
 export const selector = (name) => hex(keccak(new TextEncoder().encode(name)));
+// Project only the gateway wire fields; never forward arbitrary file properties.
+export function gatewayTransaction(tx) {
+  const felt = (value) => {
+    if (
+      typeof value !== "string" ||
+      !/^0x[0-9a-f]{1,64}$/i.test(value) ||
+      BigInt(value) >= (1n << 251n) + 17n * (1n << 192n) + 1n
+    )
+      throw Error("Invalid transaction felt");
+    return hex(value);
+  };
+  if (
+    tx.type !== "INVOKE" ||
+    tx.version !== "0x3" ||
+    tx.nonce_data_availability_mode !== "L1" ||
+    tx.fee_data_availability_mode !== "L1" ||
+    !Array.isArray(tx.signature) ||
+    tx.signature.length !== 2 ||
+    !Array.isArray(tx.calldata) ||
+    tx.calldata.length !== 5 ||
+    !Array.isArray(tx.proof_facts) ||
+    tx.proof_facts.length < 3 ||
+    tx.proof_facts.length > 1024 ||
+    !Array.isArray(tx.paymaster_data) ||
+    tx.paymaster_data.length ||
+    !Array.isArray(tx.account_deployment_data) ||
+    tx.account_deployment_data.length ||
+    typeof tx.proof !== "string" ||
+    tx.proof.length > 64 * 1024 * 1024 ||
+    Buffer.from(tx.proof, "base64").toString("base64") !== tx.proof ||
+    tx.proof.length === 0
+  )
+    throw Error("Invalid proof-bearing gateway transaction");
+  // Also enforce the resource bounds' uint64/uint128 wire ranges.
+  transactionHash(tx);
+  return {
+    type: "INVOKE_FUNCTION",
+    version: "0x3",
+    sender_address: felt(tx.sender_address),
+    nonce: felt(tx.nonce),
+    tip: felt(tx.tip),
+    signature: tx.signature.map(felt),
+    calldata: tx.calldata.map(felt),
+    proof_facts: tx.proof_facts.map(felt),
+    paymaster_data: [],
+    account_deployment_data: [],
+    nonce_data_availability_mode: "L1",
+    fee_data_availability_mode: "L1",
+    resource_bounds: Object.fromEntries(
+      ["l1_gas", "l2_gas", "l1_data_gas"].map((key) => [
+        key.toUpperCase(),
+        {
+          max_amount: felt(tx.resource_bounds[key].max_amount),
+          max_price_per_unit: felt(tx.resource_bounds[key].max_price_per_unit),
+        },
+      ]),
+    ),
+    proof: tx.proof,
+  };
+}
 export function transactionHash(tx) {
   const resources = [
     ["L1_GAS", "l1_gas"],
