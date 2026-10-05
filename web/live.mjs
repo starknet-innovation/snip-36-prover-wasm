@@ -11,6 +11,7 @@ import {
   hex,
   selector,
   units,
+  amount,
   newRound,
   validateRound,
   matchGame,
@@ -88,6 +89,7 @@ async function proofDB(mode, value) {
 function render() {
   const state = currentGame?.state ?? 0;
   $("#connect").disabled = busy;
+  $("#connect").textContent = connection ? "Reconnect" : "Connect";
   $("#wallets").disabled = busy;
   $("#restore").disabled = busy;
   $("#live-state").textContent = busy
@@ -154,6 +156,17 @@ function render() {
     label = "Check pending wallet transaction";
     enabled = false;
   }
+  let stakeError = "";
+  if (!round) {
+    try {
+      amount($("#stake").value);
+    } catch (e) {
+      stakeError = e.message;
+    }
+  }
+  $("#stake").setAttribute("aria-invalid", String(!!stakeError));
+  $("#stake-error").textContent = stakeError;
+  if (stakeError) enabled = false;
   let hint = "";
   if (!connection) hint = "Connect your Starknet wallet on Sepolia first.";
   else if (!connection.proofVersion)
@@ -165,7 +178,10 @@ function render() {
   else if (busy)
     hint =
       "Working. Follow the status below; the wallet may ask you to confirm.";
-  else if (!$("#ready").checked && ![4, 5, 6].includes(state)) {
+  else if (stakeError) {
+    hint = stakeError;
+    label = "Enter a valid stake";
+  } else if (!$("#ready").checked && ![4, 5, 6].includes(state)) {
     hint = "Check “I can finish this round” above to enable this button.";
     label = "Check the acknowledgement above";
   } else if (!enabled && state === 2)
@@ -498,6 +514,7 @@ $("#next").onclick = () =>
   });
 $("#stop").onclick = () => controller.cancel();
 $("#ready").onchange = render;
+$("#stake").oninput = render;
 $("#refresh").onclick = () => run(refresh);
 $("#new-round").onclick = () => {
   round = null;
@@ -550,6 +567,7 @@ $("#connect").onclick = () =>
       throw Error(
         "No Starknet wallet found. Install a wallet with proof-bearing transaction support.",
       );
+    message("Connecting to " + wallet.name + "…");
     connection = await connectWallet(wallet);
     round = null;
     currentGame = null;

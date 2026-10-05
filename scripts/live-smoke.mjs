@@ -11,6 +11,7 @@ try {
     "unsupported",
     "wrong-network",
     "unchecked",
+    "invalid-stake",
     "wallet-waiting",
     "wallet-rejected",
     "pending",
@@ -84,6 +85,22 @@ try {
       );
       await page.waitForFunction(() => !window.coinflipLive.state.busy);
       if (scenario !== "unchecked") await page.check("#ready");
+    }
+    if (scenario === "invalid-stake") {
+      await page.fill("#stake", "1");
+      if (
+        !(await page.locator("#next").isDisabled()) ||
+        !(await page
+          .locator("#stake-error")
+          .textContent()
+          .then((t) => t.includes("at most 0.01")))
+      )
+        throw Error("Over-limit stake not blocked visibly");
+      await page.fill("#stake", "0.001");
+      if (await page.locator("#next").isDisabled())
+        throw Error("Corrected stake remains blocked");
+      if (submitted) throw Error("Validation submitted a transaction");
+      await page.fill("#stake", "1");
     }
     if (scenario === "unchecked") {
       if (

@@ -78,3 +78,13 @@
 #next:disabled {
   cursor: not-allowed;
 }
+
+#stake-error {
+  color: #ffb4ab;
+}
+#stake-error:empty {
+  display: none;
+}
+#stake[aria-invalid="true"] {
+  border-color: #ffb4ab;
+}

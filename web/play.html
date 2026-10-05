@@ -64,6 +64,7 @@
             <label for="stake">Stake · test STRK</label
             ><input
               id="stake"
+              aria-describedby="stake-error"
               type="text"
               inputmode="decimal"
               value="0.001"
@@ -74,6 +75,7 @@
               the stake. The bank matches your stake from its available
               test-token pool.
             </p>
+            <p id="stake-error" class="help" role="status"></p>
             <p id="liquidity" class="help">Reading bank liquidity…</p>
             <label class="check"
               ><input id="ready" type="checkbox" /><span
