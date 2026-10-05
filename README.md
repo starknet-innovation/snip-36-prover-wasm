@@ -1,10 +1,10 @@
 # SNIP-36 browser prover
 
-**[Open the Sepolia browser demo](https://starknet-innovation.github.io/snip-36-prover-wasm/)**
+**[Play CoinFlip on Sepolia](https://starknet-innovation.github.io/snip-36-prover-wasm/play.html)** · [Recorded replay lab](https://starknet-innovation.github.io/snip-36-prover-wasm/)
 
-The demo is based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip-36-prover-backend/tree/main/apps/coinflip). Choose heads or tails, replay a real signed invocation of the deployed CoinFlip contract, and optionally prove it entirely in the browser. The displayed result comes from the contract's message and is independently checked against Pedersen and the public output's Poseidon commitment. Download execution and proof artifacts, or supply a signed request for live Sepolia state acquisition.
+Based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip-36-prover-backend/tree/main/apps/coinflip), the live demo uses your Starknet wallet to commit/deposit, reveal, and settle. A prefunded bank matches the stake; a browser Worker executes the public coinflip and generates a SNIP-36 proof. The bank checks the exact game's proof facts before settlement. GitHub Pages hosts the entire frontend; no signing backend is required.
 
-These are reproducible recorded rounds with fixed public seeds, not unpredictable live games. No deposits, payouts, commit/reveal service, or bank settlement are included. Proof generation does not submit a transaction. The existing daily on-chain balance-query test is labeled separately from the coinflip demo. See [CoinFlip architecture and provenance](docs/coinflip-demo.md).
+The wallet must support **Wallet API 0.10.3+ proof-bearing invocation**. Unsupported versions are blocked before deposit. Advertising that version is necessary but does not guarantee a wallet implementation accepts arbitrary CoinFlip proofs. E2E automation uses a Wallet API adapter backed by the existing sncast account, not an installed wallet extension. Test tokens only, maximum stake 0.01 test STRK, 24-hour reveal deadline. Block-hash-derived seeds are not certified unbiased randomness. See [architecture, recovery and compatibility](docs/live-coinflip.md).
 
 Run locally with `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium and approximately 14 GiB available memory. Execution alone downloads 36 MB and is much lighter. The Pages workflow checks asset hashes, runs real browser execution against the recorded PIE hash, then deploys the static site. No account keys or signing secrets are included in the website or Pages workflow.
 
@@ -16,6 +16,9 @@ Generate SNIP-36 proofs entirely in browser Workers, from an authenticated publi
 This is a desktop-browser prototype: the measured recursive prover used about **14.1 GB of Wasm linear memory** and **13.8 GB of peak requested Rust allocations**, taking about **87 seconds** on an Apple M3 Max. Linear memory, requested allocations and resident process memory are different metrics. Mobile support and arbitrary workload performance are untested.
 
 ## Verified on Sepolia
+
+The live wallet CoinFlip flow also completed: [settlement transaction](https://sepolia.voyager.online/tx/0x20b184e3a7a2926806437fcafcfce1096ca54d16116aa08ce526ebc03786712), block **16,114,692**. Its browser-generated 234,138-byte proof passed the unchanged native verifier; settlement paid **0.002 test STRK** on a 0.001 stake. A proofless settlement call against the revealed state reverted with `Expected one proof message`. [Full public evidence](evidence/live-coinflip-e2e.json). This exercised the Wallet API test adapter; installed extension compatibility remains unverified.
+
 
 A real browser-generated proof was accepted in [transaction `0x60e1…bd30d`](https://sepolia.voyager.online/tx/0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d), block **16,111,332**, on 2026-10-05. It executed STRK `balance_of(account)` through an existing account and cost **1.172821106001977728 testnet STRK**. The nonce advanced and the balance delta matched the fee. Public receipts are in [`evidence/`](evidence/).
 
@@ -32,7 +35,7 @@ npm test
 npm run serve
 ```
 
-Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The page performs read-only RPC acquisition; it does not submit transactions. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
+Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
 
 The source is distributed as pinned upstream checkouts plus browser portability patches. Prebuilt modules are release assets rather than large Git blobs. Their checksums are committed in [`assets.json`](assets.json). See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
@@ -49,7 +52,7 @@ GitHub Actions runs every day at **06:00 UTC** and supports manual dispatch from
 5. Checks the statement/program/capture linkage, signs the proof-bearing transaction, and persists its intended hash before broadcast.
 6. Submits once to the sequencer gateway and requires `SUCCEEDED` plus closed-block L2/L1 acceptance. Receipts, proofs and captures are retained as workflow artifacts.
 
-The daily test has a hard maximum fee budget of **25 testnet STRK** per run; it never deploys contracts or transfers tokens. No mainnet mode exists. PR CI runs offline tests without signing credentials. Scheduled runs require the `sepolia` environment setup described in the runbook.
+The balance-query test has a hard maximum fee budget of **25 testnet STRK**. A following live CoinFlip test deposits **0.001 test STRK**, reveals, proves in Chromium and settles through the test Wallet API adapter. It caps each transaction at 25 test STRK, uses the existing prefunded bank, and never deploys or automatically tops up contracts. No mainnet mode exists. PR CI runs offline tests without signing credentials. Scheduled runs require the `sepolia` environment setup described in the runbook.
 
 ## Scope
 

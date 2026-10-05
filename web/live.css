@@ -1,0 +1,67 @@
+#live-status {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  min-height: 45px;
+  color: var(--muted);
+}
+#wallets {
+  min-width: 0;
+}
+#connect {
+  flex-shrink: 0;
+}
+.file-button {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.history-row a,
+#contract-links a {
+  color: var(--accent);
+}
+.history-row small {
+  overflow-wrap: anywhere;
+}
+#contract-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+#seed-status {
+  overflow-wrap: anywhere;
+}
+#live-downloads {
+  margin-top: 15px;
+}
+.notice {
+  color: var(--accent) !important;
+}
+@media (max-width: 600px) {
+  nav {
+    gap: 10px;
+    font-size: 11px;
+  }
+  .brand {
+    letter-spacing: 0;
+  }
+  #wallets {
+    width: 55%;
+  }
+  .history-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}

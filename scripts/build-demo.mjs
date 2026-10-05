@@ -9,6 +9,15 @@ await build({
   target: "es2022",
   minify: true,
 });
+await build({
+  entryPoints: ["web/live.mjs"],
+  outfile: "web/live-runtime.mjs",
+  bundle: true,
+  format: "esm",
+  platform: "browser",
+  target: "es2022",
+  minify: true,
+});
 await mkdir("web/demo-data", { recursive: true });
 const fixture = JSON.parse(await readFile("fixtures/captured-execution.json"));
 await writeFile(

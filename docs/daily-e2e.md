@@ -37,3 +37,10 @@ npm run e2e:submit
 ```
 
 A fresh `RUN_DIR` is required per attempt. Do not rerun preparation over an existing signed run. The full live E2E is intentionally separate from `npm test`.
+
+
+## Live wallet CoinFlip test
+
+After the balance-query test, the same workflow runs `scripts/live-e2e.mjs`. This additional test uses a Node Wallet API adapter backed by the protected account, and an explicit Chromium child environment without the signing key. It commits/deposits 0.001 test STRK, waits for the fixed future block, reveals, proves in browser Workers and submits the proof with settlement. Each transaction has a 25 test STRK maximum fee ceiling. No contract deployment or automatic bank top-up runs in CI.
+
+The adapter journals signed intents before broadcasting and restricts browser requests to the expected bank/token calls for the current game. Live proof and receipt artifacts are uploaded separately. A successful adapter run does not establish compatibility with an installed wallet extension. See [live architecture and recovery](live-coinflip.md).

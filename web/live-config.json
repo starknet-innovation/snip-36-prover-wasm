@@ -1,0 +1,10 @@
+{
+  "chain_id": "0x534e5f5345504f4c4941",
+  "bank": "0x30b11259ed036688a04bb9d4cace3912b1858eef69a87e540967a66eddd3e6d",
+  "coinflip": "0x2a2afbcfb434e7e0d74fe6cd1f6b1b469227f98f34cb508ace50cb25ad7355",
+  "executor": "0x6a9ec8c581b53d48ef220d70cd5f8c7cecfdcb0d2ca1ef9e6037a8b8b5a65de",
+  "source_commit": "a192944",
+  "owner": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+  "bank_class_hash": "0x43d560e0afa6b19b40201b477fe4d7ab2801803247b5042d2c60902069076ca",
+  "executor_class_hash": "0x82cba4cf730106e720c3c706290b7209491606477427c31ea1a412da1de2b6"
+}

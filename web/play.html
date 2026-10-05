@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Commit, reveal, prove and settle a CoinFlip round on Starknet Sepolia using your wallet and browser."
+    />
+    <title>SNIP-36 · Live CoinFlip</title>
+    <link rel="stylesheet" href="./demo.css" />
+    <link rel="stylesheet" href="./live.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <a class="brand" href="./play.html"
+          ><span class="mark">✳</span> STARKNET
+          <span class="muted">/ COINFLIP</span></a
+        >
+        <nav>
+          <span class="network"><i></i>SEPOLIA</span
+          ><a href="./index.html">Replay lab ↗</a
+          ><a href="https://github.com/starknet-innovation/snip-36-prover-wasm"
+            >Source ↗</a
+          >
+        </nav>
+      </header>
+      <main>
+        <section class="hero">
+          <div class="eyebrow">LIVE · WALLET + BROWSER</div>
+          <h1>Pick a side.<br />Prove it. Settle it.</h1>
+          <p class="intro">
+            Your wallet commits the choice. A future Sepolia block supplies the
+            seed. Your browser proves the coinflip, and the contract checks the
+            proof before paying out.
+          </p>
+          <div class="tags">
+            <span>No signing server</span><span>Proof-bound settlement</span
+            ><span>Test tokens only</span>
+          </div>
+        </section>
+        <div class="workspace">
+          <section class="panel setup">
+            <div class="section-label">YOUR ROUND</div>
+            <h2>Connect. Choose. Commit.</h2>
+            <label for="wallets">Starknet wallet</label>
+            <div class="actions">
+              <select id="wallets" aria-label="Available wallets">
+                <option>Discovering wallets…</option></select
+              ><button id="connect">Connect</button>
+            </div>
+            <p id="wallet-status" class="help" role="status">
+              A wallet with Wallet API 0.10.3+ proof support is required.
+            </p>
+            <div class="coin-stage">
+              <div id="live-coin" class="coin">?</div>
+              <p id="result">Choose a side for a new round.</p>
+            </div>
+            <div class="side-picker" role="group" aria-label="Choose a side">
+              <button id="pick-heads" aria-pressed="true">Heads</button
+              ><button id="pick-tails" aria-pressed="false">Tails</button>
+            </div>
+            <label for="stake">Stake · test STRK</label
+            ><input
+              id="stake"
+              type="text"
+              inputmode="decimal"
+              value="0.001"
+              autocomplete="off"
+            />
+            <p class="help">
+              Maximum 0.01 test STRK. Network fees are separate and may exceed
+              the stake. The bank matches your stake from its available
+              test-token pool.
+            </p>
+            <p id="liquidity" class="help">Reading bank liquidity…</p>
+            <label class="check"
+              ><input id="ready" type="checkbox" /><span
+                >I can finish this round<small
+                  >Reveal within 24 hours or forfeit the test stake. Full
+                  proving needs about 14 GiB available memory and recent desktop
+                  Chromium. Save the recovery file after committing.</small
+                ></span
+              ></label
+            >
+            <div class="actions">
+              <button id="next" class="primary" disabled>
+                Connect a compatible wallet</button
+              ><button id="stop" disabled>Stop proving</button>
+            </div>
+            <div class="actions">
+              <button id="refresh">Refresh status</button
+              ><button id="new-round" disabled>New round</button>
+            </div>
+            <div class="actions">
+              <button id="backup" disabled>Save recovery</button
+              ><label class="file-button"
+                >Restore round<input
+                  id="restore"
+                  type="file"
+                  accept="application/json"
+                  hidden
+              /></label>
+            </div>
+            <p class="help">
+              The recovery file contains your choice and reveal nonce, not your
+              wallet key. Keep it private until you reveal.
+            </p>
+          </section>
+          <section class="panel execution">
+            <div class="section-label">ON-CHAIN PROGRESS</div>
+            <div class="run-heading">
+              <h2>One verifiable round</h2>
+              <span id="live-state" class="badge">READY</span>
+            </div>
+            <ol class="steps">
+              <li id="live-step-1">
+                <b>01</b>
+                <div>
+                  Commit & deposit<small
+                    >Your wallet approves only this stake. The bank locks a
+                    matching stake and a future seed block.</small
+                  >
+                </div>
+              </li>
+              <li id="live-step-2">
+                <b>02</b>
+                <div>
+                  Reveal your choice<small
+                    >Wait until the seed block is available, then reveal the
+                    original choice and nonce.</small
+                  >
+                </div>
+              </li>
+              <li id="live-step-3">
+                <b>03</b>
+                <div>
+                  Prove in your browser<small
+                    >Execute CoinFlip and generate its recursive proof in Web
+                    Workers.</small
+                  >
+                </div>
+              </li>
+              <li id="live-step-4">
+                <b>04</b>
+                <div>
+                  Settle with your wallet<small
+                    >Attach the proof to settlement. A match pays 2× the stake
+                    to your wallet.</small
+                  >
+                </div>
+              </li>
+            </ol>
+            <div id="live-status" role="status" aria-live="polite">
+              Loading Sepolia configuration…
+            </div>
+            <p id="seed-status" class="help"></p>
+            <div id="live-downloads" class="downloads"></div>
+            <details>
+              <summary>Round and transaction details</summary>
+              <pre id="round-details">No active round.</pre>
+            </details>
+            <div class="metrics">
+              <div>
+                <span>ELAPSED</span><strong id="live-elapsed">—</strong>
+              </div>
+              <div>
+                <span>PROOF</span><strong id="live-proof-size">—</strong>
+              </div>
+            </div>
+          </section>
+        </div>
+        <section class="panel game-explanation">
+          <div class="section-label">YOUR HISTORY</div>
+          <h2>Rounds on this device</h2>
+          <div id="history">
+            <p>Connect your wallet to load saved rounds.</p>
+          </div>
+        </section>
+        <section class="panel game-explanation">
+          <h2>What is—and isn’t—proved</h2>
+          <p>
+            The proof binds the CoinFlip contract’s result to this round’s
+            player, locked seed, and choice. Settlement reads the attached proof
+            facts on-chain. Wallet keys stay in your wallet; the browser’s
+            public executor cannot spend your tokens.
+          </p>
+          <p>
+            This is an experimental Sepolia demonstration. A future block hash
+            is not a certified randomness beacon. This demo does not establish
+            production-grade gambling fairness. After revealing, settlement
+            requires a compatible proof-bearing wallet or another account
+            submitting the exported proof; it is permissionless and always pays
+            the recorded player.
+          </p>
+          <p id="contract-links"></p>
+          <p>
+            <a href="./index.html">Try a recorded round without a wallet ↗</a>
+          </p>
+        </section>
+        <footer>
+          <span>SNIP-36 / Live CoinFlip</span
+          ><span>Sepolia only · No real-value stakes</span>
+        </footer>
+      </main>
+    </div>
+    <script type="module" src="./live-runtime.mjs"></script>
+  </body>
+</html>

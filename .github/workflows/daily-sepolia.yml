@@ -13,7 +13,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: sepolia
-    timeout-minutes: 35
+    timeout-minutes: 55
     env:
       RUN_DIR: artifacts/run
     steps:
@@ -55,6 +55,20 @@ jobs:
           retention-days: 30
       - name: Submit once and require successful closed-block receipt
         run: npm run e2e:submit
+      - name: Play a live wallet CoinFlip round and settle its browser proof
+        env:
+          STARKNET_ACCOUNT_ADDRESS: ${{ vars.STARKNET_ACCOUNT_ADDRESS }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.STARKNET_PRIVATE_KEY }}
+          LIVE_RUN_DIR: artifacts/live-run
+        run: node scripts/live-e2e.mjs
+      - name: Preserve live wallet game evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: live-coinflip-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/live-run/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Preserve proof, capture and transaction evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

@@ -1,4 +1,6 @@
-# Browser CoinFlip demo
+# Recorded CoinFlip replay lab
+
+For the wallet-based live game, see [Live CoinFlip](live-coinflip.md). This document describes the separate recorded replay page.
 
 Based on `apps/coinflip` and `tests/contracts/src/lib.cairo` from
 `starknet-innovation/snip-36-prover-backend` at
@@ -20,7 +22,7 @@ Poseidon message commitment in the virtual OS public output. An animated coin
 is only presentation; it never determines the outcome.
 
 This is a deterministic proof demonstration. A fixed public seed can be
-inspected before choosing a side. The static site does not reproduce the
+inspected before choosing a side. The recorded replay page does not reproduce the
 backend's session service, commit/reveal ordering, wallet deposits, or
 CoinFlipBank settlement. There are no deposits or payouts. It makes no claim
 of unpredictable or fair randomness. Executing, generating a proof, verifying
@@ -32,7 +34,7 @@ presented as acceptance of a CoinFlip proof.
 
 ## Reproduce
 
-1. Build with Scarb 2.15.2: `scarb build` in `contracts/coinflip`.
+1. The recorded CoinFlip deployment was built with Scarb 2.15.2 from source commit `27f934e`. The current package also contains the bank and uses Scarb 2.18; use the recorded revision to reproduce the original class hash.
 2. Declare/deploy on Sepolia with the configured sncast account and record the
    public deployment in `evidence/coinflip-deployment.json`.
 3. Set `STARKNET_ACCOUNT_ADDRESS` and `STARKNET_PRIVATE_KEY` only in a local

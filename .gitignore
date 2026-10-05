@@ -13,3 +13,4 @@ web/demo-data/
 
 contracts/**/target/
 web/coinflip-runtime.mjs
+web/live-runtime.mjs

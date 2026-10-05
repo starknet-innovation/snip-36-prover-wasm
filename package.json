@@ -16,10 +16,13 @@
     "e2e:sign": "node scripts/e2e.mjs sign",
     "e2e:submit": "node scripts/e2e.mjs submit",
     "demo:build": "npm run assets && node scripts/build-demo.mjs",
-    "demo:test": "node scripts/demo-smoke.mjs"
+    "demo:test": "node scripts/demo-smoke.mjs",
+    "demo:test:live": "node scripts/live-smoke.mjs",
+    "e2e:coinflip": "node scripts/live-e2e.mjs"
   },
   "dependencies": {
-    "@scure/starknet": "2.4.0"
+    "@scure/starknet": "2.4.0",
+    "@starknet-io/get-starknet-core": "4.0.8"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
