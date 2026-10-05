@@ -23,3 +23,15 @@ jobs:
         run: |
           for f in scripts/*.mjs web/*.mjs; do node --check "$f"; done
           bash -n scripts/build.sh
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: software-mansion/setup-scarb@2a96b748888e3329ee44ac9ac073d930e692b3cd
+        with:
+          scarb-version: '2.15.2'
+      - run: scarb --manifest-path contracts/coinflip/Scarb.toml build
+      - run: scarb --manifest-path contracts/coinflip/Scarb.toml test
