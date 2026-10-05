@@ -1,7 +1,7 @@
 name: Daily Sepolia Browser E2E
 on:
   schedule:
-    - cron: '0 6 * * *' # Daily 06:00 UTC, apart from backend's 08:00 UTC run.
+    - cron: "0 6 * * *" # Daily 06:00 UTC, apart from backend's 08:00 UTC run.
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
