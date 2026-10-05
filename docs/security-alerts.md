@@ -69,6 +69,6 @@ After integration with the RPC-retry changes, the local security-extended CodeQL
 - The updated executor source builds in release mode with `--locked` on `nightly-2026-01-15`; wasm-bindgen 0.2.105 produces unchanged JavaScript/type bindings.
 - The source-built executor also replays both CoinFlip fixtures with unchanged PIE hashes. A complete recursive proof of the recorded balance invocation was generated in Chromium with the unchanged released prover, checked against the reconstructed fixture statement, and accepted by the unchanged native verifier. [Validation record](../evidence/security-source-validation.json).
 - Fresh source preparation validates the original patched lock, installs the reviewed replacement and is idempotent.
-- PR CI now runs the Worker boundary checks the two recorded-round browser replays and stubbed wallet safety scenarios, in addition to existing unit and contract tests.
+- PR CI now runs the Worker boundary checks, the two recorded-round browser replays, and stubbed wallet safety scenarios, in addition to existing unit and contract tests.
 
 The prebuilt executor/prover assets are deliberately not republished by this PR. Dependency fixes in a lockfile do not modify those binaries. Source-built replacement artifacts require full browser proof generation, unchanged native verification and Sepolia acceptance before release promotion. No new on-chain transaction or release deployment is part of this review.
