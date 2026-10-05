@@ -65,3 +65,16 @@
     flex-wrap: wrap;
   }
 }
+
+#action-status {
+  overflow-wrap: anywhere;
+}
+#action-status:empty {
+  display: none;
+}
+#action-hint {
+  color: var(--accent);
+}
+#next:disabled {
+  cursor: not-allowed;
+}

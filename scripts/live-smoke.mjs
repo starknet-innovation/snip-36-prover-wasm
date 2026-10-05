@@ -7,7 +7,14 @@ const config = JSON.parse(await readFile("web/live-config.json"));
 const server = await startServer(0),
   browser = await chromium.launch({ headless: true });
 try {
-  for (const scenario of ["unsupported", "wrong-network", "pending"]) {
+  for (const scenario of [
+    "unsupported",
+    "wrong-network",
+    "unchecked",
+    "wallet-waiting",
+    "wallet-rejected",
+    "pending",
+  ]) {
     const page = await browser.newPage();
     let submitted = 0;
     await page.route("https://api.zan.top/**", async (route) => {
@@ -33,6 +40,9 @@ try {
     });
     await page.exposeFunction("walletTestCall", () => {
       submitted++;
+      if (scenario === "wallet-waiting") return new Promise(() => {});
+      if (scenario === "wallet-rejected")
+        throw Error("User rejected the wallet request");
       return { transaction_hash: "0x123" };
     });
     await page.addInitScript(
@@ -72,7 +82,43 @@ try {
       await page.waitForFunction(() =>
         document.querySelector("#wallet-status").textContent.includes("0x6"),
       );
-      await page.check("#ready");
+      await page.waitForFunction(() => !window.coinflipLive.state.busy);
+      if (scenario !== "unchecked") await page.check("#ready");
+    }
+    if (scenario === "unchecked") {
+      if (
+        !(await page
+          .locator("#action-hint")
+          .textContent()
+          .then((t) => t.includes("I can finish this round")))
+      )
+        throw Error("Missing acknowledgement guidance");
+      if (submitted !== 0) throw Error("Submitted without acknowledgement");
+    }
+    if (["wallet-waiting", "wallet-rejected"].includes(scenario)) {
+      await page.click("#next");
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#action-status")
+            .textContent.includes("Confirm deposit in your wallet") ||
+          document
+            .querySelector("#action-status")
+            .textContent.includes("User rejected"),
+      );
+      if (scenario === "wallet-rejected") {
+        await page.waitForFunction(() => !window.coinflipLive.state.busy);
+        if (
+          !(await page
+            .locator("#action-status")
+            .textContent()
+            .then((t) => t.includes("User rejected")))
+        )
+          throw Error("Wallet error not shown beside button");
+        if (await page.locator("#next").isDisabled())
+          throw Error("Explicit rejection prevents retry");
+      }
+      if (submitted !== 1) throw Error("Unexpected wallet submission count");
     }
     if (scenario === "pending") {
       await page.click("#next");
@@ -92,7 +138,10 @@ try {
       );
       if (submitted !== 1) throw Error("Pending submission was repeated");
     }
-    if (!(await page.locator("#next").isDisabled()))
+    if (
+      scenario !== "wallet-rejected" &&
+      !(await page.locator("#next").isDisabled())
+    )
       throw Error("Unsafe action enabled: " + scenario);
     await page.setViewportSize({ width: 390, height: 844 });
     if (

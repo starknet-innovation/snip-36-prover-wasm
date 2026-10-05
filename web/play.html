@@ -85,10 +85,24 @@
               ></label
             >
             <div class="actions">
-              <button id="next" class="primary" disabled>
+              <button
+                id="next"
+                class="primary"
+                aria-describedby="action-hint action-status"
+                disabled
+              >
                 Connect a compatible wallet</button
               ><button id="stop" disabled>Stop proving</button>
             </div>
+            <p id="action-hint" class="help" role="status">
+              Connect a compatible wallet to begin.
+            </p>
+            <p
+              id="action-status"
+              class="help"
+              role="status"
+              aria-live="polite"
+            ></p>
             <div class="actions">
               <button id="refresh">Refresh status</button
               ><button id="new-round" disabled>New round</button>
@@ -152,7 +166,7 @@
                 </div>
               </li>
             </ol>
-            <div id="live-status" role="status" aria-live="polite">
+            <div id="live-status" aria-live="polite">
               Loading Sepolia configuration…
             </div>
             <p id="seed-status" class="help"></p>

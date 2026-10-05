@@ -51,6 +51,7 @@ function persist() {
 }
 const message = (text) => {
   $("#live-status").textContent = text;
+  $("#action-status").textContent = text;
 };
 function downloadable(name, value) {
   const url = URL.createObjectURL(
@@ -153,6 +154,29 @@ function render() {
     label = "Check pending wallet transaction";
     enabled = false;
   }
+  let hint = "";
+  if (!connection) hint = "Connect your Starknet wallet on Sepolia first.";
+  else if (!connection.proofVersion)
+    hint =
+      "Your wallet does not advertise proof submission support. Deposits are disabled.";
+  else if (round?.pendingWallet)
+    hint =
+      "A wallet request is pending. Open your wallet to review it, or use Refresh status. Do not submit it again.";
+  else if (busy)
+    hint =
+      "Working. Follow the status below; the wallet may ask you to confirm.";
+  else if (!$("#ready").checked && ![4, 5, 6].includes(state)) {
+    hint = "Check “I can finish this round” above to enable this button.";
+    label = "Check the acknowledgement above";
+  } else if (!enabled && state === 2)
+    hint =
+      "Waiting for the seed block. The button enables automatically when it is available.";
+  else if (!enabled && state === 1)
+    hint =
+      "The unmatched deposit can be refunded after " +
+      new Date(currentGame.deadline * 1000).toLocaleString() +
+      ".";
+  $("#action-hint").textContent = hint;
   $("#next").textContent = label;
   $("#next").disabled = !enabled;
   if (state === 4) {
@@ -405,7 +429,9 @@ async function prove() {
 }
 $("#next").onclick = () =>
   run(async () => {
+    message("Checking your wallet account and network…");
     await assertWallet(connection);
+    message("Checking the round on Sepolia…");
     await refresh();
     if (round?.pendingWallet)
       throw Error(
@@ -597,7 +623,8 @@ async function init() {
       $("#wallets").append(new Option(w.name, String(i))),
     );
     await refresh();
-    message("Connect a proof-capable Starknet wallet on Sepolia.");
+    if (!connection && !busy)
+      message("Connect a proof-capable Starknet wallet on Sepolia.");
     setInterval(() => {
       if (!busy && !document.hidden) refresh().catch((e) => message(e.message));
     }, 10000);
