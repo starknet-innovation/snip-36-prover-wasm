@@ -1,12 +1,194 @@
-<!doctype html><meta charset="utf-8"><title>SNIP-36 browser prover</title>
-<style>body{font:16px system-ui;max-width:900px;margin:2rem auto}textarea{width:100%;height:160px}pre{white-space:pre-wrap}</style>
-<h1>SNIP-36 browser prover</h1><p>Execute and prove a signed Sepolia invocation using public authenticated state. Signing and submission happen separately. This browser never needs a private key.</p>
-<label>Signed request<textarea id="request"></textarea></label><label>Source: public HTTPS RPC and fixed block, or saved capture<textarea id="source"></textarea></label><button id="run">Execute and prove</button><button id="cancel">Cancel</button><pre id="status">Ready</pre>
-<script type="module">
-import {PublicRunController} from './public-run-controller.mjs';
-const status=document.querySelector('#status');window.receipts=[];
-const controller=new PublicRunController({save:async data=>{window.receipts.push(data);if(window.saveReceipt)await window.saveReceipt(data);},onStatus:data=>{status.textContent=JSON.stringify(data,null,2);if(data.kind==='error')window.runError=data.error;},onComplete:data=>{window.runComplete=data;status.textContent=JSON.stringify({id:data.id,kind:data.kind,report:data.report},null,2);}});
-window.startRun=(request,source)=>{window.runError=null;window.runComplete=null;window.receipts=[];return controller.start(request,source);};
-document.querySelector('#run').onclick=()=>{try{window.startRun(JSON.parse(document.querySelector('#request').value),JSON.parse(document.querySelector('#source').value));}catch(e){status.textContent=String(e);}};
-document.querySelector('#cancel').onclick=()=>controller.cancel();
-</script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Execute a Sepolia transaction and generate a SNIP-36 proof in your browser."
+    />
+    <title>SNIP-36 · Browser proving lab</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <a class="brand" href="./"
+          ><span class="mark">✳</span> STARKNET
+          <span class="muted">/ LABS</span></a
+        >
+        <nav>
+          <span class="network"><i></i> SEPOLIA</span
+          ><a href="https://github.com/starknet-innovation/snip-36-prover-wasm"
+            >Source ↗</a
+          >
+        </nav>
+      </header>
+      <main>
+        <section class="hero">
+          <div class="eyebrow">SNIP-36 · WASM PROVER</div>
+          <h1>Your browser.<br />A real Starknet proof.</h1>
+          <p class="intro">
+            Execute a Sepolia invocation, authenticate its state, and generate a
+            recursive proof. The computation happens here, on your machine.
+          </p>
+          <div class="tags">
+            <span>Web Workers</span><span>Public state verification</span
+            ><span>Recursive proving</span>
+          </div>
+        </section>
+        <section class="workspace">
+          <div class="panel setup">
+            <div class="section-label">01 / CONFIGURE</div>
+            <h2>Try the proving pipeline</h2>
+            <p>
+              Start with a recorded, signed STRK balance query from Sepolia. No
+              wallet or test tokens required.
+            </p>
+            <label for="mode">State source</label
+            ><select id="mode">
+              <option value="replay">
+                Recorded Sepolia state · reproducible replay
+              </option>
+              <option value="live">
+                Live Sepolia RPC · bring a signed request
+              </option>
+            </select>
+            <p id="source-note" class="help">
+              Replays historical state, not today's account balance. Nothing is
+              submitted to the network.
+            </p>
+            <div id="advanced" hidden>
+              <label for="request">Signed execution request (JSON)</label
+              ><textarea
+                id="request"
+                spellcheck="false"
+                placeholder="Paste the request from browser-input.json"
+              ></textarea
+              ><label for="endpoint">Public Sepolia RPC URL</label
+              ><input
+                id="endpoint"
+                type="url"
+                value="https://api.zan.top/public/starknet-sepolia/rpc/v0_10"
+              /><label for="block">Fixed block number</label
+              ><input
+                id="block"
+                inputmode="numeric"
+                placeholder="Block used to prepare the request"
+              />
+              <p class="help">
+                Use <code>npm run e2e:prepare</code> locally with your sncast
+                account, then paste its request and block. The RPC must support
+                storage proofs and browser CORS. Never paste a private key.
+              </p>
+            </div>
+            <label class="check"
+              ><input id="full-proof" type="checkbox" /><span
+                >Generate the full recursive proof<small
+                  >Downloads 128 MB total. Requires a recent memory64-capable
+                  browser and about 14 GiB available memory. Usually takes
+                  several minutes.</small
+                ></span
+              ></label
+            >
+            <div class="actions">
+              <button id="run" class="primary">
+                Run execution <span>↗</span></button
+              ><button id="cancel" disabled>Cancel</button>
+            </div>
+            <p class="help" id="compatibility">Checking browser support…</p>
+          </div>
+          <div class="panel execution">
+            <div class="section-label">02 / EXECUTE & PROVE</div>
+            <div class="run-heading">
+              <h2>Inside your browser</h2>
+              <span id="state" class="badge">READY</span>
+            </div>
+            <ol class="steps">
+              <li id="step-state">
+                <b>01</b>
+                <div>
+                  Authenticate state<small
+                    >Verify contract classes and storage witnesses</small
+                  >
+                </div>
+              </li>
+              <li id="step-execution">
+                <b>02</b>
+                <div>
+                  Execute the invocation<small
+                    >Validate the signature and produce a Cairo PIE</small
+                  >
+                </div>
+              </li>
+              <li id="step-proof">
+                <b>03</b>
+                <div>
+                  Generate recursive proof<small
+                    >Run the pinned SNIP-36 prover in a Worker</small
+                  >
+                </div>
+              </li>
+            </ol>
+            <div class="metrics">
+              <div><span>ELAPSED</span><strong id="elapsed">—</strong></div>
+              <div><span>PIE SIZE</span><strong id="pie-size">—</strong></div>
+              <div>
+                <span>PROOF SIZE</span><strong id="proof-size">—</strong>
+              </div>
+            </div>
+            <div role="status" aria-live="polite" id="status">
+              Ready when you are. Execution downloads a 36 MB Wasm module.
+            </div>
+            <div id="downloads" class="downloads"></div>
+            <details>
+              <summary>Execution details</summary>
+              <pre id="details">Results will appear here.</pre>
+            </details>
+          </div>
+        </section>
+        <section class="evidence panel">
+          <div>
+            <div class="section-label">03 / ON-CHAIN EVIDENCE</div>
+            <h2>Browser proof. Sepolia accepted.</h2>
+            <p>
+              A separate automated test executes, proves, signs, and submits a
+              fresh invocation every day at 06:00 UTC. This demo does not hold
+              the CI account's key.
+            </p>
+            <div class="links">
+              <a
+                href="https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml"
+                >Daily test runs ↗</a
+              ><a
+                id="transaction"
+                href="https://sepolia.voyager.online/tx/0x512aefe965bd263b4d5f79bc6ca65a5e91cff394ddc74c6ae505636c0e10d17"
+                >View confirmed transaction ↗</a
+              >
+            </div>
+          </div>
+          <div class="chain-card">
+            <span class="network"><i></i> FIRST SUCCESSFUL CI RUN</span
+            ><strong>Block 16,112,150</strong>
+            <p>SUCCEEDED · ACCEPTED_ON_L2</p>
+            <button id="check-chain">Check receipt on Sepolia ↗</button>
+            <p id="chain-status" class="help" role="status">
+              Recorded evidence · October 5, 2026
+            </p>
+          </div>
+        </section>
+        <footer>
+          <span>SNIP-36 / Browser proving lab</span
+          ><span
+            >Experimental · Desktop recommended ·
+            <a
+              href="https://github.com/starknet-innovation/snip-36-prover-wasm/blob/main/SECURITY.md"
+              >Security notes ↗</a
+            ></span
+          >
+        </footer>
+      </main>
+    </div>
+    <script type="module" src="./demo.mjs"></script>
+  </body>
+</html>

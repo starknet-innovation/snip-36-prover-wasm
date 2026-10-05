@@ -117,3 +117,14 @@ test("cancel while saving proof suppresses final success", async () => {
   await pending;
   assert.equal(s.completed.length, 0);
 });
+test("execution-only mode persists PIE and never starts the memory-heavy prover", async () => {
+  const saved = [],
+    s = setup(async (r) => saved.push(r));
+  const id = s.control.start({}, {}, { executionOnly: true });
+  await s.workers[0].onmessage({ data: execution(id) });
+  assert.equal(s.workers.length, 1);
+  assert(s.workers[0].terminated);
+  assert.equal(saved.length, 1);
+  assert.equal(s.completed[0].kind, "execution");
+  assert.equal(s.control.active, null);
+});

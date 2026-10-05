@@ -19,9 +19,11 @@ export async function startServer(port = 8767) {
           ? "application/wasm"
           : file.endsWith(".html")
             ? "text/html"
-            : file.endsWith(".json")
-              ? "application/json"
-              : "text/javascript",
+            : file.endsWith(".css")
+              ? "text/css"
+              : file.endsWith(".json")
+                ? "application/json"
+                : "text/javascript",
         "Cross-Origin-Opener-Policy": "same-origin",
         "Cross-Origin-Embedder-Policy": "credentialless",
         "Cache-Control": "no-store",

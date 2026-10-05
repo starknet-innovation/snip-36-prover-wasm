@@ -9,3 +9,4 @@ web/*.wasm
 .DS_Store
 __pycache__/
 *.pyc
+web/demo-data/

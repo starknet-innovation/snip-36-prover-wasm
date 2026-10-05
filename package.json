@@ -14,7 +14,9 @@
     "e2e:prepare": "node scripts/e2e.mjs prepare",
     "e2e:browser": "node scripts/browser-e2e.mjs",
     "e2e:sign": "node scripts/e2e.mjs sign",
-    "e2e:submit": "node scripts/e2e.mjs submit"
+    "e2e:submit": "node scripts/e2e.mjs submit",
+    "demo:build": "npm run assets && node scripts/build-demo.mjs",
+    "demo:test": "node scripts/demo-smoke.mjs"
   },
   "dependencies": {
     "@scure/starknet": "2.4.0"

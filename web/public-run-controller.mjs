@@ -25,7 +25,7 @@ export class PublicRunController {
       this.onStatus({ kind: "cancelled", id: run.id });
     }
   }
-  start(request, source) {
+  start(request, source, { executionOnly = false } = {}) {
     this.cancel();
     const run = { id: this.idFactory(), worker: null };
     this.active = run;
@@ -63,6 +63,11 @@ export class PublicRunController {
             };
             await this.save(receipt);
             if (!current()) return;
+            if (executionOnly) {
+              this.active = null;
+              this.onComplete(receipt);
+              return;
+            }
             attach("./public-prover-worker.mjs", { pie: data.pie });
           } else if (data.kind === "proof") {
             worker.onmessage = null;

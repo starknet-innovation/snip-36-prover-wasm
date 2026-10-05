@@ -1,5 +1,11 @@
 # SNIP-36 browser prover
 
+**[Open the Sepolia browser demo](https://starknet-innovation.github.io/snip-36-prover-wasm/)**
+
+Replay a recorded Sepolia invocation, verify state witnesses and account validation, generate a Cairo PIE, and optionally run the full recursive prover. Download execution and proof artifacts, or supply a fresh signed request for live Sepolia state acquisition. The default sample is historical replay, not a new on-chain transaction; signing and submission remain in the CLI. A live receipt check connects the demo to the confirmed daily-test transaction.
+
+Run locally with `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium and approximately 14 GiB available memory. Execution alone downloads 36 MB and is much lighter. The Pages workflow checks asset hashes, runs real browser execution against the recorded PIE hash, then deploys the static site. No account keys or signing secrets are included in the website or Pages workflow.
+
 [![CI](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml)
 [![Daily Sepolia Browser E2E](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml)
 
