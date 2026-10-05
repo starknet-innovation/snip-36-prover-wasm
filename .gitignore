@@ -10,3 +10,5 @@ web/*.wasm
 __pycache__/
 *.pyc
 web/demo-data/
+
+contracts/**/target/
