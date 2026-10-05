@@ -30,7 +30,7 @@ The source is distributed as pinned upstream checkouts plus browser portability 
 
 ## Daily testing
 
-The [first GitHub-hosted run](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/37282452695) passed in 3m42s: [Sepolia transaction](https://sepolia.voyager.online/tx/0x512aefe965bd263b4d5f79bc6ca65a5e91cff394ddc74c6ae505636c0e10d17), block **16,112,150**, fee **1.171282850038856832 testnet STRK**. Chromium execution took9.45s and prover initialization/proving took147.06s. Its proof also passed the unchanged native3035dd verifier after downloading the CI artifact. [Recorded evidence](evidence/first-daily-ci-run.json).
+The [first GitHub-hosted run](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/37282452695) passed in 3m42s: [Sepolia transaction](https://sepolia.voyager.online/tx/0x512aefe965bd263b4d5f79bc6ca65a5e91cff394ddc74c6ae505636c0e10d17), block **16,112,150**, fee **1.171282850038856832 testnet STRK**. Chromium execution took 9.45s and prover initialization/proving took 147.06s. Its proof also passed the unchanged native `3035dd` verifier after downloading the CI artifact. [Recorded evidence](evidence/first-daily-ci-run.json).
 
 GitHub Actions runs every day at **06:00 UTC** and supports manual dispatch from `main`. It:
 
