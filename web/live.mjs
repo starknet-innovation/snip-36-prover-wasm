@@ -568,7 +568,7 @@ $("#connect").onclick = () =>
         "No Starknet wallet found. Install a wallet with proof-bearing transaction support.",
       );
     message("Connecting to " + wallet.name + "…");
-    connection = await connectWallet(wallet);
+    connection = await connectWallet(wallet, message);
     round = null;
     currentGame = null;
     proof = null;

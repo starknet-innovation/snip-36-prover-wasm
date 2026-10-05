@@ -10,6 +10,8 @@ try {
   for (const scenario of [
     "unsupported",
     "wrong-network",
+    "switch-success",
+    "switch-rejected",
     "unchecked",
     "invalid-stake",
     "wallet-waiting",
@@ -48,6 +50,14 @@ try {
     });
     await page.addInitScript(
       ({ scenario, CHAIN }) => {
+        let chain = [
+          "wrong-network",
+          "switch-success",
+          "switch-rejected",
+        ].includes(scenario)
+          ? "0x534e5f4d41494e"
+          : CHAIN;
+        window.switchRequests = 0;
         window.starknet_test = {
           id: "test",
           name: "Test wallet",
@@ -58,8 +68,14 @@ try {
           async request(r) {
             if (r.type === "wallet_getPermissions") return ["accounts"];
             if (r.type === "wallet_requestAccounts") return ["0x6"];
-            if (r.type === "wallet_requestChainId")
-              return scenario === "wrong-network" ? "0x1" : CHAIN;
+            if (r.type === "wallet_requestChainId") return chain;
+            if (r.type === "wallet_switchStarknetChain") {
+              window.switchRequests++;
+              if (r.params.chainId !== CHAIN) throw Error("Wrong target chain");
+              if (scenario === "switch-rejected") throw Error("User rejected");
+              if (scenario === "switch-success") chain = CHAIN;
+              return true;
+            }
             if (r.type === "wallet_supportedWalletApi")
               return scenario === "unsupported" ? ["0.10.2"] : ["0.10.3"];
             return window.walletTestCall();
@@ -73,19 +89,31 @@ try {
       document.querySelector("#wallets").textContent.includes("Test wallet"),
     );
     await page.click("#connect");
-    if (scenario === "wrong-network") {
+    if (["wrong-network", "switch-rejected"].includes(scenario)) {
       await page.waitForFunction(() =>
         document
           .querySelector("#live-status")
-          .textContent.includes("Switch your wallet"),
+          .textContent.match(/Switch your wallet|could not switch/),
       );
     } else {
       await page.waitForFunction(() =>
         document.querySelector("#wallet-status").textContent.includes("0x6"),
       );
       await page.waitForFunction(() => !window.coinflipLive.state.busy);
-      if (scenario !== "unchecked") await page.check("#ready");
+      if (!["unchecked", "switch-success"].includes(scenario))
+        await page.check("#ready");
     }
+    const expectedSwitches = [
+      "wrong-network",
+      "switch-success",
+      "switch-rejected",
+    ].includes(scenario)
+      ? 1
+      : 0;
+    if ((await page.evaluate(() => window.switchRequests)) !== expectedSwitches)
+      throw Error("Unexpected network switch request count");
+    if (expectedSwitches && submitted)
+      throw Error("Switch submitted a transaction");
     if (scenario === "invalid-stake") {
       await page.fill("#stake", "1");
       if (

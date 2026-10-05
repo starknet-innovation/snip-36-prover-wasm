@@ -3,13 +3,29 @@ import { CHAIN, hex, proofApiVersion } from "./live-core.mjs";
 export async function discoverWallets() {
   return getStarknet().getAvailableWallets();
 }
-export async function connectWallet(wallet) {
+export async function connectWallet(wallet, onStatus = () => {}) {
   const enabled = await getStarknet().enable(wallet);
+  let chain = await enabled.request({ type: "wallet_requestChainId" });
+  if (hex(chain) !== CHAIN) {
+    onStatus("Approve the switch to Starknet Sepolia in your wallet.");
+    try {
+      await enabled.request({
+        type: "wallet_switchStarknetChain",
+        params: { chainId: CHAIN },
+      });
+    } catch (cause) {
+      throw new Error(
+        "The wallet could not switch to Sepolia. Approve the network switch, or switch manually and reconnect.",
+        { cause },
+      );
+    }
+    chain = await enabled.request({ type: "wallet_requestChainId" });
+    if (hex(chain) !== CHAIN)
+      throw Error("Switch your wallet to Starknet Sepolia, then reconnect");
+  }
+  // Network changes can select a different account; read it after switching.
   const accounts = await enabled.request({ type: "wallet_requestAccounts" });
   if (!accounts.length) throw Error("Wallet returned no account");
-  const chain = await enabled.request({ type: "wallet_requestChainId" });
-  if (hex(chain) !== CHAIN)
-    throw Error("Switch your wallet to Starknet Sepolia, then reconnect");
   let versions = [];
   try {
     versions = await enabled.request({ type: "wallet_supportedWalletApi" });
