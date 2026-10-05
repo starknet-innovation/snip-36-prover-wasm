@@ -4,7 +4,7 @@ export async function discoverWallets() {
   return getStarknet().getAvailableWallets();
 }
 export async function connectWallet(wallet, onStatus = () => {}) {
-  const enabled = await getStarknet().enable(wallet);
+  const enabled = await getStarknet().enable(wallet, { silent_mode: false });
   let chain = await enabled.request({ type: "wallet_requestChainId" });
   if (hex(chain) !== CHAIN) {
     onStatus("Approve the switch to Starknet Sepolia in your wallet.");

@@ -66,6 +66,12 @@ try {
           on() {},
           off() {},
           async request(r) {
+            // Strict wallet bridges validate the object before JSON serialization.
+            if (
+              r.params &&
+              Object.values(r.params).some((v) => v === undefined)
+            )
+              throw Error("The request payload is invalid");
             if (r.type === "wallet_getPermissions") return ["accounts"];
             if (r.type === "wallet_requestAccounts") return ["0x6"];
             if (r.type === "wallet_requestChainId") return chain;
