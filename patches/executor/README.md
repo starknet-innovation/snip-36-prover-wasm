@@ -12,7 +12,7 @@ and cloud targets are removed by `dependency-scope.patch`. The 29 manifests
 include normal/build, optional and development dependencies.
 
 `browser-vendor/num-prime-0.4.4` contains the upstream crate under its included
-MIT/Apache licenses. Its only changed upstream file is `Cargo.toml`, updating
+Apache-2.0 license. Its only changed upstream file is `Cargo.toml`, updating
 LRU to 0.16.3+. Its Rust algorithms are unchanged. Source preparation copies
 that vendored crate into the prepared workspace. Other implementation files
 remain in the fetched, patched source checkout. Dependabot
