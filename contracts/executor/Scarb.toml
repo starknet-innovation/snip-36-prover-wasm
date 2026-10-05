@@ -1,16 +1,15 @@
 [package]
-name = "browser_coinflip"
+name = "public_coinflip_executor"
 version = "0.1.0"
 edition = "2024_07"
-cairo-version = "2.18.0"
+cairo-version = "2.15.0"
 
 [dependencies]
-starknet = "2.18.0"
+starknet = "2.15.0"
 
 [[target.starknet-contract]]
 sierra = true
 casm = true
-allowed-libfuncs-list.name = "all"
 
 [dev-dependencies]
-cairo_test = "2.18.0"
+cairo_test = "2.15.0"
