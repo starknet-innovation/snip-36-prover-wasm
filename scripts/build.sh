@@ -19,9 +19,14 @@ case "$mode" in
   cp build/target-prover/wasm64-unknown-unknown/release/snip36_browser_prover.wasm web/sequencer-prover.wasm
   ;;
  executor)
-  if [ ! -d build/venv ]; then "${PYTHON310:-python3.10}" -m venv build/venv; fi
-  build/venv/bin/pip install -r patches/executor/python-requirements.txt
-  export PATH="$PWD/build/venv/bin:$PATH"
+  python3 scripts/prepare-compiler.py
+  if [ ! -d build/compiler-venv ]; then "${PYTHON310:-python3.10}" -m venv build/compiler-venv; fi
+  build/compiler-venv/bin/pip install --no-deps build/compiler-source/cairo-lang-0.14.3a3
+  # Full pinned dependencies are installed without pulling the upstream signing dependency back in.
+  build/compiler-venv/bin/pip install -r patches/executor/python-requirements.txt
+  build/compiler-venv/bin/pip check
+  build/compiler-venv/bin/python scripts/check-compiler.py
+  export PATH="$PWD/build/compiler-venv/bin:$PATH"
   export RUSTFLAGS='--cfg getrandom_backend="wasm_js"'
   CARGO_TARGET_DIR="$PWD/build/target-executor" cargo +nightly-2026-01-15 rustc --locked --release --manifest-path build/sequencer/Cargo.toml -p browser_virtual_os --target wasm32-unknown-unknown -- -C link-arg=-zstack-size=8388608
   cargo +nightly-2026-01-15 install wasm-bindgen-cli --version 0.2.105 --locked --root build/tools

@@ -1,0 +1,115 @@
+[package]
+name = "blockifier"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+license-file.workspace = true
+description = "The transaction-executing component in the Starknet sequencer."
+
+[lints]
+workspace = true
+
+[features]
+benchmarking = []
+cairo_native = [
+  "blockifier_test_utils/cairo_native",
+  "dep:apollo_compilation_utils",
+  "dep:apollo_compile_to_native",
+  "dep:cairo-native",
+]
+mocks = []
+native_blockifier = []
+node_api = []
+only-native = ["cairo_native"]
+reexecution = ["transaction_serde"]
+testing = [
+  "blockifier_test_utils",
+  "expect-test",
+  "rand",
+  "rstest",
+  "rstest_reuse",
+  "starknet_api/testing",
+]
+tracing = []
+transaction_serde = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow.workspace = true
+apollo_compilation_utils = { workspace = true, optional = true }
+apollo_compile_to_native = { workspace = true, optional = true }
+apollo_compile_to_native_types.workspace = true
+apollo_config.workspace = true
+apollo_infra_utils.workspace = true
+apollo_metrics.workspace = true
+ark-ec.workspace = true
+ark-ff.workspace = true
+ark-secp256k1.workspace = true
+ark-secp256r1.workspace = true
+blockifier_test_utils = { workspace = true, optional = true }
+cached.workspace = true
+cairo-lang-casm = { workspace = true, features = ["parity-scale-codec"] }
+cairo-lang-runner.workspace = true
+cairo-lang-starknet-classes.workspace = true
+cairo-lang-utils.workspace = true
+cairo-native = { workspace = true, optional = true }
+cairo-vm.workspace = true
+dashmap.workspace = true
+derive_more = { workspace = true, features = [
+  "add",
+  "add_assign",
+  "display",
+  "from",
+  "into_iterator",
+] }
+expect-test = { workspace = true, optional = true }
+indexmap.workspace = true
+itertools.workspace = true
+keccak.workspace = true
+log.workspace = true
+mockall.workspace = true
+num-bigint.workspace = true
+num-integer.workspace = true
+num-rational = { workspace = true, features = ["serde"] }
+num-traits.workspace = true
+paste.workspace = true
+phf = { workspace = true, features = ["macros"] }
+rand = { workspace = true, optional = true }
+rstest = { workspace = true, optional = true }
+rstest_reuse = { workspace = true, optional = true }
+semver.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["arbitrary_precision"] }
+sha2.workspace = true
+starknet-types-core.workspace = true
+starknet_api.workspace = true
+strum = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+validator.workspace = true
+
+[dev-dependencies]
+assert_matches.workspace = true
+blockifier_test_utils.workspace = true
+criterion = { workspace = true, features = ["html_reports"] }
+expect-test.workspace = true
+glob.workspace = true
+hex.workspace = true
+itertools.workspace = true
+pretty_assertions.workspace = true
+rand.workspace = true
+regex.workspace = true
+rstest.workspace = true
+rstest_reuse.workspace = true
+starknet_api = { workspace = true, features = ["testing"] }
+test-case.workspace = true
+tikv-jemallocator.workspace = true
+
+[build-dependencies]
+apollo_infra_utils.workspace = true
+
+[[bench]]
+harness = false
+name = "blockifier"
+path = "benches/main.rs"
+required-features = ["testing"]

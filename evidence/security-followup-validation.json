@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-05",
+  "scope": "Supported browser executor source dependency remediation and compiler-only tooling. Released prover and native verifier unchanged; no release promotion or new on-chain transaction.",
+  "executor_lock_sha256": "77fdd4b0b3b77b841c3ee04e9606cfc6ff5390f3ab57f77074c415bd315985ae",
+  "executor_lock_package_counts": {
+    "before": 1260,
+    "after": 819
+  },
+  "executor_manifest_count": 29,
+  "executor_wasm_sha256": "d3d6ac88431b550cec28bf81d3451b660324b15642793aaf41ee2b208fec6c30",
+  "pins": {
+    "backend": "4c8dfb1d0d63c47284e5da0ee1068415d47f9f78",
+    "sequencer": "e6b6fd2e9932909107833579e5b6efd6c75fa0af",
+    "transaction_service_proving_utils": "3035dd00421daa541894297bd754db6e2787807b",
+    "stwo": "489a0f3ee44a59e03944ad9aa4f3e5a91a3d3f08",
+    "stwo_cairo": "9b6be2710e4d7124bc93fe80a5af36556d42ed29",
+    "stwo_circuits": "5ef951a12727e3489a2ee991c580a5b925c59c69",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1"
+  },
+  "observed_remaining_dependabot_alerts_addressed_in_source": [
+    1,
+    3,
+    4,
+    13,
+    29,
+    30,
+    34,
+    35,
+    40
+  ],
+  "remaining_package_versions": {
+    "lru": "0.16.4",
+    "pyo3": null,
+    "hickory-proto": null,
+    "yamux": null,
+    "jsonwebtoken": null,
+    "python_ecdsa": null
+  },
+  "removed_targets": "Unsupported upstream sequencer node, native Python-binding, networking and cloud-storage targets are excluded from the prepared browser workspace, including unused inherited declarations.",
+  "num_prime_vendor": {
+    "version": "0.4.4",
+    "changed_upstream_files": [
+      "Cargo.toml"
+    ],
+    "change": "LRU dependency constraint only; Rust algorithms unchanged",
+    "upstream_prime_pi_test_passed": true,
+    "upstream_crate_checksum": "e238432a7881ec7164503ccc516c014bf009be7984cde1ba56837862543bdec3"
+  },
+  "compiler": {
+    "package_version": "0.14.3a3+snip36compiler1",
+    "compiler_visible_version": "0.14.3a3",
+    "upstream_archive_sha256": "8dc49e263d4251c4cf1c9772fe1b212d0f8b4e2c024d32a5584b496e4f20bd98",
+    "ecdsa_installed": false,
+    "pip_check_passed": true,
+    "compile_and_public_signature_verification_passed": true,
+    "signing_rejected": true
+  },
+  "fresh_source_preparation_and_idempotence_passed": true,
+  "mirror_and_real_sources_resolve_identical_locked_graphs": true,
+  "source_executor_coinflip_pie_hashes": {
+    "heads": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+    "tails": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13"
+  },
+  "browser_proof": {
+    "runtime": "browser Worker memory64",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+    "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+    "proof_bytes": 231962,
+    "init_ms": 5495.969999969006,
+    "prove_ms": 74262.87000000477,
+    "total_ms": 79861.82499998808,
+    "wasm_linear_memory_bytes": 14100267008,
+    "webcrypto_random_calls": 0,
+    "webcrypto_random_bytes": 0,
+    "rust_requested_live_bytes": 10486908137,
+    "rust_requested_peak_bytes": 13828577826,
+    "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate"
+  },
+  "proof_output_matches_reconstructed_fixture_statement": true,
+  "native_verification": {
+    "origin": "verify",
+    "output_matches_fixture": true,
+    "precomputes_ms": 0,
+    "proof_bytes": 231962,
+    "prove_ms": 0,
+    "total_ms": 72,
+    "verified": true,
+    "verify_ms": 72
+  },
+  "node_tests": {
+    "passed": 59,
+    "failed": 0
+  },
+  "python_dependency_guard_tests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "npm_audit_advisories": 0,
+  "code_scanning": {
+    "alert": 12,
+    "state": "dismissed",
+    "reason": "false positive",
+    "review": "Bounded public JSON evidence with script-owned filenames and operator-owned RUN_DIR; never executed. No query/path exclusions."
+  },
+  "release_assets_changed": false,
+  "sepolia_acceptance_for_source_rebuild": "Not run; required before promoting replacement release assets.",
+  "native_verifier_sha256": "14a729333f052bbd4b27467a0bc77c466a0c39d555e25577bc46189a6e2c3fdc",
+  "released_prover_sha256": "1f76da1636c1e0e5f9952b3b49fc23d5a93493c2b94d3a2ec221965aa802a8aa"
+}

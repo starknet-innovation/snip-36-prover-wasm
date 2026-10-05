@@ -1,0 +1,31 @@
+[package]
+name = "browser_virtual_os"
+version = "0.1.0"
+edition = "2024"
+[lib]
+crate-type = ["cdylib", "rlib"]
+[dependencies]
+cairo-lang-starknet-classes.workspace = true
+cairo-lang-utils.workspace = true
+indexmap.workspace = true
+thiserror.workspace = true
+starknet_patricia.workspace = true
+starknet-rust-core.workspace = true
+blockifier = { workspace = true, features = ["transaction_serde", "reexecution"] }
+starknet_api.workspace = true
+starknet_committer.workspace = true
+starknet_patricia_storage.workspace = true
+tokio = { workspace = true, features = ["rt"] }
+starknet-types-core.workspace = true
+shared_execution_objects.workspace = true
+serde = { workspace = true, features = ["derive"] }
+starknet_os = { workspace = true, features = ["deserialize"] }
+cairo-vm.workspace = true
+serde_json.workspace = true
+zip = { version = "=0.6.6", default-features = false, features = ["deflate"] }
+wasm-bindgen = "=0.2.105"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom02 = { package = "getrandom", version = "=0.2.16", features = ["js"] }
+getrandom03 = { package = "getrandom", version = "=0.3.4", features = ["wasm_js"] }
+getrandom04 = { package = "getrandom", version = "=0.4.2", features = ["wasm_js"] }

@@ -1,0 +1,4 @@
+# Preserve the upstream crate's bytes, including its CRLF line endings.
+patches/executor/browser-vendor/num-prime-0.4.4/** -text whitespace=cr-at-eol,-blank-at-eol
+# Empty context lines in a unified diff contain their required leading space.
+patches/executor/dependency-scope.patch whitespace=-blank-at-eol
