@@ -4,7 +4,15 @@ export async function discoverWallets() {
   return getStarknet().getAvailableWallets();
 }
 export async function connectWallet(wallet, onStatus = () => {}) {
-  const enabled = await getStarknet().enable(wallet, { silent_mode: false });
+  // A successful account request is the wallet's connection authorization.
+  // Do not gate it on a redundant wallet_getPermissions response.
+  const enabled = wallet;
+  let accounts = await enabled.request({
+    type: "wallet_requestAccounts",
+    params: { silent_mode: false },
+  });
+  if (!Array.isArray(accounts) || !accounts.length)
+    throw Error("Wallet returned no account");
   let chain = await enabled.request({ type: "wallet_requestChainId" });
   if (hex(chain) !== CHAIN) {
     onStatus("Approve the switch to Starknet Sepolia in your wallet.");
@@ -24,8 +32,12 @@ export async function connectWallet(wallet, onStatus = () => {}) {
       throw Error("Switch your wallet to Starknet Sepolia, then reconnect");
   }
   // Network changes can select a different account; read it after switching.
-  const accounts = await enabled.request({ type: "wallet_requestAccounts" });
-  if (!accounts.length) throw Error("Wallet returned no account");
+  accounts = await enabled.request({
+    type: "wallet_requestAccounts",
+    params: { silent_mode: true },
+  });
+  if (!Array.isArray(accounts) || !accounts.length)
+    throw Error("Wallet returned no account");
   let versions = [];
   try {
     versions = await enabled.request({ type: "wallet_supportedWalletApi" });

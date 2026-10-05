@@ -72,8 +72,10 @@ try {
               Object.values(r.params).some((v) => v === undefined)
             )
               throw Error("The request payload is invalid");
-            if (r.type === "wallet_getPermissions") return ["accounts"];
-            if (r.type === "wallet_requestAccounts") return ["0x6"];
+            if (r.type === "wallet_getPermissions")
+              return scenario === "switch-success" ? [] : ["accounts"];
+            if (r.type === "wallet_requestAccounts")
+              return [chain === CHAIN ? "0x6" : "0x5"];
             if (r.type === "wallet_requestChainId") return chain;
             if (r.type === "wallet_switchStarknetChain") {
               window.switchRequests++;
