@@ -1,10 +1,18 @@
 // Explicit memory64 host ABI. Bounded views avoid constructing a >4-GiB Uint8Array.
-export async function loadMemory64(url, onPanic, onStage) {
+export function checkedRange(ptr, len, memoryBytes) {
+  if (typeof ptr !== "bigint" || typeof len !== "bigint" ||
+      ptr < 0n || len < 0n || ptr > BigInt(Number.MAX_SAFE_INTEGER) ||
+      len > 0xffffffffn || ptr + len > BigInt(memoryBytes))
+    throw Error("Invalid memory64 pointer/length");
+  return [Number(ptr), Number(len)];
+}
+
+export async function loadMemory64(url, onPanic, onStage, expectedIdentity) {
   let wasm,
     randomCalls = 0,
     randomBytes = 0;
   const view = (ptr, len) =>
-    new Uint8Array(wasm.memory.buffer, Number(ptr), Number(len));
+    new Uint8Array(wasm.memory.buffer, ...checkedRange(ptr, len, wasm.memory.buffer.byteLength));
   const text = (ptr, len) => new TextDecoder().decode(view(ptr, len));
   // Unused wasm-bindgen exports are retained by transitive crates. This raw ABI
   // never invokes them. Fail closed if any real execution reaches that machinery.
@@ -23,8 +31,7 @@ export async function loadMemory64(url, onPanic, onStage) {
     browser: {
       random_fill(ptr, len) {
         try {
-          const count = Number(len),
-            start = Number(ptr);
+          const [start, count] = checkedRange(ptr, len, wasm.memory.buffer.byteLength);
           randomCalls++;
           randomBytes += count;
           for (let offset = 0; offset < count; offset += 65536) {
@@ -51,23 +58,34 @@ export async function loadMemory64(url, onPanic, onStage) {
       },
     },
   };
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) throw Error(`Wasm HTTP ${response.status}`);
-  const result = await WebAssembly.instantiateStreaming(response, imports);
+  // Hash and instantiate the same bytes. A second fetch could load another build.
+  const bytes = await response.arrayBuffer();
+  const identity = {
+    wasm_bytes: bytes.byteLength,
+    wasm_sha256: Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+      (x) => x.toString(16).padStart(2, "0")).join(""),
+  };
+  if (expectedIdentity && (identity.wasm_sha256 !== expectedIdentity.sha256 ||
+      identity.wasm_bytes !== expectedIdentity.bytes))
+    throw Error("Prover WASM identity mismatch");
+  const result = await WebAssembly.instantiate(bytes, imports);
   wasm = result.instance.exports;
   const check = (code) => {
     if (code !== 0)
       throw Error(text(wasm.spike_error_ptr(), wasm.spike_error_len()));
   };
   return {
+    identity,
     init() {
       check(wasm.spike_init());
     },
     prove(bytes) {
       const len = BigInt(bytes.length),
         ptr = wasm.spike_alloc(len);
-      view(ptr, len).set(bytes);
       try {
+        view(ptr, len).set(bytes);
         check(wasm.spike_prove(ptr, len));
       } finally {
         wasm.spike_dealloc(ptr, len);

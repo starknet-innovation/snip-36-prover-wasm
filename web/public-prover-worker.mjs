@@ -4,17 +4,20 @@ self.onmessage = async (event) => {
   // Reject window-style and synthetic events before reading their payload.
   if (event.origin !== "" || event.source !== null || !event.isTrusted) return;
   if (!event.data || typeof event.data !== "object") return;
-  const { id, pie } = event.data;
+  const { id, pie, expectedWasm } = event.data;
   const start = performance.now(),
     send = (data) => self.postMessage({ id, ...data });
   try {
     if (!(pie instanceof ArrayBuffer) || !pie.byteLength)
       throw Error("Missing browser-generated PIE");
+    const loadStarted = performance.now();
     const api = await loadMemory64(
       "./sequencer-prover.wasm",
       (message) => send({ kind: "panic", message }),
       (stage) => send({ kind: "stage", ...stage }),
+      expectedWasm,
     );
+    const load_ms = performance.now() - loadStarted;
     let t = performance.now();
     api.init();
     const init_ms = performance.now() - t;
@@ -34,10 +37,12 @@ self.onmessage = async (event) => {
       output_preimage: result.output_preimage,
       report: {
         runtime: "browser Worker memory64",
+        ...api.identity,
         userAgent: navigator.userAgent,
         pie_sha256: await sha(pie),
         proof_sha256: await sha(result.proof),
         proof_bytes: result.proof.length,
+        load_ms,
         init_ms,
         prove_ms,
         total_ms: performance.now() - start,

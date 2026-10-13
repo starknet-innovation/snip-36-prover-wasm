@@ -1,7 +1,8 @@
 """Fetch pinned source trees and apply reviewed browser portability patches once."""
 from pathlib import Path
-import json,subprocess,sys,tarfile,hashlib,shutil
+import json,subprocess,sys,tarfile,hashlib,shutil,argparse
 from executor_manifests import check_manifests, patch_fingerprint
+from prover_sources import fingerprint, check_receipt, write_receipt
 root=Path(__file__).resolve().parents[1];build=root/'build';pins=json.loads((root/'pins.json').read_text())
 def run(*args):subprocess.run(args,check=True)
 def clone(name,url,rev):
@@ -13,10 +14,54 @@ def clone(name,url,rev):
 def apply(p,patch):
  if subprocess.run(['git','-C',str(p),'apply','--reverse','--check',str(patch)],capture_output=True).returncode==0:return
  run('git','-C',str(p),'apply','--check',str(patch));run('git','-C',str(p),'apply',str(patch))
-mode=sys.argv[1]
-if mode=='prover':
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('mode',choices=['prover','prover-baseline','prover-tradeoffs','prover-kernels','native','executor'])
+parser.add_argument('--build-dir',default='build',help='Fresh preparation directory under build/')
+args=parser.parse_args();mode=args.mode
+build=(root/args.build_dir).resolve()
+if not build.is_relative_to(root/'build'):raise SystemExit('Preparation directory must be under build/')
+if mode in ('prover','prover-baseline','prover-tradeoffs','prover-kernels'):
+ if mode=='prover-baseline':build=build/'baseline'
+ if mode=='prover-tradeoffs':build=build/'tradeoffs'
+ if mode=='prover-kernels':build=build/'kernels'
+ trees={}
  for name,repo,key in [('stwo','stwo','stwo'),('stwo-cairo','stwo-cairo','stwo_cairo'),('proving-utils','proving-utils','transaction_service_proving_utils')]:
-  p=clone(name,f'https://github.com/starkware-libs/{repo}.git',pins[key]);apply(p,root/'patches/prover'/f'{name}.patch')
+  trees[name]=clone(name,f'https://github.com/starkware-libs/{repo}.git',pins[key])
+ patches={name:root/'patches/prover'/f'{name}.patch' for name in trees}
+ patches['pins']=root/'pins.json'
+ if mode!='prover-baseline':
+  trees['stwo-circuits']=clone('stwo-circuits','https://github.com/starkware-libs/stwo-circuits.git',pins['stwo_circuits'])
+  circuit_patch=root/'patches/prover/stwo-circuits.patch'
+  if circuit_patch.exists():patches['stwo-circuits']=circuit_patch
+  patches['workspace']=root/'patches/prover/candidate-workspace.patch'
+  patches['lock']=root/'patches/prover/candidate.Cargo.lock'
+  lifetime_patch=root/'patches/prover/lifetimes.patch'
+  if lifetime_patch.exists():patches['lifetimes']=lifetime_patch
+  striped_patch=root/'patches/prover/striped.patch'
+  if striped_patch.exists():patches['striped']=striped_patch
+  for layer in ['sourced-stwo','sourced-circuits','sourced-utils']:
+   patch=root/'patches/prover'/f'{layer}.patch'
+   if patch.exists():patches[layer]=patch
+  circuit_lock=root/'patches/prover/circuits.Cargo.lock'
+  if circuit_lock.exists():patches['circuit-lock']=circuit_lock
+  if mode=='prover-tradeoffs':patches['tradeoffs']=root/'patches/prover/tradeoffs.patch'
+  if mode=='prover-kernels':patches['kernels']=root/'patches/prover/kernels.patch'
+ marker=build/'proving-utils/.wasm-patches-complete';patch_digest=fingerprint(patches)
+ if check_receipt(marker,patch_digest,trees):
+  print('Prover source already prepared');raise SystemExit(0)
+ for name,p in trees.items():
+  if name in patches:apply(p,patches[name])
+ if mode!='prover-baseline':
+  apply(build/'proving-utils',root/'patches/prover/candidate-workspace.patch')
+  if 'lifetimes' in patches:apply(build/'proving-utils',patches['lifetimes'])
+  if 'striped' in patches:apply(build/'stwo',patches['striped'])
+  for layer,name in [('sourced-stwo','stwo'),('sourced-circuits','stwo-circuits'),('sourced-utils','proving-utils')]:
+   if layer in patches:apply(build/name,patches[layer])
+  if 'circuit-lock' in patches:(build/'stwo-circuits/Cargo.lock').write_bytes(patches['circuit-lock'].read_bytes())
+  if 'tradeoffs' in patches:apply(build/'stwo',patches['tradeoffs'])
+  if 'kernels' in patches:apply(build/'stwo',patches['kernels'])
+  (build/'proving-utils/Cargo.lock').write_bytes((root/'patches/prover/candidate.Cargo.lock').read_bytes())
+ write_receipt(marker,patch_digest,trees)
 elif mode=='native':
  p=clone('native-prover','https://github.com/starkware-libs/proving-utils.git',pins['transaction_service_proving_utils'])
  (p/'Cargo.lock').write_bytes((root/'patches/prover/native.Cargo.lock').read_bytes());(p/'crates/privacy_prove/examples').mkdir(exist_ok=True)
@@ -40,4 +85,4 @@ elif mode=='executor':
  # Dependabot resolves this same patched workspace; manifest edits need matching source patches.
  check_manifests(p)
  (p/'Cargo.lock').write_bytes((root/'patches/executor/Cargo.lock').read_bytes());marker.write_text(fingerprint)
-else:raise SystemExit('prover | native | executor')
+else:raise SystemExit('prover | prover-baseline | native | executor')
