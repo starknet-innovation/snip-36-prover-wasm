@@ -1,6 +1,7 @@
 """Preparation receipts guard layered prover patches and reject stale edited trees."""
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 
@@ -38,3 +39,13 @@ def check_receipt(marker, patch_digest, trees):
 def write_receipt(marker, patch_digest, trees):
     marker.write_text(json.dumps({'patches_sha256': patch_digest,
                                  'trees': {name: source_digest(tree) for name, tree in trees.items()}}, indent=2) + '\n')
+
+
+def require_pristine(trees):
+    """First receipts must originate from pristine pins, never adopted dirty trees."""
+    for name, tree in trees.items():
+        status = subprocess.check_output(
+            ['git', '-C', str(tree), 'status', '--porcelain', '--untracked-files=all', '--ignored'],
+            text=True)
+        if status:
+            raise RuntimeError(f'Unreceipted {name} sources are dirty; use fresh prepared source directories')

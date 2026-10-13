@@ -7,6 +7,7 @@ import path from "node:path";
 import { startServer } from "./server.mjs";
 import { corpus, sha256, expectedPreimage, sameFelts, checkExecution } from "./offline-fixtures.mjs";
 import { sampleBrowserMemory } from "./browser-memory.mjs";
+import { PROOF_TIMEOUT_MS, VERIFIER_TIMEOUT_MS } from "./proof-timeouts.mjs";
 const exec = promisify(execFile);
 if (process.env.STARKNET_PRIVATE_KEY) throw Error("Signing credentials forbidden");
 const [mode, directory, wasmPath, expectedHash, verifierPath, outputDirectory] = process.argv.slice(2);
@@ -53,10 +54,10 @@ try {
   async function workerCall(module, payload) {
     memory.reset();
     const started = performance.now();
-    const result = await page.evaluate(({ module, payload }) => new Promise((resolve, reject) => {
+    const result = await page.evaluate(({ module, payload, timeoutMs }) => new Promise((resolve, reject) => {
       const started = performance.now();
       const worker = new Worker(module, { type: "module" });
-      const timer = setTimeout(() => { worker.terminate(); reject(Error("Proof/execute timeout")); }, 20 * 60 * 1000);
+      const timer = setTimeout(() => { worker.terminate(); reject(Error("Proof/execute timeout")); }, timeoutMs);
       const finish = (fn, value) => { clearTimeout(timer); worker.terminate(); fn(value); };
       worker.onerror = (e) => finish(reject, Error(e.message));
       worker.onmessage = ({ data }) => {
@@ -71,7 +72,7 @@ try {
       };
       if (payload.pie) payload.pie = new Uint8Array(payload.pie).buffer;
       worker.postMessage(payload);
-    }), { module, payload });
+    }), { module, payload, timeoutMs: PROOF_TIMEOUT_MS });
     result.report.harness_call_ms = performance.now() - started;
     Object.assign(result.report, memory.snapshot());
     return result;
@@ -111,7 +112,7 @@ try {
       const proofFile = path.join(out, `${name}.proof.bin`);
       await writeFile(proofFile, proof, { flag: "wx" });
       await save(`${name}.proof.json`, { output_preimage: result.output_preimage, report: result.report });
-      const verified = await exec(path.resolve(verifierPath), ["verify", proofFile, expectedFile, path.join(out, `${name}.verified`)], { timeout: 120000 });
+      const verified = await exec(path.resolve(verifierPath), ["verify", proofFile, expectedFile, path.join(out, `${name}.verified`)], { timeout: VERIFIER_TIMEOUT_MS });
       await save(`${name}.native.json`, { stdout: verified.stdout, stderr: verified.stderr });
       // Check both verifier-facing boundaries with the same pristine verifier.
       const tampered = Buffer.from(proof); tampered[Math.floor(tampered.length / 2)] ^= 1;
@@ -123,7 +124,7 @@ try {
         ["proof", badProof, expectedFile], ["statement", proofFile, path.join(out, `${name}.tampered-expected.json`)],
       ]) {
         try {
-          await exec(path.resolve(verifierPath), ["verify", proofArg, outputArg, path.join(out, `${name}.negative-${label}`)], { timeout: 120000 });
+          await exec(path.resolve(verifierPath), ["verify", proofArg, outputArg, path.join(out, `${name}.negative-${label}`)], { timeout: VERIFIER_TIMEOUT_MS });
         } catch (error) {
           if (!Number.isInteger(error.code) || error.code === 0) throw error;
           await save(`${name}.negative-${label}.json`, { rejected: true, exit_code: error.code, stdout: error.stdout, stderr: error.stderr });

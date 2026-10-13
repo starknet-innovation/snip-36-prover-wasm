@@ -15,6 +15,8 @@ def command(*args):
     return {'exit_code': result.returncode, 'stdout': result.stdout.strip(), 'stderr': result.stderr.strip()}
 
 def tree_digest(directory):
+    if not directory.is_dir():
+        raise FileNotFoundError(f"Missing source tree: {directory}")
     result = hashlib.sha256()
     for file in sorted(directory.rglob('*')):
         relative = file.relative_to(directory)
@@ -36,21 +38,28 @@ def main():
     metadata = json.loads(args.metadata.read_text())
     source_directory = lambda name: (Path('build') if name == 'native-prover' else args.source_root) / name
     receipt = ROOT / args.source_root / 'proving-utils/.wasm-patches-complete'
+    if not receipt.is_file():
+        raise RuntimeError('Prepared source receipt required for identity')
+    prepared = json.loads(receipt.read_text())
+    tree_names = list(prepared['trees']) + ['native-prover']
     report = {
         'schema': 1, 'starting_sha': '739b084d1f533e60cd38cf9a0a6391de7965aafd',
         'target_head': command('git', 'rev-parse', 'HEAD'),
         'branch': command('git', 'branch', '--show-current'),
         'worktree': command('git', 'status', '--short'), 'pins': pins,
-        'prepared_source_receipt': json.loads(receipt.read_text()) if receipt.exists() else None,
+        'prepared_source_receipt': prepared,
         'patches': {str(p.relative_to(ROOT)): digest(p) for p in sorted((ROOT / 'patches/prover').rglob('*')) if p.is_file()},
         'wasm': {'path': str(args.wasm), **digest(args.wasm)},
         'metadata': digest(args.metadata),
         'resolved_packages': [{'name': p['name'], 'version': p['version'], 'source': p['source'], 'manifest_path': p['manifest_path']} for p in metadata['packages']],
+        'resolved_git_circuit_packages': [{'name': p['name'], 'source': p['source'],
+            'manifest_path': p['manifest_path'], 'files_sha256': tree_digest(Path(p['manifest_path']).parent)}
+            for p in metadata['packages'] if p.get('source') and 'stwo-circuits' in p['source']],
         'resolved_features': metadata.get('resolve'),
         'source_trees': {name: {'files_sha256': tree_digest(ROOT / source_directory(name)),
                                 'head': command('git', '-C', str(source_directory(name)), 'rev-parse', 'HEAD'),
                                 'diff': command('git', '-C', str(source_directory(name)), 'diff', '--binary')}
-                         for name in ['stwo', 'stwo-cairo', 'stwo-circuits', 'proving-utils', 'native-prover']},
+                         for name in tree_names},
         'tools': {'rust': command('rustc', f"+{pins['rust']}", '-Vv'), 'node': command('node', '--version'),
                   'llvm': command(args.clang, '--version')},
         'host': {'platform': platform.platform(), 'machine': platform.machine(), 'ram': command('sysctl', '-n', 'hw.memsize'),

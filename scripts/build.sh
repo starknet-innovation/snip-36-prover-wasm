@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-mode=${1:?Usage: build.sh prover|prover-baseline|prover-tradeoffs|prover-kernels|executor|native}
+# prepare-sources.py lists only profiles whose persistent patches exist.
+mode=${1:?Usage: build.sh MODE (see python3 scripts/prepare-sources.py --help)}
 if [[ -n "${STARKNET_PRIVATE_KEY:-}" ]]; then
   echo 'Source builds must run without STARKNET_PRIVATE_KEY' >&2
   exit 1

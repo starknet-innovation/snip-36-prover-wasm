@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import path from "node:path";
 import { chromium } from "playwright";
 import { sha256, corpus } from "./offline-fixtures.mjs";
+import { PROOF_TIMEOUT_MS, ATTEMPT_TIMEOUT_MS } from "./proof-timeouts.mjs";
 const exec = promisify(execFile);
 let interrupted = false;
 // Finish the current child so its finally block closes Chromium and saves evidence.
@@ -15,6 +16,7 @@ if (!output || ![baselineHash, candidateHash].every((hash) => /^[a-f0-9]{64}$/.t
   throw Error("usage: prover-benchmark.mjs FIXTURES BASELINE SHA256 CANDIDATE SHA256 VERIFIER NEW_OUTPUT_DIR");
 const dir = path.resolve(output); await mkdir(dir, { recursive: true });
 const plan = JSON.parse(await readFile("docs/port/benchmark-plan.json"));
+if (plan.timeout_ms_per_proof !== PROOF_TIMEOUT_MS) throw Error("Plan and harness proof budgets differ");
 for (const [file, hash] of [[baseline, baselineHash], [candidate, candidateHash]])
   if (sha256(await readFile(file)) !== hash) throw Error("Preregistered module replaced");
 const versionBrowser = await chromium.launch({ headless: true,
@@ -29,7 +31,7 @@ const identity = { registered_at: new Date().toISOString(), plan, baseline: { fi
 identity.repository_head = (await exec("git", ["rev-parse", "HEAD"])).stdout.trim();
 identity.harness_files = {};
 for (const file of ["scripts/offline-proof.mjs", "scripts/offline-fixtures.mjs", "scripts/browser-memory.mjs",
-  "scripts/server.mjs", "web/sequencer-memory64.mjs", "web/public-prover-worker.mjs", "web/public-run-controller.mjs", "package-lock.json"])
+  "scripts/proof-timeouts.mjs", "scripts/server.mjs", "web/sequencer-memory64.mjs", "web/public-prover-worker.mjs", "web/public-run-controller.mjs", "package-lock.json"])
   identity.harness_files[file] = sha256(await readFile(file));
 identity.source_identities = [];
 for (const file of identity.source_identity_files) { const bytes = await readFile(file); identity.source_identities.push({ file, sha256: sha256(bytes), record: JSON.parse(bytes) }); }
@@ -50,7 +52,7 @@ campaign: for (const [name] of corpus) {
       try {
         const module = role === "baseline" ? baseline : candidate, hash = role === "baseline" ? baselineHash : candidateHash;
         const result = await exec(process.execPath, ["scripts/offline-proof.mjs", "prove", fixtures, module, hash, verifier, attemptDir], {
-          timeout: plan.timeout_ms_per_proof + 300000, maxBuffer: 2 * 1024 ** 2,
+          timeout: ATTEMPT_TIMEOUT_MS, maxBuffer: 2 * 1024 ** 2,
           env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8", OFFLINE_WORKLOAD: name },
         });
         trial.stdout = result.stdout; trial.stderr = result.stderr;

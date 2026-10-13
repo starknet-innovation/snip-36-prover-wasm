@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,subprocess,sys,tarfile,hashlib,shutil,argparse
 from executor_manifests import check_manifests, patch_fingerprint
-from prover_sources import fingerprint, check_receipt, write_receipt
+from prover_sources import fingerprint, check_receipt, write_receipt, require_pristine
 root=Path(__file__).resolve().parents[1];build=root/'build';pins=json.loads((root/'pins.json').read_text())
 def run(*args):subprocess.run(args,check=True)
 def clone(name,url,rev):
@@ -15,7 +15,10 @@ def apply(p,patch):
  if subprocess.run(['git','-C',str(p),'apply','--reverse','--check',str(patch)],capture_output=True).returncode==0:return
  run('git','-C',str(p),'apply','--check',str(patch));run('git','-C',str(p),'apply',str(patch))
 parser=argparse.ArgumentParser(description=__doc__)
-parser.add_argument('mode',choices=['prover','prover-baseline','prover-tradeoffs','prover-kernels','native','executor'])
+available_modes=['prover','prover-baseline','native','executor']
+for profile in ['tradeoffs','kernels']:
+ if (root/'patches/prover'/f'{profile}.patch').is_file():available_modes.append(f'prover-{profile}')
+parser.add_argument('mode',choices=available_modes)
 parser.add_argument('--build-dir',default='build',help='Fresh preparation directory under build/')
 args=parser.parse_args();mode=args.mode
 build=(root/args.build_dir).resolve()
@@ -49,6 +52,7 @@ if mode in ('prover','prover-baseline','prover-tradeoffs','prover-kernels'):
  marker=build/'proving-utils/.wasm-patches-complete';patch_digest=fingerprint(patches)
  if check_receipt(marker,patch_digest,trees):
   print('Prover source already prepared');raise SystemExit(0)
+ require_pristine(trees)
  for name,p in trees.items():
   if name in patches:apply(p,patches[name])
  if mode!='prover-baseline':
