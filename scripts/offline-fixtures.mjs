@@ -21,3 +21,9 @@ export function checkExecution(recorded, result, pie) {
       !sameFelts(recorded.output, result.output))
     throw Error("Offline execution differs from committed PIE/public output");
 }
+
+// A crash, panic or timeout is a failed test, not evidence of verifier rejection.
+export function isOrdinaryVerifierRejection(error) {
+  return Number.isInteger(error?.code) && error.code > 0 && error.code !== 101 &&
+    !error.signal && !error.killed && !String(error.stderr ?? "").includes("panicked at");
+}

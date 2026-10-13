@@ -5,7 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import path from "node:path";
 import { startServer } from "./server.mjs";
-import { corpus, sha256, expectedPreimage, sameFelts, checkExecution } from "./offline-fixtures.mjs";
+import { corpus, sha256, expectedPreimage, sameFelts, checkExecution, isOrdinaryVerifierRejection } from "./offline-fixtures.mjs";
 import { sampleBrowserMemory } from "./browser-memory.mjs";
 import { PROOF_TIMEOUT_MS, VERIFIER_TIMEOUT_MS } from "./proof-timeouts.mjs";
 const exec = promisify(execFile);
@@ -126,7 +126,7 @@ try {
         try {
           await exec(path.resolve(verifierPath), ["verify", proofArg, outputArg, path.join(out, `${name}.negative-${label}`)], { timeout: VERIFIER_TIMEOUT_MS });
         } catch (error) {
-          if (!Number.isInteger(error.code) || error.code === 0) throw error;
+          if (!isOrdinaryVerifierRejection(error)) throw error;
           await save(`${name}.negative-${label}.json`, { rejected: true, exit_code: error.code, stdout: error.stdout, stderr: error.stderr });
           continue;
         }
