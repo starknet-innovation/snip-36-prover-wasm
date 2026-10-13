@@ -32,9 +32,12 @@
     "job": "af5e6e44-0915-4dc8-b2df-9f86ce0959ff",
     "source_patch_sha256": "0330b0792e1969e3eb4600277e416b0ac0200e8b14717c295c8cfeaca3a1d865",
     "target_starting_sha": "739b084d1f533e60cd38cf9a0a6391de7965aafd",
-    "port_status": "reference only; not implemented",
-    "validation": "none; source results do not establish browser gains",
-    "write_up": "bt1_b22ab32898229cf36a22d204"
+    "port_status": "selected kernel mechanisms implemented in prover-kernels; not the complete source tree",
+    "validation": "docs/port/validation-kernels-corrected.json (pre-review module); review correction checked separately in docs/port/review-pow-fix.md. No isolated browser performance gain established.",
+    "write_up": "bt1_b22ab32898229cf36a22d204",
+    "browser_adaptation": "Two eight-lane BLAKE2s compression halves, grind round-0 prefix reuse, and grouped quotient accumulation with bounded canonical reduction. Fused commitment layers and blanket field inlining are not ported.",
+    "target_commit": "11a8812d75ead46ad269dec0c10dd9f8e7b77806",
+    "target_patch": "patches/prover/kernels.patch"
   },
   {
     "commit": "c38b7e27d70c68e94283b6cde350059ed571eea1",
@@ -77,9 +80,12 @@
     "job": "a6197744-dd41-46de-bfc3-47ebbd4d8487",
     "source_patch_sha256": "cab9d621e2aa9ddf54e2ce306f918d19fdef8c36d81c442621085f72e7e1bfbe",
     "target_starting_sha": "739b084d1f533e60cd38cf9a0a6391de7965aafd",
-    "port_status": "reference only; not implemented",
-    "validation": "none; source results do not establish browser gains",
-    "write_up": "bt1_7609bc58b85c2c5f0fa2f0cd"
+    "port_status": "selected kernel mechanisms implemented in prover-kernels; not the complete source tree",
+    "validation": "docs/port/validation-kernels-corrected.json (pre-review module); review correction checked separately in docs/port/review-pow-fix.md. No isolated browser performance gain established.",
+    "write_up": "bt1_7609bc58b85c2c5f0fa2f0cd",
+    "browser_adaptation": "IFFT normalization fused into the final pass. Broader parallel-pass and forward FFT fusion mechanisms are not ported by the kernel profile.",
+    "target_commit": "11a8812d75ead46ad269dec0c10dd9f8e7b77806",
+    "target_patch": "patches/prover/kernels.patch"
   },
   {
     "commit": "896dc540514239f0cfe9e725a38ce056a87b8a1e",

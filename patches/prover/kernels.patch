@@ -296,7 +296,7 @@ diff --git a/crates/stwo/src/prover/backend/simd/grind.rs b/crates/stwo/src/prov
  
  // Note: GRIND_LOW_BITS is a cap on how much extra time we need to wait for all threads to finish.
  // It must be <= 30 if we want to guarantee that the lowest 32 bits of the nonce are < 2^31 - 1.
-@@ -58,34 +57,173 @@
+@@ -58,34 +57,183 @@
      }
  }
  
@@ -436,9 +436,20 @@ diff --git a/crates/stwo/src/prover/backend/simd/grind.rs b/crates/stwo/src/prov
 +    }
 +}
 +
++/// Mask for the tested 32-bit word; unsupported difficulties have no possible solution.
++fn grind_mask(pow_bits: u32) -> Option<u32x8> {
++    if pow_bits > u32::BITS {
++        return None;
++    }
++    Some(u32x8::splat(if pow_bits == u32::BITS { u32::MAX } else { (1u32 << pow_bits) - 1 }))
++}
++
  fn grind_blake<const IS_M31_OUTPUT: bool>(digest: &[u32], hi: u32, pow_bits: u32) -> Option<u64> {
      const DIGEST_SIZE: usize = std::mem::size_of::<[u32; 8]>();
      const NONCE_SIZE: usize = std::mem::size_of::<u64>();
++    // Match the original trailing_zeros predicate: difficulties above 32 always fail.
++    // Reject before reading the digest or constructing the prefix.
++    let mask = grind_mask(pow_bits)?;
 -    let zero: u32x16 = u32x16::splat(0);
 +    let prefix = GrindPrefix::new(digest, (DIGEST_SIZE + NONCE_SIZE) as u32);
      let offsets_vec = u32x16::from(std::array::from_fn(|i| i as u32));
@@ -446,7 +457,6 @@ diff --git a/crates/stwo/src/prover/backend/simd/grind.rs b/crates/stwo/src/prov
 -
 -    let state: [_; 8] = std::array::from_fn(|i| u32x16::splat(digest[i]));
 +    // `trailing_zeros(x) >= pow_bits` iff the `pow_bits` lowest bits of `x` are zero.
-+    let mask = u32x8::splat(if pow_bits >= u32::BITS { u32::MAX } else { (1 << pow_bits) - 1 });
 +    let zero = u32x8::splat(0);
 +    let modulus = u32x8::splat(P);
  
@@ -491,7 +501,7 @@ diff --git a/crates/stwo/src/prover/backend/simd/grind.rs b/crates/stwo/src/prov
          }
          attempt_low += u32x16::splat(N_LANES as u32);
      }
-@@ -139,6 +277,9 @@
+@@ -139,6 +287,9 @@
      found.expect("Grind failed to find a solution.")
  }
  
@@ -501,7 +511,50 @@ diff --git a/crates/stwo/src/prover/backend/simd/grind.rs b/crates/stwo/src/prov
  #[cfg(not(target_arch = "wasm32"))]
  pub mod poseidon252 {
      use starknet_crypto::poseidon_hash_many;
-@@ -230,9 +371,7 @@
+@@ -194,7 +345,41 @@
+     use itertools::Itertools;
+ 
+     use super::*;
+-    use crate::core::channel::{Blake2sChannel, Channel};
++    use crate::core::channel::{Blake2sChannel, Blake2sM31Channel, Channel};
++
++    #[test]
++    fn test_grind_mask_matches_scalar_trailing_zeros() {
++        let words = [0, 1, 1u32 << 31, u32::MAX, P, P - 1, 2, 1u32 << 30];
++        let lanes = u32x8::from(words);
++        for pow_bits in [0, 1, 31, 32, 33, 64, u32::MAX] {
++            let actual = grind_mask(pow_bits)
++                .map(|mask| (lanes & mask).simd_eq(u32x8::splat(0)).to_array())
++                .unwrap_or([false; 8]);
++            let expected = words.map(|word| word.trailing_zeros() >= pow_bits);
++            assert_eq!(actual, expected, "pow_bits={pow_bits}");
++        }
++    }
++
++    #[test]
++    fn test_grind_blake_rejects_above_word_width_before_prefix() {
++        for pow_bits in [33, 64, u32::MAX] {
++            // An empty digest also proves rejection happens before GrindPrefix reads it.
++            assert_eq!(grind_blake::<false>(&[], 0, pow_bits), None);
++            assert_eq!(grind_blake::<true>(&[], 0, pow_bits), None);
++        }
++    }
++
++    #[test]
++    #[should_panic(expected = "pow_bits > 32 is not supported")]
++    fn test_grind_blake_public_rejects_above_word_width() {
++        SimdBackend::grind(&Blake2sChannel::default(), 33);
++    }
++
++    #[test]
++    #[should_panic(expected = "pow_bits > 32 is not supported")]
++    fn test_grind_blake_m31_public_rejects_above_word_width() {
++        SimdBackend::grind(&Blake2sM31Channel::default(), 33);
++    }
+ 
+     #[cfg(all(feature = "parallel", feature = "slow-tests"))]
+     #[test]
+@@ -230,9 +415,7 @@
          let mut channel = C::default();
          channel.mix_u64(0);
  
