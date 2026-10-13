@@ -16,3 +16,8 @@ The source ledger now identifies the implemented subsets from 69b8b037 and
 74cca4d4 within this PR. Review execution uses GPT-6 agents; the source's consented
 human credits and messages remain unchanged. Math review confirms equivalence to
 the original u32 grinding predicate; human review and release remain outstanding.
+
+Serial regression validation also identified unrelated circle.rs reversions in
+the kernel patch. Those hunks are removed: the striped foundation's checked FFT
+buffer invariants, feature-gated iteration and block-evaluation tests remain in
+force. The intended final-pass IFFT scaling kernel is preserved.
