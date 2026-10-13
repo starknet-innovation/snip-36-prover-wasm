@@ -11,6 +11,32 @@ PYTHON310=python3.10 ./scripts/build.sh executor
 ./scripts/build.sh native
 ```
 
+The default `prover` source build uses the unchanged pinned prover under
+`build/baseline` and installs it as `web/sequencer-prover.wasm`. The memory-saving
+candidate is an optional profile:
+
+```sh
+# Build a separate memory-saving module; keep the current browser module.
+WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover-memory
+# Explicitly select that profile for local browser use.
+WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover-memory --install
+# Return to the unchanged default source build.
+WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover
+```
+
+Every profile retains its module as `build/wasm/SHA256.wasm`. `prover-memory`
+prepares sources under `build/memory`; `prover-tradeoffs` and `prover-kernels`
+add their separate experiments and also retain modules without installation
+unless `--install` is passed. `prover-baseline` remains the unchanged control
+build without automatic installation. `npm run assets` restores the released
+modules, rather than an optional source-built candidate.
+
+The memory candidate measured about 64.5% lower requested Rust allocation peak
+and 40–50% longer proving time than the source-built baseline. It failed the
+registered time acceptance gate. See [validation and measurements](port/README.md).
+No release assets or checksums were changed. Older preparation directly under
+`build/` is retained but is no longer selected by the default source build.
+
 The source-preparation script verifies exact upstream commits before applying patches. Executor layers: sequencer, program compression, public test fixture, partial state cache, execution capacity, public-state execution/compiler/authentication. The portable Cairo compiler archive is extracted before the final layer. Preparation checks the SHA256 of the original patched lock before installing the reviewed `patches/executor/Cargo.lock` security updates. Use a fresh `build/sequencer` after changing patches or the lock. Native proving/verifying at revision `3035dd` uses upstream code and its pinned lockfile; the only added file is the CLI example.
 
 The prepared executor workspace supports `browser_virtual_os` and its dependency closure, rather than full upstream sequencer node/Python/cloud targets. `patches/executor` mirrors every required patched Cargo manifest so Dependabot can resolve the lock's complete workspace. Source preparation checks these manifests against the actual patched sources, and its fingerprint includes nested manifest files. CI resolves both graphs with `--locked` and compares dependency identities, edges, features and target conditions. See the [resolver maintenance instructions](../patches/executor/README.md) when changing source dependency constraints. This mirror contains no executor implementation; source builds continue to use the pinned checkout.

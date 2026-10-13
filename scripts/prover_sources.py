@@ -49,3 +49,18 @@ def require_pristine(trees):
             text=True)
         if status:
             raise RuntimeError(f'Unreceipted {name} sources are dirty; use fresh prepared source directories')
+
+# Default and baseline control share only the unchanged browser portability patches.
+PROVER_PROFILES = {
+    'prover': 'baseline',
+    'prover-baseline': 'baseline',
+    'prover-memory': 'memory',
+    'prover-tradeoffs': 'tradeoffs',
+    'prover-kernels': 'kernels',
+}
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Print the isolated prover profile directory')
+    parser.add_argument('mode', choices=PROVER_PROFILES)
+    print(PROVER_PROFILES[parser.parse_args().mode])

@@ -33,7 +33,7 @@ def graph(metadata):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('metadata', nargs=3)
-    parser.add_argument('--candidate-root', type=Path, default=ROOT / 'build')
+    parser.add_argument('--candidate-root', type=Path, default=ROOT / 'build/memory')
     args = parser.parse_args()
     baseline, candidate, native = [json.loads(Path(p).read_text()) for p in args.metadata]
     assert graph(baseline) == graph(candidate), 'Candidate changes dependency versions, edges or features'

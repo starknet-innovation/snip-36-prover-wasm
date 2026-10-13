@@ -37,7 +37,7 @@ npm run serve
 
 Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
 
-The source is distributed as pinned upstream checkouts plus browser portability patches. Prebuilt modules are release assets rather than large Git blobs. Their checksums are committed in [`assets.json`](assets.json). See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
+The source is distributed as pinned upstream checkouts plus browser portability patches. Prebuilt modules are release assets rather than large Git blobs. Their checksums are committed in [`assets.json`](assets.json). See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification. The unchanged prover remains the default; `prover-memory` is an optional source profile that trades proving time for lower memory use.
 
 ## Daily testing
 

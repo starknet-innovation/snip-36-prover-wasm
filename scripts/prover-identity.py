@@ -31,7 +31,7 @@ def main():
     parser.add_argument('--wasm', required=True, type=Path)
     parser.add_argument('--metadata', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
-    parser.add_argument('--source-root', default=Path('build'), type=Path)
+    parser.add_argument('--source-root', default=Path('build/baseline'), type=Path)
     parser.add_argument('--clang', default='/opt/homebrew/Cellar/llvm@21/21.1.8/bin/clang')
     args = parser.parse_args()
     pins = json.loads((ROOT / 'pins.json').read_text())

@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,subprocess,sys,tarfile,hashlib,shutil,argparse
 from executor_manifests import check_manifests, patch_fingerprint
-from prover_sources import fingerprint, check_receipt, write_receipt, require_pristine
+from prover_sources import fingerprint, check_receipt, write_receipt, require_pristine, PROVER_PROFILES
 root=Path(__file__).resolve().parents[1];build=root/'build';pins=json.loads((root/'pins.json').read_text())
 def run(*args):subprocess.run(args,check=True)
 def clone(name,url,rev):
@@ -16,6 +16,7 @@ def apply(p,patch):
  run('git','-C',str(p),'apply','--check',str(patch));run('git','-C',str(p),'apply',str(patch))
 parser=argparse.ArgumentParser(description=__doc__)
 available_modes=['prover','prover-baseline','native','executor']
+if (root/'patches/prover/candidate-workspace.patch').is_file():available_modes.append('prover-memory')
 for profile in ['tradeoffs','kernels']:
  if (root/'patches/prover'/f'{profile}.patch').is_file():available_modes.append(f'prover-{profile}')
 parser.add_argument('mode',choices=available_modes)
@@ -23,16 +24,15 @@ parser.add_argument('--build-dir',default='build',help='Fresh preparation direct
 args=parser.parse_args();mode=args.mode
 build=(root/args.build_dir).resolve()
 if not build.is_relative_to(root/'build'):raise SystemExit('Preparation directory must be under build/')
-if mode in ('prover','prover-baseline','prover-tradeoffs','prover-kernels'):
- if mode=='prover-baseline':build=build/'baseline'
- if mode=='prover-tradeoffs':build=build/'tradeoffs'
- if mode=='prover-kernels':build=build/'kernels'
+if mode in PROVER_PROFILES:
+ build=build/PROVER_PROFILES[mode]
+ memory_profile=mode not in ('prover','prover-baseline')
  trees={}
  for name,repo,key in [('stwo','stwo','stwo'),('stwo-cairo','stwo-cairo','stwo_cairo'),('proving-utils','proving-utils','transaction_service_proving_utils')]:
   trees[name]=clone(name,f'https://github.com/starkware-libs/{repo}.git',pins[key])
  patches={name:root/'patches/prover'/f'{name}.patch' for name in trees}
  patches['pins']=root/'pins.json'
- if mode!='prover-baseline':
+ if memory_profile:
   trees['stwo-circuits']=clone('stwo-circuits','https://github.com/starkware-libs/stwo-circuits.git',pins['stwo_circuits'])
   circuit_patch=root/'patches/prover/stwo-circuits.patch'
   if circuit_patch.exists():patches['stwo-circuits']=circuit_patch
@@ -55,7 +55,7 @@ if mode in ('prover','prover-baseline','prover-tradeoffs','prover-kernels'):
  require_pristine(trees)
  for name,p in trees.items():
   if name in patches:apply(p,patches[name])
- if mode!='prover-baseline':
+ if memory_profile:
   apply(build/'proving-utils',root/'patches/prover/candidate-workspace.patch')
   if 'lifetimes' in patches:apply(build/'proving-utils',patches['lifetimes'])
   if 'striped' in patches:apply(build/'stwo',patches['striped'])
@@ -89,4 +89,4 @@ elif mode=='executor':
  # Dependabot resolves this same patched workspace; manifest edits need matching source patches.
  check_manifests(p)
  (p/'Cargo.lock').write_bytes((root/'patches/executor/Cargo.lock').read_bytes());marker.write_text(fingerprint)
-else:raise SystemExit('prover | prover-baseline | native | executor')
+else:raise SystemExit('Unsupported preparation mode')

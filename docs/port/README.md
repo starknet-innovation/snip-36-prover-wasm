@@ -6,31 +6,43 @@ No release manifest or released asset has been promoted by this work.
 
 ## Controls and identities
 
-`prover-baseline` prepares the original three upstream checkouts and original
-browser portability patches under `build/baseline`; it does not apply circuit
-or candidate workspace patches. `prover` prepares `build/stwo-circuits` at the
-existing pin and installs workspace-root overrides for the seven circuit
-packages in the actual dependency closure. `native` retains the separate
-unmodified transaction-service 3035dd Git dependency graph.
+`prover` is the unchanged default source build. It shares `build/baseline` with
+`prover-baseline`, uses only the original three upstream checkouts and original
+browser portability patches, and installs the resulting module locally.
+
+`prover-memory` opts into the memory-saving lifetime, striped proving and sourced
+preprocessing patches under `build/memory`, including the pinned circuit checkout
+and seven circuit-package workspace overrides. It retains a separate module;
+`--install` explicitly selects it for local browser use. `prover-tradeoffs` and
+`prover-kernels` add their respective experiments to this memory profile and also
+require `--install` to replace the local module. `native` keeps the independent
+unchanged transaction-service 3035dd dependency graph.
+
+The memory profile reduced requested Rust peak allocations by about 64.5% but
+increased proving time by roughly 40–50% in the paired measurements. It failed
+the time acceptance gate and is optional. These are build choices; there is no
+browser UI selector or automatic profile switching.
 
 ```sh
 npm ci --ignore-scripts --cache build/npm-cache
 npm run assets                         # Do this before any candidate installation.
 node scripts/build-demo.mjs            # Does not invoke the released-asset downloader.
-WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover-baseline
 WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover
+WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover-memory
 ./scripts/build.sh native
 ```
 
 Source preparation records a fingerprint of pins, patches, lock and prepared
 files, including untracked implementation files. It rejects changed patches
-or edited prepared trees. Move stale prepared checkouts aside and prepare fresh
+or edited prepared trees. Without a receipt, preparation requires pristine pinned
+checkouts; legacy patched or dirty trees must be moved aside and prepared fresh. Move stale prepared checkouts aside and prepare fresh
 ones after changing patches; do not edit Cargo's cached Git checkouts. Native
 preparation adds only the example and the retained native lock.
 
 Every successful prover build retains a module under `build/wasm/SHA256.wasm`.
-The baseline build does not install over `web/sequencer-prover.wasm`. Candidate
-builds still install there for ordinary browser use. `npm run demo:build` can
+Only `prover` installs over `web/sequencer-prover.wasm` by default. The baseline
+control and optional profiles retain separate modules; pass `--install` to choose
+one explicitly. `npm run demo:build` can
 replace that installation; use `node scripts/build-demo.mjs` for candidate work.
 The offline harness serves an immutable in-memory copy of the explicitly
 selected module, hashes it before launch, and requires the Worker to hash the
@@ -40,12 +52,12 @@ Ordinary proof receipts now also include `wasm_sha256` and `wasm_bytes`.
 Capture metadata and features using the same target and command on each side:
 
 ```sh
-cargo +nightly-2026-01-15 metadata --locked --format-version 1 \
-  --manifest-path build/proving-utils/Cargo.toml --filter-platform wasm64-unknown-unknown > candidate-metadata.json
-cargo +nightly-2026-01-15 tree --locked --manifest-path build/proving-utils/Cargo.toml \
-  --target wasm64-unknown-unknown -p snip36-browser-prover -e features > candidate-features.txt
+cargo +nightly-2026-01-15 metadata --locked --format-version 1 --no-default-features \
+  --manifest-path build/memory/proving-utils/Cargo.toml --filter-platform wasm64-unknown-unknown > candidate-metadata.json
+cargo +nightly-2026-01-15 tree --locked --manifest-path build/memory/proving-utils/Cargo.toml \
+  --target wasm64-unknown-unknown -p snip36-browser-prover --no-default-features -e features > candidate-features.txt
 python3 scripts/check-prover-resolution.py BASELINE_METADATA CANDIDATE_METADATA NATIVE_METADATA
-python3 scripts/prover-identity.py --wasm MODULE --metadata METADATA --output NEW_IDENTITY_JSON
+python3 scripts/prover-identity.py --source-root build/memory --wasm MODULE --metadata METADATA --output NEW_IDENTITY_JSON
 ```
 
 The graph check compares versions, edges, dependency target conditions and
