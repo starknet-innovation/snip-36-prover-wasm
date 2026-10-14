@@ -23,7 +23,11 @@ export function checkExecution(recorded, result, pie) {
 }
 
 // A crash, panic or timeout is a failed test, not evidence of verifier rejection.
-export function isOrdinaryVerifierRejection(error) {
+// The pristine verifier exits 1 for every error, so also require its final
+// stderr line to be the verification failure, not an I/O or decode error.
+export const VERIFICATION_FAILED = /Error: "Verification failed"\s*$/;
+export function isOrdinaryVerifierRejection(error, reason = VERIFICATION_FAILED) {
+  const stderr = String(error?.stderr ?? "");
   return Number.isInteger(error?.code) && error.code > 0 && error.code !== 101 &&
-    !error.signal && !error.killed && !String(error.stderr ?? "").includes("panicked at");
+    !error.signal && !error.killed && !stderr.includes("panicked at") && reason.test(stderr);
 }

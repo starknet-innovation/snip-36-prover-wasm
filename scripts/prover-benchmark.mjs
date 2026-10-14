@@ -9,6 +9,7 @@ import { PROOF_TIMEOUT_MS, ATTEMPT_TIMEOUT_MS } from "./proof-timeouts.mjs";
 const exec = promisify(execFile);
 let interrupted = false;
 // Finish the current child so its finally block closes Chromium and saves evidence.
+// Children run detached (own process group) so terminal Ctrl-C reaches only this runner.
 for (const signal of ["SIGINT", "SIGTERM"]) process.once(signal, () => { interrupted = true; });
 if (process.env.STARKNET_PRIVATE_KEY) throw Error("Signing credentials forbidden");
 const [fixtures, baseline, baselineHash, candidate, candidateHash, verifier, output] = process.argv.slice(2);
@@ -17,6 +18,7 @@ if (!output || ![baselineHash, candidateHash].every((hash) => /^[a-f0-9]{64}$/.t
 const dir = path.resolve(output); await mkdir(dir, { recursive: true });
 const plan = JSON.parse(await readFile("docs/port/benchmark-plan.json"));
 if (plan.timeout_ms_per_proof !== PROOF_TIMEOUT_MS) throw Error("Plan and harness proof budgets differ");
+if (!(plan.measured_pairs >= 2)) throw Error("Stability gate needs at least two measured pairs");
 for (const [file, hash] of [[baseline, baselineHash], [candidate, candidateHash]])
   if (sha256(await readFile(file)) !== hash) throw Error("Preregistered module replaced");
 const versionBrowser = await chromium.launch({ headless: true,
@@ -35,7 +37,12 @@ for (const file of ["scripts/offline-proof.mjs", "scripts/offline-fixtures.mjs",
   identity.harness_files[file] = sha256(await readFile(file));
 identity.source_identities = [];
 for (const file of identity.source_identity_files) { const bytes = await readFile(file); identity.source_identities.push({ file, sha256: sha256(bytes), record: JSON.parse(bytes) }); }
-if (identity.source_identities.length < 2) throw Error("Set BENCH_IDENTITY_FILES to baseline and candidate identity records");
+// Bind identity records to the exact modules measured, one per role.
+for (const [role, hash] of [["baseline", baselineHash], ["candidate", candidateHash]]) {
+  const matches = identity.source_identities.filter((entry) => entry.record?.wasm?.sha256 === hash);
+  if (matches.length !== 1) throw Error(`Set BENCH_IDENTITY_FILES to exactly one ${role} identity record for ${hash}`);
+  identity[role].identity_file = matches[0].file;
+}
 await writeFile(path.join(dir, "registration.json"), JSON.stringify(identity, null, 2), { flag: "wx" });
 const attempts = [];
 const save = () => writeFile(path.join(dir, "attempts.json"), JSON.stringify(attempts, null, 2));
@@ -52,7 +59,7 @@ campaign: for (const [name] of corpus) {
       try {
         const module = role === "baseline" ? baseline : candidate, hash = role === "baseline" ? baselineHash : candidateHash;
         const result = await exec(process.execPath, ["scripts/offline-proof.mjs", "prove", fixtures, module, hash, verifier, attemptDir], {
-          timeout: ATTEMPT_TIMEOUT_MS, maxBuffer: 2 * 1024 ** 2,
+          timeout: ATTEMPT_TIMEOUT_MS, maxBuffer: 2 * 1024 ** 2, detached: true,
           env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8", OFFLINE_WORKLOAD: name },
         });
         trial.stdout = result.stdout; trial.stderr = result.stderr;

@@ -34,19 +34,8 @@ if mode in PROVER_PROFILES:
  patches['pins']=root/'pins.json'
  if memory_profile:
   trees['stwo-circuits']=clone('stwo-circuits','https://github.com/starkware-libs/stwo-circuits.git',pins['stwo_circuits'])
-  circuit_patch=root/'patches/prover/stwo-circuits.patch'
-  if circuit_patch.exists():patches['stwo-circuits']=circuit_patch
   patches['workspace']=root/'patches/prover/candidate-workspace.patch'
   patches['lock']=root/'patches/prover/candidate.Cargo.lock'
-  lifetime_patch=root/'patches/prover/lifetimes.patch'
-  if lifetime_patch.exists():patches['lifetimes']=lifetime_patch
-  striped_patch=root/'patches/prover/striped.patch'
-  if striped_patch.exists():patches['striped']=striped_patch
-  for layer in ['sourced-stwo','sourced-circuits','sourced-utils']:
-   patch=root/'patches/prover'/f'{layer}.patch'
-   if patch.exists():patches[layer]=patch
-  circuit_lock=root/'patches/prover/circuits.Cargo.lock'
-  if circuit_lock.exists():patches['circuit-lock']=circuit_lock
   if mode=='prover-tradeoffs':patches['tradeoffs']=root/'patches/prover/tradeoffs.patch'
   if mode=='prover-kernels':patches['kernels']=root/'patches/prover/kernels.patch'
  marker=build/'proving-utils/.wasm-patches-complete';patch_digest=fingerprint(patches)
@@ -57,17 +46,16 @@ if mode in PROVER_PROFILES:
   if name in patches:apply(p,patches[name])
  if memory_profile:
   apply(build/'proving-utils',root/'patches/prover/candidate-workspace.patch')
-  if 'lifetimes' in patches:apply(build/'proving-utils',patches['lifetimes'])
-  if 'striped' in patches:apply(build/'stwo',patches['striped'])
-  for layer,name in [('sourced-stwo','stwo'),('sourced-circuits','stwo-circuits'),('sourced-utils','proving-utils')]:
-   if layer in patches:apply(build/name,patches[layer])
-  if 'circuit-lock' in patches:(build/'stwo-circuits/Cargo.lock').write_bytes(patches['circuit-lock'].read_bytes())
   if 'tradeoffs' in patches:apply(build/'stwo',patches['tradeoffs'])
   if 'kernels' in patches:apply(build/'stwo',patches['kernels'])
   (build/'proving-utils/Cargo.lock').write_bytes((root/'patches/prover/candidate.Cargo.lock').read_bytes())
  write_receipt(marker,patch_digest,trees)
 elif mode=='native':
  p=clone('native-prover','https://github.com/starkware-libs/proving-utils.git',pins['transaction_service_proving_utils'])
+ # Only the lock and example below may differ from the pin; anything else is a local verifier edit.
+ status=subprocess.check_output(['git','-C',str(p),'status','--porcelain','--untracked-files=all'],text=True).splitlines()
+ unexpected=[l for l in status if l not in (' M Cargo.lock','?? crates/privacy_prove/examples/spike_native.rs')]
+ if unexpected:raise SystemExit('Native verifier source is not pristine: '+', '.join(unexpected))
  (p/'Cargo.lock').write_bytes((root/'patches/prover/native.Cargo.lock').read_bytes());(p/'crates/privacy_prove/examples').mkdir(exist_ok=True)
  (p/'crates/privacy_prove/examples/spike_native.rs').write_bytes((root/'native/spike_native.rs').read_bytes())
 elif mode=='executor':
