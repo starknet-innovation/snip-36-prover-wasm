@@ -1,8 +1,10 @@
 # Evaluate later portable memory tradeoffs in a separate profile
 
 Add `prover-tradeoffs`, prepared and built separately under `build/tradeoffs`.
-Its adaptive block sizes cap eligible block-column residency at 96 MiB, up to
-32 blocks, with saturating size arithmetic. FRI denominator inversion operates
+Its adaptive block sizes target 96 MiB of eligible block-column residency, but
+stop at 32 blocks: a component that still exceeds 96 MiB at 32 blocks is not
+reduced further, so 96 MiB is a target, not a hard cap. Size arithmetic is
+checked/saturating. FRI denominator inversion operates
 on bounded chunks and drops dead accumulations before extension. The default
 sourced candidate and pristine verifier remain separate.
 
