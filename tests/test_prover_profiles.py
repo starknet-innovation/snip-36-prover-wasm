@@ -32,7 +32,8 @@ root = Path(os.environ['CARGO_TARGET_DIR'])
 file = root / 'wasm64-unknown-unknown/release/snip36_browser_prover.wasm'
 file.parent.mkdir(parents=True, exist_ok=True)
 file.write_bytes((profile + '-module').encode())
-Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': str(root), 'args': args}))
+Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': str(root), 'args': args,
+    'rustflags': os.environ.get('CARGO_ENCODED_RUSTFLAGS', '').split('\\x1f')}))
 ''')
         for name in ['cargo', 'rustup']: (bins / name).chmod(0o755)
         self.env = {k:v for k,v in os.environ.items() if k != 'STARKNET_PRIVATE_KEY'}
@@ -51,6 +52,9 @@ Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': s
         self.assertEqual(self.installed.read_bytes(), b'baseline-module')
         self.assertIn('--no-default-features', call['args'])
         self.assertIn('--locked', call['args'])
+        self.assertIn('target-feature=+simd128', call['rustflags'])
+        self.assertIn(f'--remap-path-prefix={self.root}=/src', call['rustflags'])
+        self.assertTrue(any(flag.startswith('--remap-path-prefix=') and flag.endswith('=/cargo') for flag in call['rustflags']))
 
     def test_memory_is_separate_and_does_not_install_without_opt_in(self):
         result = self.run_build('prover-memory'); self.assertEqual(result.returncode, 0, result.stderr)
