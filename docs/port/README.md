@@ -121,3 +121,52 @@ inspection does not mean implementation or validation. Models are execution
 provenance, not authors. Participant-first upstreaming remains required before
 upstream publication; no upstream PR or deployment was sent.
 
+## Local port checkpoints
+
+The portable lifetime candidate and the initial striped/block candidate each
+proved all three retained PIEs with byte-identical proofs and pristine native
+verification plus tamper controls. See `validation-lifetimes.json` and
+`validation-striped.json`. The striped adaptation keeps the target FFT and
+arithmetic kernels, target PCS proof-of-work field, original logup batching
+proxy and disabled-component behavior. Its current opening path uses coefficient
+regrowth and dense backend Merkle retention. Independent CPU composition tests
+cover positive/negative masks; mixed-size root/sample/opening tests cover tiny
+fallback, boundary/repeated queries and forced omitted layers. These are local
+checks, not CI or release evidence. The smoke observations show a memory/time
+tradeoff; the registered acceptance gates had not yet been evaluated at those checkpoints.
+
+## Corrective review and integration
+
+Prepared upstream checkouts contain additional `AGENTS.md` role and review
+instructions. These were found late in implementation. Independent math
+review and delegated corrective implementation are recorded under `reviews/`.
+The initial mask-offset test exercised the full-domain fallback, not block
+composition; the corrected suite calls block evaluation directly, compares
+all rows with the CPU backend, and tests the production dispatch predicate.
+It covers preprocessing, finalized LogUp, global rows and 4/8/16/32 blocks.
+Transposed FFT cases use log sizes 17/18. Source-batch tests cross sixteen
+columns with multiple trees, mixed storage and several sample points.
+
+New FFT loops now have serial fallbacks and checked/documented buffer safety
+contracts. The optional quotient kernel now periodically reduces its sums and
+canonically reduces each lane before packing, eliminating an unencoded
+large-batch bound. The initial benchmark was stopped after warmup and retained
+without ratios; corrected candidate bytes require new registration/validation.
+Use distinct Cargo target directories for variant tests, or clean package
+outputs when switching variants. A shared-target D serial log initially reused
+C's test executable; the confirmed clean rerun is retained separately.
+
+Agent review supports further integration and validation. The upstream workflow
+still requires human final approval before acceptance; this work does not treat
+agent review as that approval. No release authorization has been requested or
+assets promoted. Browser traps require Worker termination; the recoverable
+malformed-PIE test does not establish post-trap reuse of an instance.
+
+## Final evidence
+
+All three corrected profiles pass real-PIE native verification and structured
+tamper checks. The final paired campaign passes stability and shows lower
+memory with slower proving; its time acceptance gate fails. See
+[measured results](benchmark-results.md), [raw evidence](EVIDENCE.md),
+[source adaptations](mechanism-ledger.json) and [draft PR stack](EVIDENCE.md#draft-review-stack).
+The released assets and checksums remain unchanged.

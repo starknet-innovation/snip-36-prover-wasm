@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "starting_sha": "e91865dbb51ee925e93cb2c35171764e701f55de",
+  "status": "locally_validated",
+  "kernel_target_commit": "37dc6e6d30567055d657c06d333cda7754eee30c",
+  "kernel_wasm_sha256": "a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595",
+  "default_wasm_unchanged": "41a6f536d5d24ba7bb8ccb416d937e87f2a90abb88b43a644c67a4d65ad39db6",
+  "native_verifier_unchanged": "2b9878070536597b636d257d12577a5d528c3a7fb2bc0ab048df7864c16aa6b2",
+  "local_tests": {
+    "javascript": 66,
+    "python_prover": 7,
+    "executor_manifests": 8,
+    "native_helper": 2,
+    "stwo_parallel": 265,
+    "stwo_serial": 265,
+    "worker_security": "passed"
+  },
+  "boundary_workloads": [
+    {
+      "name": "balance",
+      "cases": 535,
+      "failed": 0,
+      "positive_controls": 1,
+      "negative_rejections": 534,
+      "panics": 0,
+      "signals": 0
+    },
+    {
+      "name": "coinflip-heads",
+      "cases": 535,
+      "failed": 0,
+      "positive_controls": 1,
+      "negative_rejections": 534,
+      "panics": 0,
+      "signals": 0
+    },
+    {
+      "name": "coinflip-tails",
+      "cases": 535,
+      "failed": 0,
+      "positive_controls": 1,
+      "negative_rejections": 534,
+      "panics": 0,
+      "signals": 0
+    }
+  ],
+  "artifact_root": "artifacts/port/review-fixes-01",
+  "no_performance_claim": "Correctness validation only; no new paired performance campaign. Prior time acceptance gate remains failed.",
+  "human_reviewed": false,
+  "released": false,
+  "commands": [
+    "python3 -m unittest discover -s tests -p \"test_prover*.py\"",
+    "npm test",
+    "python3 -m unittest discover -s tests -p test_executor_manifests.py",
+    "node scripts/worker-security-test.mjs",
+    "cargo +nightly-2026-01-15 test --locked --release --manifest-path build/boundary-study/native-prover/Cargo.toml -p privacy-prove --example proof_boundaries --target-dir build/target-native",
+    "cd /private/tmp/snip36-review8 && python3 scripts/prepare-sources.py prover-kernels",
+    "cd /private/tmp/snip36-review8 && CARGO_TARGET_DIR=$HOME/strk/snip-36-prover-wasm/build/target-review-kernel-parallel cargo +nightly-2026-01-15 test --locked --release --manifest-path build/kernels/stwo/Cargo.toml -p stwo --features prover,parallel --lib",
+    "cd /private/tmp/snip36-review8 && CARGO_TARGET_DIR=$HOME/strk/snip-36-prover-wasm/build/target-review-kernel-serial cargo +nightly-2026-01-15 test --locked --release --manifest-path build/kernels/stwo/Cargo.toml -p stwo --no-default-features --features prover --lib",
+    "cd /private/tmp/snip36-review8 && WASM_CC=/opt/homebrew/Cellar/llvm@21/21.1.8/bin/clang WASM_AR=/opt/homebrew/Cellar/llvm@21/21.1.8/bin/llvm-ar ./scripts/build.sh prover-kernels",
+    "node scripts/offline-proof.mjs prove artifacts/port/corpus-01 /private/tmp/snip36-review8/build/wasm/a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595.wasm a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595 build/target-native/release/examples/spike_native artifacts/port/review-fixes-01/kernel-proof",
+    "python3 scripts/package-port-evidence.py /private/tmp/port-review-snapshot-safe.tar.gz"
+  ],
+  "kernel_wasm_bytes": 95034674,
+  "browser_workloads": [
+    {
+      "name": "balance",
+      "status": "passed",
+      "wasm_sha256": "a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595",
+      "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+      "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+      "proof_bytes": 231962,
+      "byte_identical_to_baseline": true,
+      "native_verified_against_trusted_statement": true,
+      "proof_and_statement_tamper_rejected": true
+    },
+    {
+      "name": "coinflip-heads",
+      "status": "passed",
+      "wasm_sha256": "a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595",
+      "pie_sha256": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+      "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+      "proof_bytes": 235339,
+      "byte_identical_to_baseline": true,
+      "native_verified_against_trusted_statement": true,
+      "proof_and_statement_tamper_rejected": true
+    },
+    {
+      "name": "coinflip-tails",
+      "status": "passed",
+      "wasm_sha256": "a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595",
+      "pie_sha256": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13",
+      "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+      "proof_bytes": 229484,
+      "byte_identical_to_baseline": true,
+      "native_verified_against_trusted_statement": true,
+      "proof_and_statement_tamper_rejected": true
+    }
+  ],
+  "package_snapshot_check": {
+    "passed": true,
+    "files": 7309,
+    "mismatched_members": [],
+    "archive_sha256": "2a138aa5382dfd04d793c33a82d8fc2e1c42236213f15e19af009430ab62601c"
+  },
+  "CI_at_capture": "PRs #3\u2013#7 latest heads passed all checks; #8/#9 final corrections awaiting push. Full recursive WASM proof validation is local.",
+  "review_evidence": {
+    "archive": "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/evidence-2026-10/review-fixes.tar.gz",
+    "sha256": "a2290020b8254e61174007e1569ad3b9184863c71dd7be1ea11e286cd22b1d82",
+    "files": 3279,
+    "member_checks": "all sizes and SHA256 digests verified"
+  }
+}
