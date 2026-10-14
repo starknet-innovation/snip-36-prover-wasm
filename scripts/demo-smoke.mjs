@@ -52,6 +52,31 @@ try {
     throw Error("Tails execution failed: " + JSON.stringify(tails));
   if (firstResult === (await page.locator("#coin-result").textContent()))
     throw Error("Choice did not change the matching result");
+  // Saved execution receipts replay offline and are compared with their PIE.
+  const savedRound = JSON.stringify({
+    kind: "execution",
+    request: tailsFixture.request,
+    capture: tailsFixture.capture,
+    report: { pie_sha256: tailsFixture.report.pie_sha256 },
+  });
+  await page.setInputFiles("#load-round", {
+    name: "execution.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(savedRound),
+  });
+  await page.waitForFunction(() =>
+    /matches the saved round/.test(
+      document.querySelector("#status").textContent,
+    ),
+  );
+  await page.setInputFiles("#load-round", {
+    name: "proof.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"kind":"proof"}'),
+  });
+  await page.waitForFunction(
+    () => document.querySelector("#state").textContent === "ERROR",
+  );
   await page.getByRole("button", { name: "Check receipt on Sepolia" }).click();
   await page.waitForFunction(
     () => !document.querySelector("#check-chain").disabled,

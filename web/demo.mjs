@@ -13,6 +13,7 @@ let timer,
   sequence = 0;
 const urls = [];
 let side = "heads";
+let savedPie = null;
 let roundResult = null;
 for (const name of ["heads", "tails"])
   $("#" + name).onclick = () => {
@@ -31,6 +32,10 @@ async function readCoinflip(receipt) {
 }
 function showRound(proved = false) {
   if (!roundResult) return;
+  // Reflect the executed choice, which differs from the picker for a loaded round.
+  side = roundResult.choice === 0 ? "heads" : "tails";
+  for (const n of ["heads", "tails"])
+    $("#" + n).setAttribute("aria-pressed", String(n === side));
   const inputs = $("#round-inputs");
   if (inputs)
     inputs.textContent = `Seed ${BigInt(roundResult.seed).toString()} · Player ${roundResult.player.slice(0, 10)}…${roundResult.player.slice(-6)}`;
@@ -128,6 +133,15 @@ const controller = new PublicRunController({
       data.kind === "execution"
         ? "Execution complete. Signature and state witnesses checked; Cairo PIE ready. No recursive proof was requested."
         : "Recursive proof generated locally. Download it for verification or signing and submission with the CLI. This run has not been submitted on-chain.";
+    const pie =
+      data.kind === "execution"
+        ? data.report.pie_sha256
+        : data.execution_report.pie_sha256;
+    if (savedPie)
+      $("#status").textContent +=
+        pie === savedPie
+          ? " Replayed PIE matches the saved round byte for byte."
+          : " Warning: replayed PIE differs from the saved round.";
   },
 });
 window.startRun = (request, source, options = {}) => {
@@ -177,6 +191,7 @@ $("#full-proof").onchange = () => {
     : "Run execution <span>↗</span>";
 };
 $("#run").onclick = async () => {
+  savedPie = null;
   window.runComplete = null;
   window.runError = null;
   const generation = ++sequence;
@@ -234,6 +249,32 @@ $("#run").onclick = async () => {
     });
   } catch (e) {
     if (generation !== sequence) return;
+    window.runError = String(e);
+    finish("ERROR");
+    $("#status").textContent = String(e);
+  }
+};
+// Replays a saved execution receipt offline from its recorded RPC capture.
+$("#load-round").onchange = async () => {
+  const file = $("#load-round").files[0];
+  $("#load-round").value = "";
+  if (!file || controller.active) return;
+  sequence++;
+  try {
+    const saved = JSON.parse(await file.text());
+    if (saved.kind !== "execution" || !saved.request || !saved.capture)
+      throw Error(
+        "Load an execution.json or coinflip-execution.json file; only execution files contain the recorded state. Proof files do not.",
+      );
+    if (saved.request.transaction?.calldata?.[2] !== PLAY_SELECTOR)
+      throw Error("The saved file is not a CoinFlip round");
+    savedPie = saved.report?.pie_sha256 ?? null;
+    window.startRun(
+      saved.request,
+      { capture: saved.capture },
+      { executionOnly: !$("#full-proof").checked, build: builds.get() },
+    );
+  } catch (e) {
     window.runError = String(e);
     finish("ERROR");
     $("#status").textContent = String(e);

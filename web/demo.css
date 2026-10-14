@@ -483,3 +483,12 @@ footer {
   letter-spacing: 0;
   color: var(--ink);
 }
+.file-button {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}

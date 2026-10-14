@@ -109,14 +109,30 @@
                 ></span
               ></label
             >
-<div class="field-label">Prover build</div>
-            <div id="builds" class="build-picker" aria-label="Prover build"></div>
+            <div class="field-label">Prover build</div>
+            <div
+              id="builds"
+              class="build-picker"
+              aria-label="Prover build"
+            ></div>
             <p id="build-note" class="help"></p>
             <div class="actions">
               <button id="run" class="primary">
                 Run execution <span>↗</span></button
-              ><button id="cancel" disabled>Cancel</button>
+              ><button id="cancel" disabled>Cancel</button
+              ><label class="file-button"
+                >Load saved round<input
+                  id="load-round"
+                  type="file"
+                  accept="application/json"
+                  hidden
+              /></label>
             </div>
+            <p class="help">
+              Load a saved <code>execution.json</code> to replay that exact
+              round offline from its recorded state; the PIE is compared with
+              the saved one.
+            </p>
             <p class="help" id="compatibility">Checking browser support…</p>
           </div>
           <div class="panel execution">
