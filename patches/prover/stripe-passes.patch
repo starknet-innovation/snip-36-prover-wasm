@@ -1,5 +1,5 @@
 diff --git a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
-index 193c4fa..3a2424d 100644
+index 193c4fa..a74af64 100644
 --- a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
 +++ b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
 @@ -1,4 +1,5 @@
@@ -220,7 +220,7 @@ index 193c4fa..3a2424d 100644
      }
  
      /// [`MerkleOpsLifted::build_layers_sparse`] of the packed leaves, built a stripe of
-@@ -402,6 +262,207 @@ impl PackLeavesOps for SimdBackend {
+@@ -402,6 +262,209 @@ impl PackLeavesOps for SimdBackend {
  /// * For all 1 <= k < n:
  ///     1. the sizes in `col_sizes[iₖ + N_FELTS_IN_BLAKE_MESSAGE..iₖ₊₁]` are all equal.
  ///     2. `col_sizes[iₖ] < col_sizes[iₖ₊₁]`.
@@ -368,6 +368,8 @@ index 193c4fa..3a2424d 100644
 +        *state = compress_finalize(prev_state, msgs, byte_count);
 +    });
 +
++    // The finalized states are in `next_layer_states`; the other buffer is dead.
++    drop(prev_layer_states);
 +    // let additional_lifting_ratio = (lifting_log_size - LOG_N_LANES) - max_log_size;
 +    let lifting_log_size_packed = lifting_log_size - LOG_N_LANES;
 +    // Prepare the output buffer.
@@ -428,7 +430,7 @@ index 193c4fa..3a2424d 100644
  fn get_lifting_indices(
      col_sizes: impl Iterator<Item = usize>,
      last_chunk_index: usize,
-@@ -563,4 +624,34 @@ mod tests {
+@@ -563,4 +626,34 @@ mod tests {
              check::<true>(log);
          }
      }

@@ -514,12 +514,12 @@
     "credit": "tarekeleter, nadai2010"
    }
   ],
-  "browser_adaptation": "SIMD leaf hashing restructured around a column fetcher: each stripe's blocks are evaluated and absorbed a pass of whole 16-column message chunks (about 32 MiB) at a time in the original stable size order; the Blake2s states persist between passes, so leaves are identical. build_leaves is the single-pass case.",
+  "browser_adaptation": "SIMD leaf hashing restructured around a column fetcher: each stripe's blocks are evaluated and absorbed a pass of whole 16-column message chunks (about 32 MiB) at a time in the original stable size order; the Blake2s states persist between passes, so leaves are identical. build_leaves is the single-pass case; the dead state buffer is freed before the leaves are written.",
   "persistent_patches": [
    {
     "path": "patches/prover/stripe-passes.patch",
-    "sha256": "c5f2fa3ad343ee371515d24072cd398d7f5ff997c58f3d5e7afab6d0edb3b8cf",
-    "bytes": 29755,
+    "sha256": "7a8862db0b3b955eebfb45e4a129c09f63d96aaaff8f5ff6684fb83de2227122",
+    "bytes": 29868,
     "files": [
      "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
      "crates/stwo/src/prover/pcs/mod.rs",
@@ -531,19 +531,32 @@
   "execution_provenance": "Claude Code (claude-opus-5-5); model recorded as execution provenance, not human authorship"
  },
  {
-  "mechanism": "round 2 (planned): circuit witness write peak",
-  "status": "blocked: needs explicit human approval to modify circuit_prover (marked SOUNDNESS-CRITICAL in stwo-circuits CLAUDE.md); current global peak site (1.740 GB native requested)",
+  "mechanism": "round 2: circuit witness order and lookup lifetimes",
   "source_references": [
    {
     "kind": "bulletin",
     "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
-    "credit": "nadai2010: qm31_ops/eq finished before the gate components; realadii rgr1_3c4bf108 qm31_ops lookup read-back"
+    "credit": "nadai2010 (job 573d8ca1 write-up): let qm31_ops and eq finish in a subscope before the gate components start"
    }
-  ]
+  ],
+  "browser_adaptation": "Approved by the user for circuit_prover (marked SOUNDNESS-CRITICAL in stwo-circuits CLAUDE.md); witness code only, no constraints or generated files. qm31_ops and eq run in their own scope first (a single-threaded Worker otherwise ran them last, beside every gate's trace and lookup data). blake_g_gate adds its XOR sub-component inputs to the (atomic) claim generators per row instead of collecting 48 words per row, and its interaction writer frees each lookup field after its last column. The last two are this port's own adaptations.",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/circuit-witness.patch",
+    "sha256": "72e87b3e9a615f3a2deab18d74dff942ec1fb1de8002a897d8e142acdbf973df",
+    "bytes": 21857,
+    "files": [
+     "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
+     "crates/circuit_prover/src/witness/trace.rs"
+    ]
+   }
+  ],
+  "status": "implemented in prover-memory only; native byte-identity and per-span peak/time measured; browser recursive proofs validated (validation-round2.json); paired campaign, human review, CI and release outstanding",
+  "execution_provenance": "Claude Code (claude-opus-5-5); model recorded as execution provenance, not human authorship"
  },
  {
   "mechanism": "round 2 (planned): Cairo lookup data read-back",
-  "status": "planned; Cairo base commit (1.602 GB) and interaction write (1.513 GB) are the next sites; 0.95 GB of large blocks live at the base commit come from Write base trace",
+  "status": "planned; Cairo base commit (1.569 GB, current native peak) and interaction write (1.513 GB) are the next sites; 0.95 GB of large blocks live at the base commit come from Write base trace. 60 of 68 Cairo witness component files are AIR-generated, which stwo-cairo CLAUDE.md forbids editing by hand, so only the generic read-back (an EvalAtRow over committed columns, no generated file edited) is admissible",
   "source_references": [
    {
     "kind": "bulletin",
