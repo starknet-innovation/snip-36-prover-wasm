@@ -23,6 +23,7 @@ import {
   revealCalls,
   settleCalls,
   outcome,
+  withTimeout,
 } from "./live-core.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
 import { buildPicker, measuredSummary } from "./prover-builds.mjs";
@@ -334,9 +335,18 @@ async function walletTx(name, calls, material) {
   message("Confirm " + name + " in your wallet.");
   let response;
   try {
-    response = await invokeWallet(connection, calls, material);
+    const sent = invokeWallet(connection, calls, material);
+    // Some wallets never answer proof-bearing invocations; don't wait forever.
+    response = material
+      ? await withTimeout(
+          sent,
+          120000,
+          "Your wallet did not respond to the proof-bearing settlement within 2 minutes; it may not support attached proofs. If it shows a prompt later, reject it. Download the proof and recovery file, then settle from the command line with npm run settle (see docs/live-coinflip.md).",
+        )
+      : await sent;
   } catch (e) {
     if (
+      e.timeout ||
       [113, 4001].includes(e.code) ||
       /refus|reject|denied/i.test(e.message ?? "")
     ) {

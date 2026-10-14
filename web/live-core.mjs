@@ -232,6 +232,19 @@ export function proofMaterial(receipt, config, r, g) {
     proof_facts: [...tags, ...expected.slice(2)],
   };
 }
+// Rejects with e.timeout = true if the promise has not settled within ms.
+export function withTimeout(promise, ms, message) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(
+        () => reject(Object.assign(Error(message), { timeout: true })),
+        ms,
+      );
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
 export function proofApiVersion(versions) {
   if (!Array.isArray(versions)) return null;
   return (

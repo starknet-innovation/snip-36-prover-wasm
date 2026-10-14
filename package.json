@@ -19,7 +19,8 @@
     "demo:build": "npm run assets && node scripts/build-demo.mjs",
     "demo:test": "node scripts/demo-smoke.mjs",
     "demo:test:live": "node scripts/live-smoke.mjs",
-    "e2e:coinflip": "node scripts/live-e2e.mjs"
+    "e2e:coinflip": "node scripts/live-e2e.mjs",
+    "settle": "node scripts/settle.mjs"
   },
   "dependencies": {
     "@scure/starknet": "2.4.0",
