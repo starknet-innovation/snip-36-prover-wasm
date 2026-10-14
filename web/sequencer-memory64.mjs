@@ -58,19 +58,27 @@ export async function loadMemory64(url, onPanic, onStage, expectedIdentity) {
       },
     },
   };
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw Error(`Wasm HTTP ${response.status}`);
-  // Hash and instantiate the same bytes. A second fetch could load another build.
-  const bytes = await response.arrayBuffer();
-  const identity = {
-    wasm_bytes: bytes.byteLength,
-    wasm_sha256: Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
-      (x) => x.toString(16).padStart(2, "0")).join(""),
-  };
-  if (expectedIdentity && (identity.wasm_sha256 !== expectedIdentity.sha256 ||
-      identity.wasm_bytes !== expectedIdentity.bytes))
-    throw Error("Prover WASM identity mismatch");
-  const result = await WebAssembly.instantiate(bytes, imports);
+  // Default path: cached streaming compile, unchanged from upstream.
+  // Validation path: hash and instantiate the same uncached bytes.
+  let identity = {}, result;
+  if (!expectedIdentity) {
+    const response = await fetch(url);
+    if (!response.ok) throw Error(`Wasm HTTP ${response.status}`);
+    result = await WebAssembly.instantiateStreaming(response, imports);
+  } else {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw Error(`Wasm HTTP ${response.status}`);
+    const bytes = await response.arrayBuffer();
+    identity = {
+      wasm_bytes: bytes.byteLength,
+      wasm_sha256: Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+        (x) => x.toString(16).padStart(2, "0")).join(""),
+    };
+    if (identity.wasm_sha256 !== expectedIdentity.sha256 ||
+        identity.wasm_bytes !== expectedIdentity.bytes)
+      throw Error("Prover WASM identity mismatch");
+    result = await WebAssembly.instantiate(bytes, imports);
+  }
   wasm = result.instance.exports;
   const check = (code) => {
     if (code !== 0)
