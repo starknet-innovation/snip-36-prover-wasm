@@ -86,8 +86,12 @@
                 ></span
               ></label
             >
-<div class="field-label">Prover build</div>
-            <div id="builds" class="build-picker" aria-label="Prover build"></div>
+            <div class="field-label">Prover build</div>
+            <div
+              id="builds"
+              class="build-picker"
+              aria-label="Prover build"
+            ></div>
             <p id="build-note" class="help"></p>
             <div class="actions">
               <button
@@ -186,6 +190,10 @@
               </div>
               <div>
                 <span>PROOF</span><strong id="live-proof-size">—</strong>
+              </div>
+              <div>
+                <span>WASM MEMORY</span><strong id="live-memory">—</strong
+                ><small>at last prover stage</small>
               </div>
             </div>
             <p id="measured" class="help"></p>

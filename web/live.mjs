@@ -26,7 +26,7 @@ import {
   withTimeout,
 } from "./live-core.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
-import { buildPicker, measuredSummary } from "./prover-builds.mjs";
+import { buildPicker, measuredSummary, gb } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
 const builds = buildPicker(
   $("#builds"),
@@ -421,6 +421,9 @@ const controller = new PublicRunController({
       );
       render();
     } else if (data.phase) message(data.phase);
+    // The prover reports only at stage boundaries; Wasm memory never shrinks.
+    if (data.wasm_linear_memory_bytes)
+      $("#live-memory").textContent = gb(data.wasm_linear_memory_bytes);
   },
   onComplete: (receipt) => {
     clearInterval(timer);
@@ -429,6 +432,7 @@ const controller = new PublicRunController({
     $("#live-coin").classList.remove("spinning");
     $("#live-proof-size").textContent =
       (receipt.report.proof_bytes / 1024).toFixed(1) + " KB";
+    $("#live-memory").textContent = gb(receipt.report.wasm_linear_memory_bytes);
     $("#measured").textContent = measuredSummary(
       receipt.report,
       receipt.report.prover_build,
@@ -460,6 +464,7 @@ async function prove() {
     1000,
   );
   $("#measured").textContent = "";
+  $("#live-memory").textContent = "—";
   controller.start(
     request,
     { endpoint: RPC, block_id: { block_hash: header.block_hash } },

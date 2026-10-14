@@ -1,6 +1,6 @@
 import { coinflipResult, PLAY_SELECTOR } from "./coinflip-runtime.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
-import { buildPicker, measuredSummary } from "./prover-builds.mjs";
+import { buildPicker, measuredSummary, gb } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
 const builds = buildPicker(
   $("#builds"),
@@ -86,6 +86,7 @@ const controller = new PublicRunController({
     } else {
       step("proof", "done");
       $("#proof-size").textContent = size(data.report.proof_bytes);
+      $("#memory").textContent = gb(data.report.wasm_linear_memory_bytes);
       $("#measured").textContent = measuredSummary(
         data.report,
         data.report.prover_build,
@@ -118,6 +119,9 @@ const controller = new PublicRunController({
       if (data.phase?.includes("virtual")) step("execution", "active");
       if (data.phase?.includes("recursive") || data.kind === "stage")
         step("proof", "active");
+      // The prover reports only at stage boundaries; Wasm memory never shrinks.
+      if (data.wasm_linear_memory_bytes)
+        $("#memory").textContent = gb(data.wasm_linear_memory_bytes);
     }
   },
   onComplete: (data) => {
@@ -159,6 +163,7 @@ window.startRun = (request, source, options = {}) => {
   $("#pie-size").textContent = "—";
   $("#proof-size").textContent = "—";
   $("#measured").textContent = "";
+  $("#memory").textContent = "—";
   $("#details").textContent = "Running…";
   const id = controller.start(request, source, options);
   if (controller.active) {

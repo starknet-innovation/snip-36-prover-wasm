@@ -35,7 +35,7 @@ export function recommendedBuild(nav = globalThis.navigator) {
   return (nav?.deviceMemory ?? 0) >= 32 ? "standard" : "memory";
 }
 
-const gb = (n) => (n / 1e9).toFixed(2) + " GB";
+export const gb = (n) => (n / 1e9).toFixed(2) + " GB";
 const s = (ms) => (ms / 1000).toFixed(1) + " s";
 
 // Renders radio cards into `root` and returns a getter for the selected build key.
