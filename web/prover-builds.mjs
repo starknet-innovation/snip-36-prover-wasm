@@ -27,11 +27,12 @@ export const PROVER_BUILDS = Object.freeze({
 });
 
 // ponytail: navigator.deviceMemory is a coarse, rounded RAM hint (Chromium reports
-// 32 on a 32 GB Mac; Safari/Firefox report nothing). Standard is chosen only when
-// the device reports 16+ GB; otherwise the memory build, which runs anywhere standard does.
+// 32 on a 32 GB Mac, rounded down to a power of two; Safari/Firefox report nothing).
+// Standard needs ~14.4 GB of Wasm memory plus the browser, too tight for 16-31 GB, so it
+// is chosen only at 32+; otherwise the memory build, which runs anywhere standard does.
 // Upgrade path: add better signals (free memory, a memory64 grow probe, timing) here.
 export function recommendedBuild(nav = globalThis.navigator) {
-  return (nav?.deviceMemory ?? 0) >= 16 ? "standard" : "memory";
+  return (nav?.deviceMemory ?? 0) >= 32 ? "standard" : "memory";
 }
 
 const gb = (n) => (n / 1e9).toFixed(2) + " GB";
