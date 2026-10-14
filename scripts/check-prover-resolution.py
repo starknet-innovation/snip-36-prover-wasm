@@ -1,5 +1,6 @@
 """Compare resolved candidate identities, edges and features to the baseline."""
 import json
+import re
 import sys
 import argparse
 from pathlib import Path
@@ -18,6 +19,11 @@ EXPECTED = {
     'circuits': 'stwo-circuits/crates/circuits',
     'circuits-stark-verifier': 'stwo-circuits/crates/stark_verifier',
 }
+
+def from_repository(source, repository):
+    """Cargo Git sources may use ?rev=, #sha only, or a .git suffix."""
+    return re.search(rf'github\.com/starkware-libs/{re.escape(repository)}(\.git)?([?#]|$)', source) is not None
+
 
 def graph(metadata):
     packages = {p['id']: (p['name'], p['version']) for p in metadata['packages']}
@@ -50,7 +56,7 @@ if __name__ == '__main__':
     for package in native['packages']:
         for repository, key in [('stwo', 'stwo'), ('stwo-cairo', 'stwo_cairo'), ('stwo-circuits', 'stwo_circuits')]:
             source = package['source'] or ''
-            if f'https://github.com/starkware-libs/{repository}?' in source:
+            if from_repository(source, repository):
                 assert source.endswith('#' + pins[key]), 'Native verifier pin changed'
         if package['name'] in EXPECTED:
             assert package['source'] is not None, 'Native verifier received candidate overrides'
