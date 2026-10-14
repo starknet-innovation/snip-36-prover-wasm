@@ -66,6 +66,8 @@ jobs:
           python3 scripts/prepare-sources.py prover
           python3 scripts/prepare-sources.py prover-memory
           python3 scripts/prepare-sources.py native
+      - name: Test proof-boundary verdict rules
+        run: rustc --edition 2021 --test native/boundary_rules.rs -o build/boundary-rules-test && build/boundary-rules-test
       - name: Check actual locked Cargo resolution
         run: |
           port_rust=$(python3 -c 'import json; print(json.load(open("pins.json"))["rust"])')
