@@ -61,9 +61,10 @@ if mode in PROVER_PROFILES:
  write_receipt(marker,patch_digest,trees)
 elif mode=='native':
  p=clone('native-prover','https://github.com/starkware-libs/proving-utils.git',pins['transaction_service_proving_utils'])
- # Only the lock and example below may differ from the pin; anything else is a local verifier edit.
+ # Only the lock and examples copied from native/ may differ from the pin; anything else is a local verifier edit.
  status=subprocess.check_output(['git','-C',str(p),'status','--porcelain','--untracked-files=all'],text=True).splitlines()
- unexpected=[l for l in status if l not in (' M Cargo.lock','?? crates/privacy_prove/examples/spike_native.rs')]
+ examples={'?? crates/privacy_prove/examples/'+f.name for f in (root/'native').glob('*.rs')}
+ unexpected=[l for l in status if l!=' M Cargo.lock' and l not in examples]
  if unexpected:raise SystemExit('Native verifier source is not pristine: '+', '.join(unexpected))
  (p/'Cargo.lock').write_bytes((root/'patches/prover/native.Cargo.lock').read_bytes());(p/'crates/privacy_prove/examples').mkdir(exist_ok=True)
  (p/'crates/privacy_prove/examples/spike_native.rs').write_bytes((root/'native/spike_native.rs').read_bytes())

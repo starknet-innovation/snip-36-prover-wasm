@@ -1,0 +1,344 @@
+{
+  "captured_at": "2026-10-13T02:02:49.680007+00:00",
+  "scope": "Existing repository CI and pinned source/Cargo resolution; no candidate recursive-proof CI claim",
+  "PR_checks": {
+    "3": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/runs/115082322532",
+        "name": "CodeQL",
+        "state": "SUCCESS",
+        "workflow": ""
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198409",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331555216/job/115082196006",
+        "name": "Analyze (actions)",
+        "state": "SUCCESS",
+        "workflow": "CodeQL"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198389",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198462",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198467",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198497",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198273",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331557117/job/115082198364",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331555216/job/115082196166",
+        "name": "Analyze (javascript-typescript)",
+        "state": "SUCCESS",
+        "workflow": "CodeQL"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331555216/job/115082196128",
+        "name": "Analyze (python)",
+        "state": "SUCCESS",
+        "workflow": "CodeQL"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331555216/job/115082196113",
+        "name": "Analyze (rust)",
+        "state": "SUCCESS",
+        "workflow": "CodeQL"
+      }
+    ],
+    "4": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211962",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211824",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211996",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211761",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211902",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211927",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331561413/job/115082211919",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      }
+    ],
+    "5": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225876",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225790",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225871",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225855",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225730",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225522",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331565532/job/115082225735",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      }
+    ],
+    "6": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082233928",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082233838",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082234060",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082233903",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082233895",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082233994",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331568018/job/115082233937",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      }
+    ],
+    "7": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242428",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242586",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242650",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242706",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242516",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242769",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331570550/job/115082242633",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      }
+    ],
+    "8": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082251250",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082251161",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082251140",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082251144",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082250960",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082251139",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38331573052/job/115082251211",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      }
+    ],
+    "9": [
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916864",
+        "name": "compiler",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916871",
+        "name": "executor-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916893",
+        "name": "test",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916858",
+        "name": "prover-dependencies",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916859",
+        "name": "browser",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916656",
+        "name": "contracts",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      },
+      {
+        "link": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/38334653938/job/115091916891",
+        "name": "executor",
+        "state": "SUCCESS",
+        "workflow": "CI"
+      }
+    ]
+  }
+}
