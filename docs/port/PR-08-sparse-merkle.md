@@ -46,3 +46,9 @@ host, so the plan reports no ratios for it. Memory gates pass everywhere; the
 time gate fails as for the previous candidate, so this remains an opt-in profile.
 Compared with the previous memory profile, the requested peak falls from 4.91 to
 2.31 GB and linear memory from about 5.9 to 3.3 GB at the same proving time.
+
+After builds started remapping build-machine paths, the same sources build
+module `33fc17171636822400f4e548c1f2a3f2f8e7069525355020de8d5a0edbb4b5ae`,
+which embeds no home-directory paths. Its three browser proofs have the same
+hashes and requested peaks as the campaign module `036597e8…`, pass the pristine
+verifier and reject tampering; it is the module to publish.
