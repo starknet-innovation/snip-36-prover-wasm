@@ -35,10 +35,12 @@ it ran with. Review fixes made afterwards to harness scripts (default WASM
 loading, rejection-reason checks, identity binding) are not part of that run;
 they change no prover module, so module identities and proof bytes stand.
 
-Frontier currency: the ported mechanisms come from sources up to `7796488`
-(record 573d8ca1). The memory season's final frontier `66670df` (record
-f2498dc7, about 19% lower peak than `7796488`) is not ported; porting it would
-change candidate modules and require a new campaign.
+Frontier currency: the ledger covers fork sources up to `7796488` (record
+573d8ca1), but that record's mechanisms (adaptive blocks, chunked inversion) are
+in the tradeoffs profile, not the memory profile. The final memory-season
+frontier `66670df` (record f2498dc7) was profiled for the follow-up sparse
+Merkle PR (PR-08-sparse-merkle.md); its headline change did not lower the
+browser peak and was not kept.
 
 [Paired results](benchmark-results.md) apply the preregistered gates. All 36
 attempts pass and all workloads are stable. Requested Rust peaks are about 64.5%
