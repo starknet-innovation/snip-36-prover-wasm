@@ -41,6 +41,7 @@ if mode in PROVER_PROFILES:
   patches['striped']=root/'patches/prover/striped.patch'
   for layer in ['sourced-stwo','sourced-circuits','sourced-utils']:patches[layer]=root/'patches/prover'/f'{layer}.patch'
   patches['circuit-lock']=root/'patches/prover/circuits.Cargo.lock'
+  patches['sparse-merkle']=root/'patches/prover/sparse-merkle.patch'
   if mode=='prover-tradeoffs':patches['tradeoffs']=root/'patches/prover/tradeoffs.patch'
   if mode=='prover-kernels':patches['kernels']=root/'patches/prover/kernels.patch'
  marker=build/'proving-utils/.wasm-patches-complete';patch_digest=fingerprint(patches)
@@ -55,6 +56,7 @@ if mode in PROVER_PROFILES:
   apply(build/'stwo',patches['striped'])
   for layer,name in [('sourced-stwo','stwo'),('sourced-circuits','stwo-circuits'),('sourced-utils','proving-utils')]:apply(build/name,patches[layer])
   (build/'stwo-circuits/Cargo.lock').write_bytes(patches['circuit-lock'].read_bytes())
+  apply(build/'stwo',patches['sparse-merkle'])
   if 'tradeoffs' in patches:apply(build/'stwo',patches['tradeoffs'])
   if 'kernels' in patches:apply(build/'stwo',patches['kernels'])
   (build/'proving-utils/Cargo.lock').write_bytes((root/'patches/prover/candidate.Cargo.lock').read_bytes())
