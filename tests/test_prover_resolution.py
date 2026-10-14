@@ -22,3 +22,9 @@ class ResolutionGraph(unittest.TestCase):
             variants.append(candidate)
         for candidate in variants:
             self.assertNotEqual(module.graph(baseline), module.graph(candidate))
+
+    def test_pin_check_matches_every_git_source_form(self):
+        for source in ['git+https://github.com/starkware-libs/stwo?rev=1#abc', 'git+https://github.com/starkware-libs/stwo#abc',
+                       'git+https://github.com/starkware-libs/stwo.git#abc']:
+            self.assertTrue(module.from_repository(source, 'stwo'), source)
+        self.assertFalse(module.from_repository('git+https://github.com/starkware-libs/stwo-cairo#abc', 'stwo'))

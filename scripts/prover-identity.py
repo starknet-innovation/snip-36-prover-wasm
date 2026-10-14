@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 import platform
 import subprocess
 from pathlib import Path
@@ -11,7 +12,10 @@ def digest(path):
     data = path.read_bytes()
     return {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
 def command(*args):
-    result = subprocess.run(args, cwd=ROOT, text=True, capture_output=True)
+    try:
+        result = subprocess.run(args, cwd=ROOT, text=True, capture_output=True)
+    except OSError as error:  # e.g. sysctl/pmset on Linux
+        return {'exit_code': None, 'stdout': '', 'stderr': str(error)}
     return {'exit_code': result.returncode, 'stdout': result.stdout.strip(), 'stderr': result.stderr.strip()}
 
 def tree_digest(directory):
@@ -32,7 +36,7 @@ def main():
     parser.add_argument('--metadata', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--source-root', default=Path('build/baseline'), type=Path)
-    parser.add_argument('--clang', default='/opt/homebrew/Cellar/llvm@21/21.1.8/bin/clang')
+    parser.add_argument('--clang', default=os.environ.get('WASM_CC', '/opt/homebrew/Cellar/llvm@21/21.1.8/bin/clang'))
     args = parser.parse_args()
     pins = json.loads((ROOT / 'pins.json').read_text())
     metadata = json.loads(args.metadata.read_text())
