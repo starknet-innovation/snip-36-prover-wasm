@@ -16,7 +16,9 @@ its module at `build/wasm/SHA256.wasm`. `npm run assets` restores the released
 modules. There is no browser UI selector or automatic switching.
 
 The memory profile preserves the validated candidate's exact source/patch
-receipt, including the lifetime, striped, sourced preprocessing and sparse Merkle layers.
+receipt, including the lifetime, striped, sourced preprocessing and sparse Merkle layers,
+plus the round-two layers of [PR-09-memory-round-2.md](PR-09-memory-round-2.md), which
+apply to `prover-memory` only.
 The tradeoff and kernel profiles keep their separate extensions. Default sources
 use only the original three browser portability patches; native verification
 retains its independent pristine 3035dd dependency graph.

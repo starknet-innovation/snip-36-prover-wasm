@@ -1,431 +1,600 @@
 [
-  {
-    "mechanism": "portable lifetimes and compact preprocessing",
-    "source_references": [
-      {
-        "commit": "6e80156fb698bb9775240458304ac119db035aba",
-        "files": [
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
-          "crates/circuit_prover/src/witness/components/eq.rs",
-          "crates/circuit_prover/src/witness/components/m_31_to_u_32.rs",
-          "crates/circuit_prover/src/witness/components/prelude.rs",
-          "crates/circuit_prover/src/witness/components/qm31_ops.rs",
-          "crates/circuit_prover/src/witness/components/triple_xor.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs"
-        ],
-        "job": "d327dd5c-c28b-4393-985f-6f654f63015b",
-        "source_patch_sha256": "7d89a4cb9031cfc4e67ed41ae3fdd776bb5071bff13b76d101035bf2d76b5f78",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record d327dd5c\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job d327dd5c-c28b-4393-985f-6f654f63015b: MEASURED_IMPROVEMENT, ratio\n0.8213 (95% CI 0.8153-0.8273)\nagainst the frontier 7f9715f1, so 49.1% faster than\nthe pinned prover. Patch SHA-256 7d89a4cb9031cfc4e67ed41ae3fdd776bb5071bff13b76d101035bf2d76b5f78,\n266,158 bytes, 63 files, read from the evaluator's stored submission.\nIt reports peak memory 6.67 GiB vs the frontier's 6.89 GiB in the same job (-3.1%).\n\nOn top of 7f9715f1 it adds, from odinfree (Claude Code, Claude Fable 5.1),\nthree changes. The circuit prover keeps its preprocessed address columns\nas u32 instead of usize, halving those columns, and the BLAKE G gate\ndrops its unpacked inputs once they are packed. In the frontier's\nlarge-block allocator, a 2 MiB-aligned block now asks Linux for\ntransparent huge pages (madvise MADV_HUGEPAGE), so in madvise THP mode a\nblock faults once per 2 MiB instead of 512 times. In the same job the\nprivacy proof took 0.821 of the frontier's time (95% CI 0.815-0.827) and\npeaked at 6.67 GiB against the frontier's 6.89. It is bit-exact: the\nproofs are the unmodified prover's, byte for byte.\n\nReview note: the only new unsafe call is madvise, Linux only, on blocks\nthe allocator itself mapped, inside the existing GlobalAlloc impl in\ncrates/stwo/src/prover/backend/simd/column.rs; its result is ignored, and\na refusal changes only paging. The address narrowing unwraps\nu32::try_from when columns are built, so an address at or above 2^32\npanics rather than wraps.\n\nFrontier-Job: d327dd5c-c28b-4393-985f-6f654f63015b\nFrontier-Patch-SHA256: 7d89a4cb9031cfc4e67ed41ae3fdd776bb5071bff13b76d101035bf2d76b5f78\nFrontier-Ratio: 0.5087644673332572\n\n"
-      },
-      {
-        "commit": "754321f34256b07fbed0ddc842dd44fe7c3603de",
-        "files": [
-          "crates/cairo-air/src/components/verify_bitwise_xor_12.rs",
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/circuit_prover/src/circuit_air/components/verify_bitwise_xor_12.rs",
-          "crates/circuit_prover/src/prover.rs",
-          "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
-          "crates/circuit_prover/src/witness/components/eq.rs",
-          "crates/circuit_prover/src/witness/components/m_31_to_u_32.rs",
-          "crates/circuit_prover/src/witness/components/prelude.rs",
-          "crates/circuit_prover/src/witness/components/qm31_ops.rs",
-          "crates/circuit_prover/src/witness/components/triple_xor.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs",
-          "crates/constraint-framework/src/logup.rs",
-          "crates/constraint-framework/src/prover/logup.rs",
-          "crates/constraint-framework/src/prover/simd_domain.rs",
-          "crates/privacy_prove/src/consts.rs",
-          "crates/stwo/src/prover/backend/mod.rs",
-          "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/backend/simd/quotients.rs",
-          "crates/stwo/src/prover/fri.rs",
-          "crates/stwo/src/prover/mempool.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/poly/circle/ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/prover.rs"
-        ],
-        "job": "fccbf68b-8251-47a3-9228-25026e1616c1",
-        "source_patch_sha256": "034f29c2eed816ab415ff30c28b54f234fe4158b7c5570097976100d0c7de567",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record fccbf68b\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job fccbf68b-8251-47a3-9228-25026e1616c1: VALID_NOT_FASTER, ratio\n1.0109 (95% CI 1.0074-1.0145)\nagainst the frontier 6e80156f, so 48.6% faster than\nthe pinned prover. Patch SHA-256 034f29c2eed816ab415ff30c28b54f234fe4158b7c5570097976100d0c7de567,\n394,381 bytes, 70 files, read from the evaluator's stored submission.\nIt reports peak memory 5.87 GiB vs the frontier's 6.68 GiB in the same job (-12.1%).\n\nOn top of 6e80156f it adds, from odinfree (Codex, carrying parts of\ntheir earlier Claude Code and Claude Fable 5.1 work), a memory\ncomposition. A column holding only literal zeros gives its physical\npages back to Linux (madvise MADV_DONTNEED), but only after a lock-free\nregistry shows its exact allocation base is a live private anonymous\nmapping of the frontier's large-block allocator. The allocator keeps no\nidle blocks between phases, and the column pool drops its idle buffers\nbetween the two proofs. The Cairo and circuit provers no longer store\npolynomial coefficients: out-of-domain values come from a bit-reversed\nprefix of each evaluation, with interpolation weights built once per\ngroup of columns sharing a domain and sample point. FRI and Merkle\nlayers hash packed leaves straight from the four coordinate columns and\nrecompute the omitted lower layers at decommitment; logup columns are\ngenerated in one pass, and fixed lookup-table columns are produced from\ntheir formula instead of stored. In the same job the privacy proof\npeaked at 5.87 GiB against the frontier's 6.68 (-12.1%) and took 1.011\nof its time (95% CI 1.007-1.014). It is bit-exact: the proofs are the\nunmodified prover's, byte for byte.\n\nIts lead credits ryun1's lookup work, the packed FRI from workshop\nthreads 31 and 34, compact witness data first written with Kimi and\nCodex, and the lifetime work of the research root's candidate001.\n\nReview note: no changed file gains an unsafe token; each keeps the\nfrontier's count. The new page advice goes through the allocator's\nexisting helper, on Linux x86-64 only, over whole pages inside the\ncolumn's initialized bytes, and only when every logical word is the\nliteral zero MADV_DONTNEED restores. The cairo-air change factors one\naffine relation for the concrete SIMD evaluator only; symbolic\nevaluators, and so the verifier, see the unchanged expression.\n\nFrontier-Job: fccbf68b-8251-47a3-9228-25026e1616c1\nFrontier-Patch-SHA256: 034f29c2eed816ab415ff30c28b54f234fe4158b7c5570097976100d0c7de567\nFrontier-Ratio: 0.5143262748214932\n\n"
-      },
-      {
-        "commit": "88f22f7631b7902a77f04951590fb7770b5c4d2c",
-        "files": [
-          "Cargo.lock",
-          "crates/circuit_common/Cargo.toml",
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/circuits/Cargo.toml",
-          "crates/circuits/src/circuit.rs",
-          "crates/constraint-framework/src/component.rs",
-          "crates/constraint-framework/src/prover/component_prover.rs",
-          "crates/privacy_prove/Cargo.toml",
-          "crates/privacy_prove/src/lib.rs",
-          "crates/prover/src/witness/components/blake_round_sigma.rs",
-          "crates/prover/src/witness/components/pedersen_points_table_window_bits_18.rs",
-          "crates/prover/src/witness/components/pedersen_points_table_window_bits_9.rs",
-          "crates/prover/src/witness/components/poseidon_round_keys.rs",
-          "crates/prover/src/witness/components/range_check_3_3_3_3_3.rs",
-          "crates/prover/src/witness/components/range_check_3_6_6_3.rs",
-          "crates/prover/src/witness/components/range_check_4_3.rs",
-          "crates/prover/src/witness/components/range_check_4_4.rs",
-          "crates/prover/src/witness/components/range_check_4_4_4_4.rs",
-          "crates/prover/src/witness/components/range_check_7_2_5.rs",
-          "crates/prover/src/witness/components/range_check_9_9.rs",
-          "crates/prover/src/witness/components/verify_bitwise_xor_4.rs",
-          "crates/prover/src/witness/components/verify_bitwise_xor_7.rs",
-          "crates/prover/src/witness/components/verify_bitwise_xor_8.rs",
-          "crates/prover/src/witness/components/verify_bitwise_xor_9.rs",
-          "crates/prover/src/witness/prelude.rs",
-          "crates/prover/src/witness/utils.rs",
-          "crates/stwo/src/prover/air/accumulation.rs",
-          "crates/stwo/src/prover/air/component_prover.rs",
-          "crates/stwo/src/prover/backend/mod.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/backend/simd/fft/ifft.rs",
-          "crates/stwo/src/prover/backend/simd/fft/rfft.rs",
-          "crates/stwo/src/prover/mempool.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/pcs/quotient_ops.rs"
-        ],
-        "job": "4960feb9-b16f-4827-b3bb-6cd1387822d4",
-        "source_patch_sha256": "92da04a49e8b7be5aa030d0e24a0b10d62ff0f422953761fd17f2173533a0911",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record 4960feb9\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job 4960feb9-b16f-4827-b3bb-6cd1387822d4: MEASURED_IMPROVEMENT, ratio\n0.9100 (95% CI 0.9060-0.9141)\nagainst the frontier 02c9df37, so 38.3% faster than\nthe pinned prover. Patch SHA-256 92da04a49e8b7be5aa030d0e24a0b10d62ff0f422953761fd17f2173533a0911,\n246,544 bytes, 58 files, read from the evaluator's stored submission.\nIt reports peak memory 8.24 GiB vs the frontier's 10.02 GiB in the same job (-17.8%).\n\nOn top of 02c9df37 it adds, from l-henri's agent (Claude Code): the\ncircuit and its preprocessed columns are built in parallel with rayon\n(added as a workspace dependency to circuits, circuit_common and\nprivacy_prove), and the circuit's preprocessed tree is built lazily after\nthe Cairo proof, reusing that proof's idle buffers, with truncated pool\ntails released and small idle buffer classes dropped. The memory work is\nwritten up in the workshop as bt1_313b9a8b481b747f6f63ee4e. In the same\njob the privacy proof peaked at 8.24 GiB against the frontier's 10.02, so\nthe frontier is both faster and leaner. It is bit-exact: the proofs are\nthe unmodified prover's, byte for byte.\n\nReview note: the prover's precomputes now live for the whole process\n(ManuallyDrop) and are dropped only at exit, which saves the unmapping\ntime; a long-lived prover that rebuilds its precomputes would have to\ndrop them itself.\n\nFrontier-Job: 4960feb9-b16f-4827-b3bb-6cd1387822d4\nFrontier-Patch-SHA256: 92da04a49e8b7be5aa030d0e24a0b10d62ff0f422953761fd17f2173533a0911\nFrontier-Write-Up: bt1_313b9a8b481b747f6f63ee4e\nFrontier-Ratio: 0.6170772322182804\n\n"
-      },
-      {
-        "commit": "55720f342977a59e33b6ab25f35a8d5a3bb3547f",
-        "files": [
-          "crates/cairo_verifier/src/verify.rs",
-          "crates/circuit_common/src/finalize.rs",
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/circuit_prover/src/prover.rs",
-          "crates/circuits/src/context.rs",
-          "crates/circuits/src/ivalue.rs"
-        ],
-        "job": "ca7338ce-0993-445d-846a-f13483e20158",
-        "source_patch_sha256": "e92ba965b052303e72ae74735a604be709db8a298449bb0b2e537b3d6c42d353",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record ca7338ce\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job ca7338ce-0993-445d-846a-f13483e20158: VALID_NOT_FASTER, ratio\n0.9978 (95% CI 0.9944-1.0012)\nagainst the frontier cb63e35e, so 19.5% faster than\nthe pinned prover. Patch SHA-256 e92ba965b052303e72ae74735a604be709db8a298449bb0b2e537b3d6c42d353,\n517,133 bytes, 78 files, read from the evaluator's stored submission.\nIt reports peak memory 1.56 GiB vs the frontier's 1.80 GiB in the same job (-13.7%).\n\nOn top of cb63e35e it adds, from realadii (claude-code), the change measured in whole-proof job ca7338ce.\nIn the same job the privacy proof peaked at 1.56 GiB against the frontier's 1.80 (-13.7%) and took 0.998 of its time (95% CI 0.994-1.001). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: ca7338ce-0993-445d-846a-f13483e20158\nFrontier-Patch-SHA256: e92ba965b052303e72ae74735a604be709db8a298449bb0b2e537b3d6c42d353\nFrontier-Ratio: 0.8052872180759207\n\n"
-      }
+ {
+  "mechanism": "portable lifetimes and compact preprocessing",
+  "source_references": [
+   {
+    "commit": "6e80156fb698bb9775240458304ac119db035aba",
+    "files": [
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
+     "crates/circuit_prover/src/witness/components/eq.rs",
+     "crates/circuit_prover/src/witness/components/m_31_to_u_32.rs",
+     "crates/circuit_prover/src/witness/components/prelude.rs",
+     "crates/circuit_prover/src/witness/components/qm31_ops.rs",
+     "crates/circuit_prover/src/witness/components/triple_xor.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs"
     ],
-    "browser_adaptation": "Explicit Context.into_values and proof-owned values replace source global Mutex handoff; keep target blinding/finalize sequence; compact direct construction uses checked u32 with wider fallback; no process-lifetime leaks or native page calls.",
-    "target_commit": "483ec95",
-    "persistent_patches": [
-      {
-        "path": "patches/prover/stwo-circuits.patch",
-        "sha256": "b1260af1c1c5c1c94363c011a1e9ccb00b25a000ec6fcd727d372d68c8d22571",
-        "bytes": 29428,
-        "files": [
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/circuit_prover/src/prover.rs",
-          "crates/circuit_prover/src/prover_test.rs",
-          "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
-          "crates/circuit_prover/src/witness/components/eq.rs",
-          "crates/circuit_prover/src/witness/components/m_31_to_u_32.rs",
-          "crates/circuit_prover/src/witness/components/qm31_ops.rs",
-          "crates/circuit_prover/src/witness/components/triple_xor.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs",
-          "crates/circuits/src/context.rs"
-        ]
-      },
-      {
-        "path": "patches/prover/lifetimes.patch",
-        "sha256": "1a0a16579f3768389c255f54588e302efaee568e3560c07b2d1990e14c5fcab9",
-        "bytes": 6806,
-        "files": [
-          "crates/privacy_prove/src/lib.rs",
-          "crates/browser-prover/src/wasm64_api.rs",
-          "crates/browser-prover/src/progress.rs"
-        ]
-      }
+    "job": "d327dd5c-c28b-4393-985f-6f654f63015b",
+    "source_patch_sha256": "7d89a4cb9031cfc4e67ed41ae3fdd776bb5071bff13b76d101035bf2d76b5f78",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record d327dd5c\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job d327dd5c-c28b-4393-985f-6f654f63015b: MEASURED_IMPROVEMENT, ratio\n0.8213 (95% CI 0.8153-0.8273)\nagainst the frontier 7f9715f1, so 49.1% faster than\nthe pinned prover. Patch SHA-256 7d89a4cb9031cfc4e67ed41ae3fdd776bb5071bff13b76d101035bf2d76b5f78,\n266,158 bytes, 63 files, read from the evaluator's stored submission.\nIt reports peak memory 6.67 GiB vs the frontier's 6.89 GiB in the same job (-3.1%).\n\nOn top of 7f9715f1 it adds, from odinfree (Claude Code, Claude Fable 5.1),\nthree changes. The circuit prover keeps its preprocessed address columns\nas u32 instead of usize, halving those columns, and the BLAKE G gate\ndrops its unpacked inputs once they are packed. In the frontier's\nlarge-block allocator, a 2 MiB-aligned block now asks Linux for\ntransparent huge pages (madvise MADV_HUGEPAGE), so in madvise THP mode a\nblock faults once per 2 MiB instead of 512 times. In the same job the\nprivacy proof took 0.821 of the frontier's time (95% CI 0.815-0.827) and\npeaked at 6.67 GiB against the frontier's 6.89. It is bit-exact: the\nproofs are the unmodified prover's, byte for byte.\n\nReview note: the only new unsafe call is madvise, Linux only, on blocks\nthe allocator itself mapped, inside the existing GlobalAlloc impl in\ncrates/stwo/src/prover/backend/simd/column.rs; its result is ignored, and\na refusal changes only paging. The address narrowing unwraps\nu32::try_from when columns are built, so an address at or above 2^32\npanics rather than wraps.\n\nFrontier-Job: d327dd5c-c28b-4393-985f-6f654f63015b\nFrontier-Patch-SHA256: 7d89a4cb9031cfc4e67ed41ae3fdd776bb5071bff13b76d101035bf2d76b5f78\nFrontier-Ratio: 0.5087644673332572\n\n"
+   },
+   {
+    "commit": "754321f34256b07fbed0ddc842dd44fe7c3603de",
+    "files": [
+     "crates/cairo-air/src/components/verify_bitwise_xor_12.rs",
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/circuit_prover/src/circuit_air/components/verify_bitwise_xor_12.rs",
+     "crates/circuit_prover/src/prover.rs",
+     "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
+     "crates/circuit_prover/src/witness/components/eq.rs",
+     "crates/circuit_prover/src/witness/components/m_31_to_u_32.rs",
+     "crates/circuit_prover/src/witness/components/prelude.rs",
+     "crates/circuit_prover/src/witness/components/qm31_ops.rs",
+     "crates/circuit_prover/src/witness/components/triple_xor.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs",
+     "crates/constraint-framework/src/logup.rs",
+     "crates/constraint-framework/src/prover/logup.rs",
+     "crates/constraint-framework/src/prover/simd_domain.rs",
+     "crates/privacy_prove/src/consts.rs",
+     "crates/stwo/src/prover/backend/mod.rs",
+     "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs",
+     "crates/stwo/src/prover/fri.rs",
+     "crates/stwo/src/prover/mempool.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/poly/circle/ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/prover.rs"
     ],
-    "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
-    "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
-    "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
-    "review_branch": "port/memory-02-lifetimes",
-    "review_commit": "fd11c849b040b9db38b542dd36d95ca3a593c3c0",
-    "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/4",
-    "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
-  },
-  {
-    "mechanism": "striped commitments and block composition",
-    "source_references": [
-      {
-        "commit": "0e80cbf9a96866102ae3e08585bb3c7166436e09",
-        "files": [
-          "crates/constraint-framework/src/prover/component_prover.rs",
-          "crates/constraint-framework/src/prover/simd_domain.rs",
-          "crates/prover/src/prover.rs",
-          "crates/stwo/src/prover/air/component_prover.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/poly/circle/ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/prover.rs"
-        ],
-        "job": "7e88e49c-428e-4582-9b5c-6d84af161d38",
-        "source_patch_sha256": "e3fb6fa0532ff0ce273e42da38d35a9797a9d01e5efd154c1956c2e49a6a0f61",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record 7e88e49c\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job 7e88e49c-428e-4582-9b5c-6d84af161d38: VALID_NOT_FASTER, ratio\n1.8284 (95% CI 1.8077-1.8493)\nagainst the frontier 754321f3, so 6.0% faster than\nthe pinned prover. Patch SHA-256 e3fb6fa0532ff0ce273e42da38d35a9797a9d01e5efd154c1956c2e49a6a0f61,\n438,732 bytes, 71 files, read from the evaluator's stored submission.\nIt reports peak memory 2.11 GiB vs the frontier's 5.87 GiB in the same job (-64.1%).\n\nOn top of 754321f3 it adds, from ryun1 (claude-code+auto-research-toolkit, claude-opus-5-5), the change measured in whole-proof job 7e88e49c.\nIn the same job the privacy proof peaked at 2.11 GiB against the frontier's 5.87 (-64.1%) and took 1.828 of its time (95% CI 1.808-1.849). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: 7e88e49c-428e-4582-9b5c-6d84af161d38\nFrontier-Patch-SHA256: e3fb6fa0532ff0ce273e42da38d35a9797a9d01e5efd154c1956c2e49a6a0f61\nFrontier-Ratio: 0.9403923108917313\n\n"
-      },
-      {
-        "commit": "7af94e1a5f274392fd2a3c649eab96288d1b2c36",
-        "files": [
-          "crates/cairo_verifier/src/verify.rs",
-          "crates/circuit_common/src/deferred.rs",
-          "crates/circuit_common/src/lib.rs",
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/circuit_prover/src/witness/components/prelude.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_12.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs",
-          "crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs",
-          "crates/circuit_prover/src/witness/trace.rs",
-          "crates/constraint-framework/src/component.rs",
-          "crates/constraint-framework/src/logup.rs",
-          "crates/constraint-framework/src/prover/component_prover.rs",
-          "crates/constraint-framework/src/prover/simd_domain.rs",
-          "crates/privacy_prove/src/lib.rs",
-          "crates/prover/src/prover.rs",
-          "crates/stwo/src/prover/air/component_prover.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/very_packed_m31.rs",
-          "crates/stwo/src/prover/mod.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/poly/circle/ops.rs"
-        ],
-        "job": "d6ce76bb-c081-46ad-95fd-58d6aaab7d56",
-        "source_patch_sha256": "52adb4a527ad2d272e5587ae8813e78a1ddf20fb4f1afc028120de625c4260f6",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record d6ce76bb\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job d6ce76bb-c081-46ad-95fd-58d6aaab7d56: MEASURED_IMPROVEMENT, ratio\n0.8340 (95% CI 0.8301-0.8379)\nagainst the frontier b24c7d1d, so 22.4% faster than\nthe pinned prover. Patch SHA-256 52adb4a527ad2d272e5587ae8813e78a1ddf20fb4f1afc028120de625c4260f6,\n485,467 bytes, 74 files, read from the evaluator's stored submission.\nIt reports peak memory 1.94 GiB vs the frontier's 2.11 GiB in the same job (-8.2%).\n\nOn top of b24c7d1d it adds, from ryun1 (claude-code+auto-research-toolkit, claude-opus-5-5), the change measured in whole-proof job d6ce76bb, testing the lead \"Faster and smaller striped prover: coefficient residency, block-window composition, tiled decommit (frontier b24c7d1d)\".\nIn the same job the privacy proof peaked at 1.94 GiB against the frontier's 2.11 (-8.2%) and took 0.834 of its time (95% CI 0.830-0.838). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: d6ce76bb-c081-46ad-95fd-58d6aaab7d56\nFrontier-Patch-SHA256: 52adb4a527ad2d272e5587ae8813e78a1ddf20fb4f1afc028120de625c4260f6\nFrontier-Ratio: 0.7755527623389541\n\n"
-      }
+    "job": "fccbf68b-8251-47a3-9228-25026e1616c1",
+    "source_patch_sha256": "034f29c2eed816ab415ff30c28b54f234fe4158b7c5570097976100d0c7de567",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record fccbf68b\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job fccbf68b-8251-47a3-9228-25026e1616c1: VALID_NOT_FASTER, ratio\n1.0109 (95% CI 1.0074-1.0145)\nagainst the frontier 6e80156f, so 48.6% faster than\nthe pinned prover. Patch SHA-256 034f29c2eed816ab415ff30c28b54f234fe4158b7c5570097976100d0c7de567,\n394,381 bytes, 70 files, read from the evaluator's stored submission.\nIt reports peak memory 5.87 GiB vs the frontier's 6.68 GiB in the same job (-12.1%).\n\nOn top of 6e80156f it adds, from odinfree (Codex, carrying parts of\ntheir earlier Claude Code and Claude Fable 5.1 work), a memory\ncomposition. A column holding only literal zeros gives its physical\npages back to Linux (madvise MADV_DONTNEED), but only after a lock-free\nregistry shows its exact allocation base is a live private anonymous\nmapping of the frontier's large-block allocator. The allocator keeps no\nidle blocks between phases, and the column pool drops its idle buffers\nbetween the two proofs. The Cairo and circuit provers no longer store\npolynomial coefficients: out-of-domain values come from a bit-reversed\nprefix of each evaluation, with interpolation weights built once per\ngroup of columns sharing a domain and sample point. FRI and Merkle\nlayers hash packed leaves straight from the four coordinate columns and\nrecompute the omitted lower layers at decommitment; logup columns are\ngenerated in one pass, and fixed lookup-table columns are produced from\ntheir formula instead of stored. In the same job the privacy proof\npeaked at 5.87 GiB against the frontier's 6.68 (-12.1%) and took 1.011\nof its time (95% CI 1.007-1.014). It is bit-exact: the proofs are the\nunmodified prover's, byte for byte.\n\nIts lead credits ryun1's lookup work, the packed FRI from workshop\nthreads 31 and 34, compact witness data first written with Kimi and\nCodex, and the lifetime work of the research root's candidate001.\n\nReview note: no changed file gains an unsafe token; each keeps the\nfrontier's count. The new page advice goes through the allocator's\nexisting helper, on Linux x86-64 only, over whole pages inside the\ncolumn's initialized bytes, and only when every logical word is the\nliteral zero MADV_DONTNEED restores. The cairo-air change factors one\naffine relation for the concrete SIMD evaluator only; symbolic\nevaluators, and so the verifier, see the unchanged expression.\n\nFrontier-Job: fccbf68b-8251-47a3-9228-25026e1616c1\nFrontier-Patch-SHA256: 034f29c2eed816ab415ff30c28b54f234fe4158b7c5570097976100d0c7de567\nFrontier-Ratio: 0.5143262748214932\n\n"
+   },
+   {
+    "commit": "88f22f7631b7902a77f04951590fb7770b5c4d2c",
+    "files": [
+     "Cargo.lock",
+     "crates/circuit_common/Cargo.toml",
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/circuits/Cargo.toml",
+     "crates/circuits/src/circuit.rs",
+     "crates/constraint-framework/src/component.rs",
+     "crates/constraint-framework/src/prover/component_prover.rs",
+     "crates/privacy_prove/Cargo.toml",
+     "crates/privacy_prove/src/lib.rs",
+     "crates/prover/src/witness/components/blake_round_sigma.rs",
+     "crates/prover/src/witness/components/pedersen_points_table_window_bits_18.rs",
+     "crates/prover/src/witness/components/pedersen_points_table_window_bits_9.rs",
+     "crates/prover/src/witness/components/poseidon_round_keys.rs",
+     "crates/prover/src/witness/components/range_check_3_3_3_3_3.rs",
+     "crates/prover/src/witness/components/range_check_3_6_6_3.rs",
+     "crates/prover/src/witness/components/range_check_4_3.rs",
+     "crates/prover/src/witness/components/range_check_4_4.rs",
+     "crates/prover/src/witness/components/range_check_4_4_4_4.rs",
+     "crates/prover/src/witness/components/range_check_7_2_5.rs",
+     "crates/prover/src/witness/components/range_check_9_9.rs",
+     "crates/prover/src/witness/components/verify_bitwise_xor_4.rs",
+     "crates/prover/src/witness/components/verify_bitwise_xor_7.rs",
+     "crates/prover/src/witness/components/verify_bitwise_xor_8.rs",
+     "crates/prover/src/witness/components/verify_bitwise_xor_9.rs",
+     "crates/prover/src/witness/prelude.rs",
+     "crates/prover/src/witness/utils.rs",
+     "crates/stwo/src/prover/air/accumulation.rs",
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/backend/mod.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/backend/simd/fft/ifft.rs",
+     "crates/stwo/src/prover/backend/simd/fft/rfft.rs",
+     "crates/stwo/src/prover/mempool.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/pcs/quotient_ops.rs"
     ],
-    "browser_adaptation": "Target optional lifting size, pow_bits, original logup batching and disabled behavior retained. Full-domain access for nonzero offsets. Current dense Merkle retention and coefficient-regrowth opening fallback; no native memory hints.",
-    "target_commit": "f7ce47c",
-    "persistent_patches": [
-      {
-        "path": "patches/prover/striped.patch",
-        "sha256": "a72ac194b31d3c82a4cadf3cf3e315aca4ec6236ac7cb0ddf97f722c797343bd",
-        "bytes": 146166,
-        "files": [
-          "crates/constraint-framework/src/component.rs",
-          "crates/constraint-framework/src/logup.rs",
-          "crates/constraint-framework/src/prover/component_prover.rs",
-          "crates/constraint-framework/src/prover/simd_domain.rs",
-          "crates/stwo/src/prover/air/accumulation.rs",
-          "crates/stwo/src/prover/air/component_prover.rs",
-          "crates/stwo/src/prover/backend/mod.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/mempool.rs",
-          "crates/stwo/src/prover/mod.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/poly/circle/ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/prover.rs"
-        ]
-      }
+    "job": "4960feb9-b16f-4827-b3bb-6cd1387822d4",
+    "source_patch_sha256": "92da04a49e8b7be5aa030d0e24a0b10d62ff0f422953761fd17f2173533a0911",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record 4960feb9\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job 4960feb9-b16f-4827-b3bb-6cd1387822d4: MEASURED_IMPROVEMENT, ratio\n0.9100 (95% CI 0.9060-0.9141)\nagainst the frontier 02c9df37, so 38.3% faster than\nthe pinned prover. Patch SHA-256 92da04a49e8b7be5aa030d0e24a0b10d62ff0f422953761fd17f2173533a0911,\n246,544 bytes, 58 files, read from the evaluator's stored submission.\nIt reports peak memory 8.24 GiB vs the frontier's 10.02 GiB in the same job (-17.8%).\n\nOn top of 02c9df37 it adds, from l-henri's agent (Claude Code): the\ncircuit and its preprocessed columns are built in parallel with rayon\n(added as a workspace dependency to circuits, circuit_common and\nprivacy_prove), and the circuit's preprocessed tree is built lazily after\nthe Cairo proof, reusing that proof's idle buffers, with truncated pool\ntails released and small idle buffer classes dropped. The memory work is\nwritten up in the workshop as bt1_313b9a8b481b747f6f63ee4e. In the same\njob the privacy proof peaked at 8.24 GiB against the frontier's 10.02, so\nthe frontier is both faster and leaner. It is bit-exact: the proofs are\nthe unmodified prover's, byte for byte.\n\nReview note: the prover's precomputes now live for the whole process\n(ManuallyDrop) and are dropped only at exit, which saves the unmapping\ntime; a long-lived prover that rebuilds its precomputes would have to\ndrop them itself.\n\nFrontier-Job: 4960feb9-b16f-4827-b3bb-6cd1387822d4\nFrontier-Patch-SHA256: 92da04a49e8b7be5aa030d0e24a0b10d62ff0f422953761fd17f2173533a0911\nFrontier-Write-Up: bt1_313b9a8b481b747f6f63ee4e\nFrontier-Ratio: 0.6170772322182804\n\n"
+   },
+   {
+    "commit": "55720f342977a59e33b6ab25f35a8d5a3bb3547f",
+    "files": [
+     "crates/cairo_verifier/src/verify.rs",
+     "crates/circuit_common/src/finalize.rs",
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/circuit_prover/src/prover.rs",
+     "crates/circuits/src/context.rs",
+     "crates/circuits/src/ivalue.rs"
     ],
-    "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
-    "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
-    "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
-    "corrective_commit": "e66309a",
-    "review_branch": "port/memory-03-stripes",
-    "review_commit": "4cf5cbab2ae17449118220b3a7436f98512bb0a5",
-    "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/5",
-    "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
-  },
-  {
-    "mechanism": "sourced preprocessing",
-    "source_references": [
-      {
-        "commit": "cb63e35eed01d288570e4f105147e745b78a7e68",
-        "files": [
-          "crates/circuit_common/src/preprocessed.rs",
-          "crates/privacy_prove/src/lib.rs",
-          "crates/stwo/src/prover/air/component_prover.rs",
-          "crates/stwo/src/prover/backend/mod.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/mod.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/pcs/quotient_ops.rs",
-          "crates/stwo/src/prover/poly/circle/ops.rs"
-        ],
-        "job": "aff8330e-87b4-47f7-921f-94ab55f4f361",
-        "source_patch_sha256": "273702c3221c28cbe836070dbd8a07c65f56b6d1bd59ef3be99ec60653356cdb",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record aff8330e\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job aff8330e-87b4-47f7-921f-94ab55f4f361: VALID_NOT_FASTER, ratio\n1.0406 (95% CI 1.0362-1.0450)\nagainst the frontier 7af94e1a, so 19.3% faster than\nthe pinned prover. Patch SHA-256 273702c3221c28cbe836070dbd8a07c65f56b6d1bd59ef3be99ec60653356cdb,\n509,922 bytes, 74 files, read from the evaluator's stored submission.\nIt reports peak memory 1.81 GiB vs the frontier's 1.95 GiB in the same job (-7.2%).\n\nOn top of 7af94e1a it adds, from rukafe0x, the change measured in whole-proof job aff8330e, testing the lead \"Preprocessed-tree source on frontier 7af94e1a: the circuit preprocessed tree keeps no stripe, regrown from compact columns (local peak -7.0%, time-neutral)\".\nIn the same job the privacy proof peaked at 1.81 GiB against the frontier's 1.95 (-7.2%) and took 1.041 of its time (95% CI 1.036-1.045). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: aff8330e-87b4-47f7-921f-94ab55f4f361\nFrontier-Patch-SHA256: 273702c3221c28cbe836070dbd8a07c65f56b6d1bd59ef3be99ec60653356cdb\nFrontier-Ratio: 0.8070392538741608\n\n"
-      }
+    "job": "ca7338ce-0993-445d-846a-f13483e20158",
+    "source_patch_sha256": "e92ba965b052303e72ae74735a604be709db8a298449bb0b2e537b3d6c42d353",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record ca7338ce\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job ca7338ce-0993-445d-846a-f13483e20158: VALID_NOT_FASTER, ratio\n0.9978 (95% CI 0.9944-1.0012)\nagainst the frontier cb63e35e, so 19.5% faster than\nthe pinned prover. Patch SHA-256 e92ba965b052303e72ae74735a604be709db8a298449bb0b2e537b3d6c42d353,\n517,133 bytes, 78 files, read from the evaluator's stored submission.\nIt reports peak memory 1.56 GiB vs the frontier's 1.80 GiB in the same job (-13.7%).\n\nOn top of cb63e35e it adds, from realadii (claude-code), the change measured in whole-proof job ca7338ce.\nIn the same job the privacy proof peaked at 1.56 GiB against the frontier's 1.80 (-13.7%) and took 0.998 of its time (95% CI 0.994-1.001). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: ca7338ce-0993-445d-846a-f13483e20158\nFrontier-Patch-SHA256: e92ba965b052303e72ae74735a604be709db8a298449bb0b2e537b3d6c42d353\nFrontier-Ratio: 0.8052872180759207\n\n"
+   }
+  ],
+  "browser_adaptation": "Explicit Context.into_values and proof-owned values replace source global Mutex handoff; keep target blinding/finalize sequence; compact direct construction uses checked u32 with wider fallback; no process-lifetime leaks or native page calls.",
+  "target_commit": "483ec95",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/stwo-circuits.patch",
+    "sha256": "b1260af1c1c5c1c94363c011a1e9ccb00b25a000ec6fcd727d372d68c8d22571",
+    "bytes": 29428,
+    "files": [
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/circuit_prover/src/prover.rs",
+     "crates/circuit_prover/src/prover_test.rs",
+     "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
+     "crates/circuit_prover/src/witness/components/eq.rs",
+     "crates/circuit_prover/src/witness/components/m_31_to_u_32.rs",
+     "crates/circuit_prover/src/witness/components/qm31_ops.rs",
+     "crates/circuit_prover/src/witness/components/triple_xor.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs",
+     "crates/circuits/src/context.rs"
+    ]
+   },
+   {
+    "path": "patches/prover/lifetimes.patch",
+    "sha256": "1a0a16579f3768389c255f54588e302efaee568e3560c07b2d1990e14c5fcab9",
+    "bytes": 6806,
+    "files": [
+     "crates/privacy_prove/src/lib.rs",
+     "crates/browser-prover/src/wasm64_api.rs",
+     "crates/browser-prover/src/progress.rs"
+    ]
+   }
+  ],
+  "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
+  "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
+  "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
+  "review_branch": "port/memory-02-lifetimes",
+  "review_commit": "fd11c849b040b9db38b542dd36d95ca3a593c3c0",
+  "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/4",
+  "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
+ },
+ {
+  "mechanism": "striped commitments and block composition",
+  "source_references": [
+   {
+    "commit": "0e80cbf9a96866102ae3e08585bb3c7166436e09",
+    "files": [
+     "crates/constraint-framework/src/prover/component_prover.rs",
+     "crates/constraint-framework/src/prover/simd_domain.rs",
+     "crates/prover/src/prover.rs",
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/poly/circle/ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/prover.rs"
     ],
-    "browser_adaptation": "Compact source shared through Arc. Quotients regenerate up to 16 columns; sampling regrows one column at a time. Construction temporarily retains initial stripes until commitment is complete.",
-    "target_commit": "736d2ea",
-    "persistent_patches": [
-      {
-        "path": "patches/prover/sourced-stwo.patch",
-        "sha256": "c3353948fa0ae5850027be3487ea0db3e9f6eb6f12fad466182b5cf0b0bd9630",
-        "bytes": 33259,
-        "files": [
-          "crates/stwo/src/prover/air/component_prover.rs",
-          "crates/stwo/src/prover/backend/mod.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/mod.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/pcs/quotient_ops.rs"
-        ]
-      },
-      {
-        "path": "patches/prover/sourced-circuits.patch",
-        "sha256": "68380df366f69f72d4a78b357a360e82b3c6d0589e71a20d15b4d40ef6ab6033",
-        "bytes": 3888,
-        "files": [
-          "crates/circuit_common/src/preprocessed.rs",
-          "Cargo.toml"
-        ]
-      },
-      {
-        "path": "patches/prover/sourced-utils.patch",
-        "sha256": "94a4cf2470734d39bc7440377ff03b260aa928346c244ec3daf534dfa253dae8",
-        "bytes": 1466,
-        "files": [
-          "crates/privacy_prove/src/lib.rs"
-        ]
-      }
+    "job": "7e88e49c-428e-4582-9b5c-6d84af161d38",
+    "source_patch_sha256": "e3fb6fa0532ff0ce273e42da38d35a9797a9d01e5efd154c1956c2e49a6a0f61",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record 7e88e49c\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job 7e88e49c-428e-4582-9b5c-6d84af161d38: VALID_NOT_FASTER, ratio\n1.8284 (95% CI 1.8077-1.8493)\nagainst the frontier 754321f3, so 6.0% faster than\nthe pinned prover. Patch SHA-256 e3fb6fa0532ff0ce273e42da38d35a9797a9d01e5efd154c1956c2e49a6a0f61,\n438,732 bytes, 71 files, read from the evaluator's stored submission.\nIt reports peak memory 2.11 GiB vs the frontier's 5.87 GiB in the same job (-64.1%).\n\nOn top of 754321f3 it adds, from ryun1 (claude-code+auto-research-toolkit, claude-opus-5-5), the change measured in whole-proof job 7e88e49c.\nIn the same job the privacy proof peaked at 2.11 GiB against the frontier's 5.87 (-64.1%) and took 1.828 of its time (95% CI 1.808-1.849). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: 7e88e49c-428e-4582-9b5c-6d84af161d38\nFrontier-Patch-SHA256: e3fb6fa0532ff0ce273e42da38d35a9797a9d01e5efd154c1956c2e49a6a0f61\nFrontier-Ratio: 0.9403923108917313\n\n"
+   },
+   {
+    "commit": "7af94e1a5f274392fd2a3c649eab96288d1b2c36",
+    "files": [
+     "crates/cairo_verifier/src/verify.rs",
+     "crates/circuit_common/src/deferred.rs",
+     "crates/circuit_common/src/lib.rs",
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/circuit_prover/src/witness/components/prelude.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_12.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs",
+     "crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs",
+     "crates/circuit_prover/src/witness/trace.rs",
+     "crates/constraint-framework/src/component.rs",
+     "crates/constraint-framework/src/logup.rs",
+     "crates/constraint-framework/src/prover/component_prover.rs",
+     "crates/constraint-framework/src/prover/simd_domain.rs",
+     "crates/privacy_prove/src/lib.rs",
+     "crates/prover/src/prover.rs",
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/very_packed_m31.rs",
+     "crates/stwo/src/prover/mod.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/poly/circle/ops.rs"
     ],
-    "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
-    "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
-    "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
-    "corrective_commit": "e66309a",
-    "review_branch": "port/memory-04-sources",
-    "review_commit": "34688f326ebf9b262b54407aba4707336fa592ea",
-    "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/6",
-    "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
-  },
-  {
-    "mechanism": "independent later memory tradeoffs",
-    "source_references": [
-      {
-        "commit": "779648866608a8e89323ad47ab07c769f0bcda4a",
-        "files": [
-          "crates/constraint-framework/src/prover/component_prover.rs",
-          "crates/privacy_prove/src/lib.rs",
-          "crates/privacy_prove/src/pvfast_workload.rs",
-          "crates/stwo/src/prover/backend/simd/quotients.rs",
-          "crates/stwo/src/prover/mod.rs",
-          "crates/stwo/src/prover/pcs/mod.rs"
-        ],
-        "job": "573d8ca1-4168-4a69-b3b5-e3c4bbce6d0d",
-        "source_patch_sha256": "6f5d4cfc4a054329429d6eefcc3f011a028d1aec6cfaf0af39a50a76c4ad82a4",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record 573d8ca1\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job 573d8ca1-4168-4a69-b3b5-e3c4bbce6d0d: VALID_NOT_FASTER, ratio\n1.0588 (95% CI 1.0565-1.0610)\nagainst the frontier 55720f34, so 14.7% faster than\nthe pinned prover. Patch SHA-256 6f5d4cfc4a054329429d6eefcc3f011a028d1aec6cfaf0af39a50a76c4ad82a4,\n530,521 bytes, 79 files, read from the evaluator's stored submission.\nIt reports peak memory 1.39 GiB vs the frontier's 1.58 GiB in the same job (-11.9%).\n\nOn top of 55720f34 it adds, from nadai2010 (claude-code), the change measured in whole-proof job 573d8ca1, testing the lead \"Five-site stack on 55720f34: workload drops, adaptive blocks, trims, chunked denominators, lazy circuit\".\nIn the same job the privacy proof peaked at 1.39 GiB against the frontier's 1.58 (-11.9%) and took 1.059 of its time (95% CI 1.056-1.061). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: 573d8ca1-4168-4a69-b3b5-e3c4bbce6d0d\nFrontier-Patch-SHA256: 6f5d4cfc4a054329429d6eefcc3f011a028d1aec6cfaf0af39a50a76c4ad82a4\nFrontier-Ratio: 0.8525986224603107\n\n"
-      }
+    "job": "d6ce76bb-c081-46ad-95fd-58d6aaab7d56",
+    "source_patch_sha256": "52adb4a527ad2d272e5587ae8813e78a1ddf20fb4f1afc028120de625c4260f6",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record d6ce76bb\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job d6ce76bb-c081-46ad-95fd-58d6aaab7d56: MEASURED_IMPROVEMENT, ratio\n0.8340 (95% CI 0.8301-0.8379)\nagainst the frontier b24c7d1d, so 22.4% faster than\nthe pinned prover. Patch SHA-256 52adb4a527ad2d272e5587ae8813e78a1ddf20fb4f1afc028120de625c4260f6,\n485,467 bytes, 74 files, read from the evaluator's stored submission.\nIt reports peak memory 1.94 GiB vs the frontier's 2.11 GiB in the same job (-8.2%).\n\nOn top of b24c7d1d it adds, from ryun1 (claude-code+auto-research-toolkit, claude-opus-5-5), the change measured in whole-proof job d6ce76bb, testing the lead \"Faster and smaller striped prover: coefficient residency, block-window composition, tiled decommit (frontier b24c7d1d)\".\nIn the same job the privacy proof peaked at 1.94 GiB against the frontier's 2.11 (-8.2%) and took 0.834 of its time (95% CI 0.830-0.838). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: d6ce76bb-c081-46ad-95fd-58d6aaab7d56\nFrontier-Patch-SHA256: 52adb4a527ad2d272e5587ae8813e78a1ddf20fb4f1afc028120de625c4260f6\nFrontier-Ratio: 0.7755527623389541\n\n"
+   }
+  ],
+  "browser_adaptation": "Target optional lifting size, pow_bits, original logup batching and disabled behavior retained. Full-domain access for nonzero offsets. Current dense Merkle retention and coefficient-regrowth opening fallback; no native memory hints.",
+  "target_commit": "f7ce47c",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/striped.patch",
+    "sha256": "a72ac194b31d3c82a4cadf3cf3e315aca4ec6236ac7cb0ddf97f722c797343bd",
+    "bytes": 146166,
+    "files": [
+     "crates/constraint-framework/src/component.rs",
+     "crates/constraint-framework/src/logup.rs",
+     "crates/constraint-framework/src/prover/component_prover.rs",
+     "crates/constraint-framework/src/prover/simd_domain.rs",
+     "crates/stwo/src/prover/air/accumulation.rs",
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/backend/mod.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/mempool.rs",
+     "crates/stwo/src/prover/mod.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/poly/circle/ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/prover.rs"
+    ]
+   }
+  ],
+  "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
+  "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
+  "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
+  "corrective_commit": "e66309a",
+  "review_branch": "port/memory-03-stripes",
+  "review_commit": "4cf5cbab2ae17449118220b3a7436f98512bb0a5",
+  "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/5",
+  "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
+ },
+ {
+  "mechanism": "sourced preprocessing",
+  "source_references": [
+   {
+    "commit": "cb63e35eed01d288570e4f105147e745b78a7e68",
+    "files": [
+     "crates/circuit_common/src/preprocessed.rs",
+     "crates/privacy_prove/src/lib.rs",
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/backend/mod.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/mod.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/pcs/quotient_ops.rs",
+     "crates/stwo/src/prover/poly/circle/ops.rs"
     ],
-    "browser_adaptation": "Separate profile: bounded adaptive block sizes and chunked denominator inversion. No challenge-input assumptions or native allocator/page mechanisms.",
-    "target_commit": "7779ed8",
-    "persistent_patches": [
-      {
-        "path": "patches/prover/tradeoffs.patch",
-        "sha256": "1fd0a9c4b01e3d0e678fc0cf5d92a6401756b90df5bb930222f729668467a946",
-        "bytes": 6987,
-        "files": [
-          "crates/constraint-framework/src/prover/component_prover.rs",
-          "crates/stwo/src/prover/backend/simd/quotients.rs"
-        ]
-      }
+    "job": "aff8330e-87b4-47f7-921f-94ab55f4f361",
+    "source_patch_sha256": "273702c3221c28cbe836070dbd8a07c65f56b6d1bd59ef3be99ec60653356cdb",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record aff8330e\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job aff8330e-87b4-47f7-921f-94ab55f4f361: VALID_NOT_FASTER, ratio\n1.0406 (95% CI 1.0362-1.0450)\nagainst the frontier 7af94e1a, so 19.3% faster than\nthe pinned prover. Patch SHA-256 273702c3221c28cbe836070dbd8a07c65f56b6d1bd59ef3be99ec60653356cdb,\n509,922 bytes, 74 files, read from the evaluator's stored submission.\nIt reports peak memory 1.81 GiB vs the frontier's 1.95 GiB in the same job (-7.2%).\n\nOn top of 7af94e1a it adds, from rukafe0x, the change measured in whole-proof job aff8330e, testing the lead \"Preprocessed-tree source on frontier 7af94e1a: the circuit preprocessed tree keeps no stripe, regrown from compact columns (local peak -7.0%, time-neutral)\".\nIn the same job the privacy proof peaked at 1.81 GiB against the frontier's 1.95 (-7.2%) and took 1.041 of its time (95% CI 1.036-1.045). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: aff8330e-87b4-47f7-921f-94ab55f4f361\nFrontier-Patch-SHA256: 273702c3221c28cbe836070dbd8a07c65f56b6d1bd59ef3be99ec60653356cdb\nFrontier-Ratio: 0.8070392538741608\n\n"
+   }
+  ],
+  "browser_adaptation": "Compact source shared through Arc. Quotients regenerate up to 16 columns; sampling regrows one column at a time. Construction temporarily retains initial stripes until commitment is complete.",
+  "target_commit": "736d2ea",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/sourced-stwo.patch",
+    "sha256": "c3353948fa0ae5850027be3487ea0db3e9f6eb6f12fad466182b5cf0b0bd9630",
+    "bytes": 33259,
+    "files": [
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/backend/mod.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/mod.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/pcs/quotient_ops.rs"
+    ]
+   },
+   {
+    "path": "patches/prover/sourced-circuits.patch",
+    "sha256": "68380df366f69f72d4a78b357a360e82b3c6d0589e71a20d15b4d40ef6ab6033",
+    "bytes": 3888,
+    "files": [
+     "crates/circuit_common/src/preprocessed.rs",
+     "Cargo.toml"
+    ]
+   },
+   {
+    "path": "patches/prover/sourced-utils.patch",
+    "sha256": "94a4cf2470734d39bc7440377ff03b260aa928346c244ec3daf534dfa253dae8",
+    "bytes": 1466,
+    "files": [
+     "crates/privacy_prove/src/lib.rs"
+    ]
+   }
+  ],
+  "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
+  "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
+  "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
+  "corrective_commit": "e66309a",
+  "review_branch": "port/memory-04-sources",
+  "review_commit": "34688f326ebf9b262b54407aba4707336fa592ea",
+  "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/6",
+  "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
+ },
+ {
+  "mechanism": "independent later memory tradeoffs",
+  "source_references": [
+   {
+    "commit": "779648866608a8e89323ad47ab07c769f0bcda4a",
+    "files": [
+     "crates/constraint-framework/src/prover/component_prover.rs",
+     "crates/privacy_prove/src/lib.rs",
+     "crates/privacy_prove/src/pvfast_workload.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs",
+     "crates/stwo/src/prover/mod.rs",
+     "crates/stwo/src/prover/pcs/mod.rs"
     ],
-    "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
-    "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
-    "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
-    "corrective_commit": "e66309a",
-    "review_branch": "port/memory-05-tradeoffs",
-    "review_commit": "ed4b98c290138530d2309702b1aad8235bb8625c",
-    "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/7",
-    "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
-  },
-  {
-    "mechanism": "independent arithmetic kernels",
-    "source_references": [
-      {
-        "commit": "69b8b037807b7a7a4cd452a373fe2d37af82923d",
-        "files": [
-          "crates/stwo/src/prover/backend/simd/blake2s.rs",
-          "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
-          "crates/stwo/src/prover/backend/simd/cm31.rs",
-          "crates/stwo/src/prover/backend/simd/column.rs",
-          "crates/stwo/src/prover/backend/simd/grind.rs",
-          "crates/stwo/src/prover/backend/simd/m31.rs",
-          "crates/stwo/src/prover/backend/simd/qm31.rs",
-          "crates/stwo/src/prover/backend/simd/quotients.rs",
-          "crates/stwo/src/prover/backend/simd/very_packed_m31.rs",
-          "crates/stwo/src/prover/vcs_lifted/ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/prover.rs"
-        ],
-        "job": "af5e6e44-0915-4dc8-b2df-9f86ce0959ff",
-        "source_patch_sha256": "0330b0792e1969e3eb4600277e416b0ac0200e8b14717c295c8cfeaca3a1d865",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record af5e6e44\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job af5e6e44-0915-4dc8-b2df-9f86ce0959ff: MEASURED_IMPROVEMENT,\nFASTER_IN_EVERY_SESSION, ratio 0.8210 (95% CI 0.8127-0.8294), 17.9%\nfaster than the pinned prover. Patch SHA-256\n0330b0792e1969e3eb4600277e416b0ac0200e8b14717c295c8cfeaca3a1d865,\n83,025 bytes, 11 files, read from the evaluator's stored submission.\n\nIt supersedes the #282 frontier commit: the commitment-layer rewrite\nremoves the fill that #282's second change narrowed. #282's short grind\nunits are not included; stacking them on this frontier needs a new\nmeasurement.\n\nContents and credits (write-up: bt1_b22ab32898229cf36a22d204):\n- BLAKE2s compression in two 8-lane halves: omarespejel's agent Meridian,\n  bt1_4cf06fb02a884724912069c1.\n- Grind kernel with the round-0 prefix computed once per digest:\n  Meridian, bt1_667354b3b052542baf20bcec.\n- Commitment layer: tiled leaves, five fused inner layers, parallel leaf\n  packing. Single-entry observation and pass merging: participant\n  5992277f3a8b (odinfree), bt1_f1a94185b1a15fa340f39b91. Mechanism\n  write-up: participant dbbfaeddbe89, bt1_b5c5ffbdc56ccfbeee4b0745.\n- Scoped #[inline(always)] on the field operators: finding and symbol\n  census by participant dbbfaeddbe89, bt1_b5c5ffbdc56ccfbeee4b0745.\n- Deferred-reduction quotient accumulation: participant 5992277f3a8b\n  (odinfree), bt1_4527483bd364509b01f72c85.\n\nReview: no I/O, caching, timing or randomness; net unsafe -3, the\nremaining uses are the existing uninit_vec pattern. The deferred\nreduction stays below 2^64 per group of four products and folds below\n2^32 before reduce_simd. stwo SIMD, lifted-Merkle, quotient and PCS\ntests pass (104). The solver reports identical proof bytes and\nprivacy_verify acceptance on every local paired run.\n\nPromoted at the owner's request before the 60-pair confirmation run on\nanother day. If that run does not confirm the result, revert this commit.\n\nCo-authored-by: odinfree <58338510+odinfree@users.noreply.github.com>\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n"
-      },
-      {
-        "commit": "74cca4d43b1de003c0194a9c85fb781cdc42519e",
-        "files": [
-          "crates/stwo/src/prover/air/accumulation.rs",
-          "crates/stwo/src/prover/backend/simd/accumulation.rs",
-          "crates/stwo/src/prover/backend/simd/blake2s.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/fft/ifft.rs",
-          "crates/stwo/src/prover/backend/simd/fft/rfft.rs",
-          "crates/stwo/src/prover/backend/simd/grind.rs",
-          "crates/stwo/src/prover/backend/simd/quotients.rs",
-          "crates/stwo/src/prover/fri.rs",
-          "crates/stwo/src/prover/pcs/mod.rs",
-          "crates/stwo/src/prover/pcs/quotient_ops.rs",
-          "crates/stwo/src/prover/vcs_lifted/prover.rs"
-        ],
-        "job": "a6197744-dd41-46de-bfc3-47ebbd4d8487",
-        "source_patch_sha256": "cab9d621e2aa9ddf54e2ce306f918d19fdef8c36d81c442621085f72e7e1bfbe",
-        "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
-        "source_message": "Promote measured whole-proof record a6197744\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job a6197744-dd41-46de-bfc3-47ebbd4d8487: MEASURED_IMPROVEMENT,\nFASTER_IN_EVERY_SESSION, ratio 0.7373 (95% CI 0.7338-0.7409), 26.3%\nfaster than the pinned prover. Patch SHA-256\ncab9d621e2aa9ddf54e2ce306f918d19fdef8c36d81c442621085f72e7e1bfbe,\n144,819 bytes, 22 files, read from the evaluator's stored submission.\nIts upper bound is below the previous record's lower bound (0.7462, job\n635b081f). It keeps every file of the previous frontier (c38b7e27); the\nfrontier lines it rewrites are rustfmt reformatting only. Measured\nagainst the unmodified prover, before the evaluator moved its baseline\nto the frontier; its gain over the previous record is 1.8%.\n\nOn top of c38b7e27 it adds (write-up: bt1_7609bc58b85c2c5f0fa2f0cd):\n- l-henri's agent (Claude Fable 5.1, Claude Code): the small parallel\n  passes of job 0b725eae (lift_and_accumulate over row chunks, the\n  decommit gather over columns, the quotient and composition coordinate\n  columns extended concurrently), every (log_size, sample point)\n  FRI-quotient accumulation computed concurrently, and the IFFT 1/n\n  scaling folded into the last IFFT pass;\n- Meridian, the agent of omarespejel: the forward FFT's first phase fused\n  with the transposition and shared by all cosets (job a18332cd, without\n  its non-temporal stores; bt1_64398ac734fce325ba18e964).\nAll of it is bit-exact: the proofs are the unmodified prover's, byte for\nbyte.\n\nFrontier-Ratio: 0.737330307257815\n\n"
-      }
+    "job": "573d8ca1-4168-4a69-b3b5-e3c4bbce6d0d",
+    "source_patch_sha256": "6f5d4cfc4a054329429d6eefcc3f011a028d1aec6cfaf0af39a50a76c4ad82a4",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record 573d8ca1\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job 573d8ca1-4168-4a69-b3b5-e3c4bbce6d0d: VALID_NOT_FASTER, ratio\n1.0588 (95% CI 1.0565-1.0610)\nagainst the frontier 55720f34, so 14.7% faster than\nthe pinned prover. Patch SHA-256 6f5d4cfc4a054329429d6eefcc3f011a028d1aec6cfaf0af39a50a76c4ad82a4,\n530,521 bytes, 79 files, read from the evaluator's stored submission.\nIt reports peak memory 1.39 GiB vs the frontier's 1.58 GiB in the same job (-11.9%).\n\nOn top of 55720f34 it adds, from nadai2010 (claude-code), the change measured in whole-proof job 573d8ca1, testing the lead \"Five-site stack on 55720f34: workload drops, adaptive blocks, trims, chunked denominators, lazy circuit\".\nIn the same job the privacy proof peaked at 1.39 GiB against the frontier's 1.58 (-11.9%) and took 1.059 of its time (95% CI 1.056-1.061). It is bit-exact: the proofs are the unmodified prover's, byte for byte.\n\nPromoted by the frontier autopilot: the job beat the frontier's score under the live contract, no changed file gained an unsafe token or a line reaching the host, the clock or the network, and the corpus proved byte for byte like the pinned prover.\n\nFrontier-Job: 573d8ca1-4168-4a69-b3b5-e3c4bbce6d0d\nFrontier-Patch-SHA256: 6f5d4cfc4a054329429d6eefcc3f011a028d1aec6cfaf0af39a50a76c4ad82a4\nFrontier-Ratio: 0.8525986224603107\n\n"
+   }
+  ],
+  "browser_adaptation": "Separate profile: bounded adaptive block sizes and chunked denominator inversion. No challenge-input assumptions or native allocator/page mechanisms.",
+  "target_commit": "7779ed8",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/tradeoffs.patch",
+    "sha256": "1fd0a9c4b01e3d0e678fc0cf5d92a6401756b90df5bb930222f729668467a946",
+    "bytes": 6987,
+    "files": [
+     "crates/constraint-framework/src/prover/component_prover.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs"
+    ]
+   }
+  ],
+  "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
+  "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
+  "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
+  "corrective_commit": "e66309a",
+  "review_branch": "port/memory-05-tradeoffs",
+  "review_commit": "ed4b98c290138530d2309702b1aad8235bb8625c",
+  "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/7",
+  "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local."
+ },
+ {
+  "mechanism": "independent arithmetic kernels",
+  "source_references": [
+   {
+    "commit": "69b8b037807b7a7a4cd452a373fe2d37af82923d",
+    "files": [
+     "crates/stwo/src/prover/backend/simd/blake2s.rs",
+     "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
+     "crates/stwo/src/prover/backend/simd/cm31.rs",
+     "crates/stwo/src/prover/backend/simd/column.rs",
+     "crates/stwo/src/prover/backend/simd/grind.rs",
+     "crates/stwo/src/prover/backend/simd/m31.rs",
+     "crates/stwo/src/prover/backend/simd/qm31.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs",
+     "crates/stwo/src/prover/backend/simd/very_packed_m31.rs",
+     "crates/stwo/src/prover/vcs_lifted/ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/prover.rs"
     ],
-    "browser_adaptation": "Separate profile: two-half BLAKE2s, grind prefix, final-pass IFFT normalization and four-product quotient reduction. Target non-BLAKE channels retained. Full source fused Merkle/FFT changes excluded. Review correction rejects unsupported private difficulty >32 and preserves underlying checked FFT/serial/block test paths.",
-    "target_commit": "ba2a2db",
-    "persistent_patches": [
-      {
-        "path": "patches/prover/kernels.patch",
-        "sha256": "b196ceb59a3866f2b7f3659b30e456bc80edf5c34f88dfa549fc148dd6e6e7bc",
-        "bytes": 37724,
-        "files": [
-          "crates/stwo/src/prover/backend/simd/blake2s.rs",
-          "crates/stwo/src/prover/backend/simd/grind.rs",
-          "crates/stwo/src/prover/backend/simd/circle.rs",
-          "crates/stwo/src/prover/backend/simd/quotients.rs",
-          "crates/stwo/src/prover/backend/simd/fft/ifft.rs"
-        ],
-        "pre_review_sha256": "1b6e71b2f33ec03f63450dbba4d092eba52563b72234f917aa47198ec935a2fa"
-      }
+    "job": "af5e6e44-0915-4dc8-b2df-9f86ce0959ff",
+    "source_patch_sha256": "0330b0792e1969e3eb4600277e416b0ac0200e8b14717c295c8cfeaca3a1d865",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record af5e6e44\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job af5e6e44-0915-4dc8-b2df-9f86ce0959ff: MEASURED_IMPROVEMENT,\nFASTER_IN_EVERY_SESSION, ratio 0.8210 (95% CI 0.8127-0.8294), 17.9%\nfaster than the pinned prover. Patch SHA-256\n0330b0792e1969e3eb4600277e416b0ac0200e8b14717c295c8cfeaca3a1d865,\n83,025 bytes, 11 files, read from the evaluator's stored submission.\n\nIt supersedes the #282 frontier commit: the commitment-layer rewrite\nremoves the fill that #282's second change narrowed. #282's short grind\nunits are not included; stacking them on this frontier needs a new\nmeasurement.\n\nContents and credits (write-up: bt1_b22ab32898229cf36a22d204):\n- BLAKE2s compression in two 8-lane halves: omarespejel's agent Meridian,\n  bt1_4cf06fb02a884724912069c1.\n- Grind kernel with the round-0 prefix computed once per digest:\n  Meridian, bt1_667354b3b052542baf20bcec.\n- Commitment layer: tiled leaves, five fused inner layers, parallel leaf\n  packing. Single-entry observation and pass merging: participant\n  5992277f3a8b (odinfree), bt1_f1a94185b1a15fa340f39b91. Mechanism\n  write-up: participant dbbfaeddbe89, bt1_b5c5ffbdc56ccfbeee4b0745.\n- Scoped #[inline(always)] on the field operators: finding and symbol\n  census by participant dbbfaeddbe89, bt1_b5c5ffbdc56ccfbeee4b0745.\n- Deferred-reduction quotient accumulation: participant 5992277f3a8b\n  (odinfree), bt1_4527483bd364509b01f72c85.\n\nReview: no I/O, caching, timing or randomness; net unsafe -3, the\nremaining uses are the existing uninit_vec pattern. The deferred\nreduction stays below 2^64 per group of four products and folds below\n2^32 before reduce_simd. stwo SIMD, lifted-Merkle, quotient and PCS\ntests pass (104). The solver reports identical proof bytes and\nprivacy_verify acceptance on every local paired run.\n\nPromoted at the owner's request before the 60-pair confirmation run on\nanother day. If that run does not confirm the result, revert this commit.\n\nCo-authored-by: odinfree <58338510+odinfree@users.noreply.github.com>\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n"
+   },
+   {
+    "commit": "74cca4d43b1de003c0194a9c85fb781cdc42519e",
+    "files": [
+     "crates/stwo/src/prover/air/accumulation.rs",
+     "crates/stwo/src/prover/backend/simd/accumulation.rs",
+     "crates/stwo/src/prover/backend/simd/blake2s.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/fft/ifft.rs",
+     "crates/stwo/src/prover/backend/simd/fft/rfft.rs",
+     "crates/stwo/src/prover/backend/simd/grind.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs",
+     "crates/stwo/src/prover/fri.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/pcs/quotient_ops.rs",
+     "crates/stwo/src/prover/vcs_lifted/prover.rs"
     ],
-    "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
-    "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
-    "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
-    "corrective_commit": "c5819cb",
-    "review_branch": "port/memory-06-kernels",
-    "review_commit": "37dc6e6d30567055d657c06d333cda7754eee30c",
-    "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/8",
-    "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local.",
-    "pre_review_commit": "dcba9590182144a9759af401d2d2bd48dd2ce05d",
-    "review_correction_evidence": "review-fixes.json and review-pow-fix.md; unchanged historical module measurements remain attached to earlier identities"
-  }
+    "job": "a6197744-dd41-46de-bfc3-47ebbd4d8487",
+    "source_patch_sha256": "cab9d621e2aa9ddf54e2ce306f918d19fdef8c36d81c442621085f72e7e1bfbe",
+    "participant_and_collaborator_credit": "Exact source message retained in source-ledger.json; do not attribute all mechanisms to all contributors.",
+    "source_message": "Promote measured whole-proof record a6197744\n\nSet the frontier tree to the pinned base plus the exact measured patch of\nwhole-proof job a6197744-dd41-46de-bfc3-47ebbd4d8487: MEASURED_IMPROVEMENT,\nFASTER_IN_EVERY_SESSION, ratio 0.7373 (95% CI 0.7338-0.7409), 26.3%\nfaster than the pinned prover. Patch SHA-256\ncab9d621e2aa9ddf54e2ce306f918d19fdef8c36d81c442621085f72e7e1bfbe,\n144,819 bytes, 22 files, read from the evaluator's stored submission.\nIts upper bound is below the previous record's lower bound (0.7462, job\n635b081f). It keeps every file of the previous frontier (c38b7e27); the\nfrontier lines it rewrites are rustfmt reformatting only. Measured\nagainst the unmodified prover, before the evaluator moved its baseline\nto the frontier; its gain over the previous record is 1.8%.\n\nOn top of c38b7e27 it adds (write-up: bt1_7609bc58b85c2c5f0fa2f0cd):\n- l-henri's agent (Claude Fable 5.1, Claude Code): the small parallel\n  passes of job 0b725eae (lift_and_accumulate over row chunks, the\n  decommit gather over columns, the quotient and composition coordinate\n  columns extended concurrently), every (log_size, sample point)\n  FRI-quotient accumulation computed concurrently, and the IFFT 1/n\n  scaling folded into the last IFFT pass;\n- Meridian, the agent of omarespejel: the forward FFT's first phase fused\n  with the transposition and shared by all cosets (job a18332cd, without\n  its non-temporal stores; bt1_64398ac734fce325ba18e964).\nAll of it is bit-exact: the proofs are the unmodified prover's, byte for\nbyte.\n\nFrontier-Ratio: 0.737330307257815\n\n"
+   }
+  ],
+  "browser_adaptation": "Separate profile: two-half BLAKE2s, grind prefix, final-pass IFFT normalization and four-product quotient reduction. Target non-BLAKE channels retained. Full source fused Merkle/FFT changes excluded. Review correction rejects unsupported private difficulty >32 and preserves underlying checked FFT/serial/block test paths.",
+  "target_commit": "ba2a2db",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/kernels.patch",
+    "sha256": "b196ceb59a3866f2b7f3659b30e456bc80edf5c34f88dfa549fc148dd6e6e7bc",
+    "bytes": 37724,
+    "files": [
+     "crates/stwo/src/prover/backend/simd/blake2s.rs",
+     "crates/stwo/src/prover/backend/simd/grind.rs",
+     "crates/stwo/src/prover/backend/simd/circle.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs",
+     "crates/stwo/src/prover/backend/simd/fft/ifft.rs"
+    ],
+    "pre_review_sha256": "1b6e71b2f33ec03f63450dbba4d092eba52563b72234f917aa47198ec935a2fa"
+   }
+  ],
+  "status": "implemented; final corrected profiles locally validated; independently agent-reviewed; human review/CI/release outstanding",
+  "validation_evidence": "validation-sourced-final.json, validation-kernels-corrected.json, validation-tradeoffs-corrected.json, validation-lifecycle-final.json, validation-cancellation-final.json and reviews/*.md; benchmark results separate",
+  "execution_provenance": "OpenAI Codex, GPT-6 per runtime instructions; model recorded as execution provenance, not human authorship",
+  "corrective_commit": "c5819cb",
+  "review_branch": "port/memory-06-kernels",
+  "review_commit": "37dc6e6d30567055d657c06d333cda7754eee30c",
+  "draft_PR": "https://github.com/starknet-innovation/snip-36-prover-wasm/pull/8",
+  "CI_scope": "Existing repository checks and fresh pinned preparation/Cargo resolution pass; recursive candidate proof/unit benchmark evidence local.",
+  "pre_review_commit": "dcba9590182144a9759af401d2d2bd48dd2ce05d",
+  "review_correction_evidence": "review-fixes.json and review-pow-fix.md; unchanged historical module measurements remain attached to earlier identities"
+ },
+ {
+  "mechanism": "round 2: combined regrowth and bounded FRI quotient combine",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "lead": "rgr1_d04ed031 (job 13e3a186)",
+    "credit": "nadai2010: sourced columns of one size combined on the trace domain, only the combination's four coordinates regrown once per point"
+   },
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "lead": "rgr1_fec78ebb, rgr1_daa601e1 (cited in job 573d8ca1 write-up)",
+    "credit": "tarekeleter and realadii: FRI denominators batch-inverted per chunk inside compute_quotients_and_combine"
+   }
+  ],
+  "browser_adaptation": "All columns of a (size, point) are combined at once (sources on the trace domain, kept coefficients in coefficient form), with \u03a3b subtracted through the constant coefficient; no batches of 4. Denominators and domain points per block of 256 packed rows; accumulations freed before the extension. The early free is this port's own finding.",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/quotient-combine.patch",
+    "sha256": "01d9b7b394363cfa1296c8c1925dab32f7f65bd3229f2658694b6abe66413761",
+    "bytes": 25406,
+    "files": [
+     "crates/stwo/src/prover/backend/cpu/quotients.rs",
+     "crates/stwo/src/prover/backend/simd/quotients.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/pcs/quotient_ops.rs"
+    ]
+   }
+  ],
+  "status": "implemented in prover-memory only; native byte-identity and per-span peak/time measured; browser recursive proofs validated (validation-round2.json); paired campaign, human review, CI and release outstanding",
+  "execution_provenance": "Claude Code (claude-opus-5-5); model recorded as execution provenance, not human authorship"
+ },
+ {
+  "mechanism": "round 2: FRI packed layers hashed in stripes",
+  "source_references": [
+   {
+    "kind": "commit",
+    "commit": "66670df77c50e387f67204c5e0a25d2dfd8652d4",
+    "files": [
+     "crates/stwo/src/prover/fri.rs"
+    ],
+    "credit": "job f2498dc7, ryun1 (claude-opus-5-5) per the commit message: FriProver::commit_striped, layer 0 hashed a stripe at a time"
+   }
+  ],
+  "browser_adaptation": "Hashes from the resident evaluation (no regrowth, no re-evaluation): aligned stripes of 2^14 packed leaves are packed and hashed up to the first kept layer; neither the packed copy nor the leaves are whole. The quotient-polynomial route was not ported (it re-evaluates layer 0 three times).",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/striped-fri-layers.patch",
+    "sha256": "a7f3c0f57384a57135ba88f68027246cadc699251d4681346145a5cd5e06b108",
+    "bytes": 5177,
+    "files": [
+     "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs"
+    ]
+   }
+  ],
+  "status": "implemented in prover-memory only; native byte-identity and per-span peak/time measured; browser recursive proofs validated (validation-round2.json); paired campaign, human review, CI and release outstanding",
+  "execution_provenance": "Claude Code (claude-opus-5-5); model recorded as execution provenance, not human authorship"
+ },
+ {
+  "mechanism": "round 2: exact-size pool allocations",
+  "source_references": [],
+  "browser_adaptation": "This port's own finding: BaseColumnPool reserved capacity for the next size on fresh buffers near the largest size (carried in striped.patch). Requested memory and WASM linear memory count that capacity for the buffer's lifetime; stripe-0 buffers rebuilt before the quotients doubled (1.55 GB allocated for 0.93 GB of values). Fresh buffers are now exact.",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/exact-pool.patch",
+    "sha256": "62fa1510eb016946dd174aef5de6e4cad08f1a1b28f8a1f2d0f89e12fb7f4e54",
+    "bytes": 3959,
+    "files": [
+     "crates/stwo/src/prover/mempool.rs"
+    ]
+   }
+  ],
+  "status": "implemented in prover-memory only; native byte-identity and per-span peak/time measured; browser recursive proofs validated (validation-round2.json); paired campaign, human review, CI and release outstanding",
+  "execution_provenance": "Claude Code (claude-opus-5-5); model recorded as execution provenance, not human authorship"
+ },
+ {
+  "mechanism": "round 2: pass-wise leaf hashing for coefficient-keeping striped commits",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "lead": "rgr1_bedc9376 (tarekeleter), ported to keep-coefficient commits by nadai2010 (job 573d8ca1 write-up); smaller by-pass batches in lead 61c244e0",
+    "credit": "tarekeleter, nadai2010"
+   }
+  ],
+  "browser_adaptation": "SIMD leaf hashing restructured around a column fetcher: each stripe's blocks are evaluated and absorbed a pass of whole 16-column message chunks (about 32 MiB) at a time in the original stable size order; the Blake2s states persist between passes, so leaves are identical. build_leaves is the single-pass case.",
+  "persistent_patches": [
+   {
+    "path": "patches/prover/stripe-passes.patch",
+    "sha256": "c5f2fa3ad343ee371515d24072cd398d7f5ff997c58f3d5e7afab6d0edb3b8cf",
+    "bytes": 29755,
+    "files": [
+     "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
+     "crates/stwo/src/prover/pcs/mod.rs",
+     "crates/stwo/src/prover/vcs_lifted/ops.rs"
+    ]
+   }
+  ],
+  "status": "implemented in prover-memory only; native byte-identity and per-span peak/time measured; browser recursive proofs validated (validation-round2.json); paired campaign, human review, CI and release outstanding",
+  "execution_provenance": "Claude Code (claude-opus-5-5); model recorded as execution provenance, not human authorship"
+ },
+ {
+  "mechanism": "round 2 (planned): circuit witness write peak",
+  "status": "blocked: needs explicit human approval to modify circuit_prover (marked SOUNDNESS-CRITICAL in stwo-circuits CLAUDE.md); current global peak site (1.740 GB native requested)",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "credit": "nadai2010: qm31_ops/eq finished before the gate components; realadii rgr1_3c4bf108 qm31_ops lookup read-back"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (planned): Cairo lookup data read-back",
+  "status": "planned; Cairo base commit (1.602 GB) and interaction write (1.513 GB) are the next sites; 0.95 GB of large blocks live at the base commit come from Write base trace",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "bt1_30789d1e942277073d34ab15 (participant c7bdacba3098) and bt1_254f902a50b0103d70e90a99 (realadii)",
+    "credit": "generic exact read-back of interaction tuples from committed columns"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (planned): packed preprocessed columns",
+  "status": "planned; lowers circuit sites about 60 MB each; not on the peak",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "lead": "61c244e0 item 1",
+    "credit": "nadai2010, extending rukafe0x rgr1_24ca8498"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (planned): one-pass block fold and regrow once per component",
+  "status": "planned speed work, not memory",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "credit": "nadai2010 (lead 61c244e0 items 2-3; region-order fold in rgr1_486e135f); ryun1 rgr1_f4073b21"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (dropped): fused circle-to-line FRI fold",
+  "status": "not needed: after striped FRI layers the FRI commit (1.400 GB) is far below the peak",
+  "source_references": [
+   {
+    "kind": "commit",
+    "commit": "66670df77c50e387f67204c5e0a25d2dfd8652d4",
+    "credit": "fold_circle_into_line_then_lines"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (dropped): one sample point at a time / eager lift",
+  "status": "not needed: measured stored-column accumulation phase is not a peak after the combine fixes",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "https://stwo.provably.fast bulletin thread bt1_60a1a3a2078f4458798a1cbb (nadai2010, participant_e14f86aa2697)",
+    "credit": "fkiene rgr1_36fb1aa0"
+   }
+  ]
+ }
 ]

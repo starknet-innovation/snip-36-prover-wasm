@@ -1,0 +1,456 @@
+diff --git a/crates/stwo/src/prover/backend/cpu/quotients.rs b/crates/stwo/src/prover/backend/cpu/quotients.rs
+index 3f4f167..dc4f638 100644
+--- a/crates/stwo/src/prover/backend/cpu/quotients.rs
++++ b/crates/stwo/src/prover/backend/cpu/quotients.rs
+@@ -99,4 +99,10 @@ impl QuotientOps for CpuBackend {
+         };
+         SecureEvaluation::new(eval_domain, evals)
+     }
++
++    fn accumulate_scaled(dst: &mut SecureColumnByCoords<Self>, src: &Vec<BaseField>, factor: SecureField) {
++        for (i, &value) in src.iter().enumerate() {
++            dst.set(i, dst.at(i) + factor * value);
++        }
++    }
+ }
+diff --git a/crates/stwo/src/prover/backend/simd/quotients.rs b/crates/stwo/src/prover/backend/simd/quotients.rs
+index 82c12e2..a120f1a 100644
+--- a/crates/stwo/src/prover/backend/simd/quotients.rs
++++ b/crates/stwo/src/prover/backend/simd/quotients.rs
+@@ -3,9 +3,9 @@ use std::iter::zip;
+ use itertools::{zip_eq, Itertools};
+ use num_traits::Zero;
+ #[cfg(feature = "parallel")]
+-use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
++use rayon::iter::{IndexedParallelIterator, ParallelIterator};
+ 
+-use super::column::CM31Column;
++use super::column::{BaseColumn, CM31Column};
+ use super::domain::CircleDomainBitRevIterator;
+ use super::m31::{PackedBaseField, LOG_N_LANES};
+ use super::qm31::PackedSecureField;
+@@ -113,14 +113,12 @@ impl QuotientOps for SimdBackend {
+                 SecureColumnByCoords::from_cpu(cpu_result.values),
+             );
+         }
+-        let subdomain_points: Vec<CirclePoint<PackedBaseField>> =
+-            CircleDomainBitRevIterator::new(eval_subdomain).collect();
++        let subdomain_points = CircleDomainBitRevIterator::new(eval_subdomain);
+         let subdomain_log_size = eval_subdomain.log_size();
+         let mut quotients: SecureColumnByCoords<SimdBackend> =
+             unsafe { SecureColumnByCoords::uninitialized(1 << subdomain_log_size) };
+         let sample_points: Vec<CirclePoint<SecureField>> =
+             accumulations.iter().map(|x| x.sample_point).collect();
+-        let denominators_inverses = denominator_inverses(&sample_points, eval_subdomain);
+ 
+         // Precompute values needed inside the loop.
+         let log_ratios: Vec<u32> = accumulations
+@@ -132,51 +130,64 @@ impl QuotientOps for SimdBackend {
+             .map(|acc| PackedSecureField::broadcast(acc.first_linear_term_acc))
+             .collect();
+ 
+-        // Populate `quotients`.
++        // Populate `quotients`. The domain points and the denominator inverses are computed per
++        // block of `DENOMINATOR_CHUNK_SIZE` packed rows rather than for the whole subdomain at
++        // once; inverses are unique, so they are the same values.
++        const DENOMINATOR_CHUNK_SIZE: usize = 256;
+         #[cfg(not(feature = "parallel"))]
+-        let iter = quotients.chunks_mut(COMBINE_CHUNK_SIZE).enumerate();
++        let iter = quotients.chunks_mut(DENOMINATOR_CHUNK_SIZE).enumerate();
+ 
+         #[cfg(feature = "parallel")]
+-        let iter = quotients.par_chunks_mut(COMBINE_CHUNK_SIZE).enumerate();
+-
+-        iter.for_each(|(chunk_idx, mut value_dst)| {
+-            let chunk_start = chunk_idx * COMBINE_CHUNK_SIZE;
+-            let packed_chunk_len = value_dst.0[0].0.len();
+-
+-            let mut chunk_acc = [PackedSecureField::zero(); COMBINE_CHUNK_SIZE];
+-            let chunk_acc = &mut chunk_acc[..packed_chunk_len];
+-
+-            for (((acc, den_inv), log_ratio), first_linear_term) in accumulations
+-                .iter()
+-                .zip_eq(denominators_inverses.iter())
+-                .zip_eq(log_ratios.iter())
+-                .zip_eq(first_linear_terms.iter())
+-            {
+-                for (i, accumulator) in chunk_acc.iter_mut().enumerate() {
+-                    let domain_idx = chunk_start + i;
+-                    let lifted_partial_numerator =
+-                        PackedSecureField::from_packed_m31s(std::array::from_fn(|j| {
+-                            let lifted_simd = to_lifted_simd(
+-                                acc.partial_numerators_acc.columns[j].data[domain_idx >> log_ratio]
+-                                    .into_simd(),
+-                                *log_ratio,
+-                                domain_idx,
+-                            );
+-                            unsafe { PackedBaseField::from_simd_unchecked(lifted_simd) }
+-                        }));
+-
+-                    let numerator = lifted_partial_numerator
+-                        - *first_linear_term * subdomain_points[domain_idx].y;
+-                    *accumulator += numerator * den_inv[domain_idx];
++        let iter = quotients.par_chunks_mut(DENOMINATOR_CHUNK_SIZE).enumerate();
++
++        iter.for_each(|(block_idx, mut block_dst)| {
++            let block_start = block_idx * DENOMINATOR_CHUNK_SIZE;
++            let block_len = block_dst.0[0].0.len();
++            let block_points: Vec<CirclePoint<PackedBaseField>> =
++                subdomain_points.start_at(block_start).take(block_len).collect();
++            let denominators_inverses = denominator_inverses(&sample_points, &block_points);
++            for chunk_offset in (0..block_len).step_by(COMBINE_CHUNK_SIZE) {
++                let chunk_start = block_start + chunk_offset;
++                let packed_chunk_len = COMBINE_CHUNK_SIZE.min(block_len - chunk_offset);
++
++                let mut chunk_acc = [PackedSecureField::zero(); COMBINE_CHUNK_SIZE];
++                let chunk_acc = &mut chunk_acc[..packed_chunk_len];
++
++                for (((acc, den_inv), log_ratio), first_linear_term) in accumulations
++                    .iter()
++                    .zip_eq(denominators_inverses.iter())
++                    .zip_eq(log_ratios.iter())
++                    .zip_eq(first_linear_terms.iter())
++                {
++                    for (i, accumulator) in chunk_acc.iter_mut().enumerate() {
++                        let domain_idx = chunk_start + i;
++                        let lifted_partial_numerator =
++                            PackedSecureField::from_packed_m31s(std::array::from_fn(|j| {
++                                let lifted_simd = to_lifted_simd(
++                                    acc.partial_numerators_acc.columns[j].data[domain_idx >> log_ratio]
++                                        .into_simd(),
++                                    *log_ratio,
++                                    domain_idx,
++                                );
++                                unsafe { PackedBaseField::from_simd_unchecked(lifted_simd) }
++                            }));
++
++                        let numerator = lifted_partial_numerator
++                            - *first_linear_term * block_points[chunk_offset + i].y;
++                        *accumulator += numerator * den_inv[chunk_offset + i];
++                    }
+                 }
+-            }
+ 
+-            for (i, accumulator) in chunk_acc.iter().enumerate() {
+-                unsafe {
+-                    value_dst.set_packed(i, *accumulator);
++                for (i, accumulator) in chunk_acc.iter().enumerate() {
++                    unsafe {
++                        block_dst.set_packed(chunk_offset + i, *accumulator);
++                    }
+                 }
+             }
+         });
++        // The numerators are dead once the quotients are filled: free them before the extension
++        // allocates the evaluation.
++        drop(accumulations);
+         let subdomain_twiddles = TwiddleTree {
+             root_coset: eval_subdomain.half_coset,
+             // Only itwiddles are needed for interpolation.
+@@ -198,6 +209,14 @@ impl QuotientOps for SimdBackend {
+ 
+         SecureEvaluation::new(eval_domain, evals)
+     }
++
++    fn accumulate_scaled(dst: &mut SecureColumnByCoords<Self>, src: &BaseColumn, factor: SecureField) {
++        let factor = PackedSecureField::broadcast(factor);
++        for (i, &value) in src.data.iter().enumerate() {
++            // SAFETY: `src` and `dst` have the same length, so `i` is a valid packed index.
++            unsafe { dst.set_packed(i, dst.packed_at(i) + factor * value) };
++        }
++    }
+ }
+ 
+ /// Performs the pointwise accumulation of the numerators on `subdomain`.
+@@ -254,17 +273,10 @@ fn accumulate_numerators_on_subdomain(
+ 
+ fn denominator_inverses(
+     sample_points: &[CirclePoint<SecureField>],
+-    domain: CircleDomain,
++    domain_points: &[CirclePoint<PackedBaseField>],
+ ) -> Vec<Vec<PackedCM31>> {
+-    let domain_points = CircleDomainBitRevIterator::new(domain);
+-
+-    #[cfg(not(feature = "parallel"))]
+-    let (domain_points_iter, sample_points_iter) = (domain_points, sample_points.iter());
+-    #[cfg(feature = "parallel")]
+-    let (domain_points_iter, sample_points_iter) =
+-        (domain_points.par_iter(), sample_points.par_iter());
+-
+-    sample_points_iter
++    sample_points
++        .iter()
+         .map(|sample_point| {
+             // Extract Pr, Pi.
+             let prx = PackedCM31::broadcast(sample_point.x.0);
+@@ -273,8 +285,8 @@ fn denominator_inverses(
+             let piy = PackedCM31::broadcast(sample_point.y.1);
+ 
+             // The iter itself is cloned for each sample batch.
+-            let denominators = domain_points_iter
+-                .clone()
++            let denominators = domain_points
++                .iter()
+                 .map(|points| (prx - points.x) * piy - (pry - points.y) * pix)
+                 .collect::<Vec<_>>();
+             PackedCM31::batch_inverse(&denominators)
+diff --git a/crates/stwo/src/prover/pcs/mod.rs b/crates/stwo/src/prover/pcs/mod.rs
+index 848e5c5..103fb37 100644
+--- a/crates/stwo/src/prover/pcs/mod.rs
++++ b/crates/stwo/src/prover/pcs/mod.rs
+@@ -249,10 +249,9 @@ impl<'a, B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentSchemeProver<'a,
+         print_column_size_histogram::<B, MC>(&columns);
+         // Compute oods quotients for boundary constraints on the sampled points.
+         let polynomials = self.polynomials();
+-        let regrow = |tree: usize, column: usize| polynomials[tree][column].stripe0(self.twiddles).into_owned();
+         let quotients = compute_fri_quotients_with_regrowth(
+             &columns,
+-            Some(&regrow),
++            Some(&polynomials),
+             &samples,
+             channel.draw_secure_felt(),
+             lifting_log_size,
+@@ -939,8 +938,8 @@ mod sourced_port_tests {
+         let columns = TreeVec(vec![full.polynomials.iter().map(|p| &p.evals).collect()]);
+         let stored = crate::prover::pcs::quotient_ops::compute_fri_quotients::<SimdBackend>(&columns, &samples, SecureField::from(7), lifting, &twiddles, blowup);
+         let columns = TreeVec(vec![sourced.polynomials.iter().map(|p| &p.evals).collect()]);
+-        let regrow = |_: usize, column: usize| sourced.polynomials[column].stripe0(&twiddles).into_owned();
+-        let regrown = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&regrow), &samples, SecureField::from(7), lifting, &twiddles, blowup);
++        let polys = TreeVec(vec![sourced.polynomials.iter().collect()]);
++        let regrown = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&polys), &samples, SecureField::from(7), lifting, &twiddles, blowup);
+         assert_eq!(stored.values.to_cpu().columns, regrown.values.to_cpu().columns);
+         let mut config = PcsConfig::default(); config.fri_config.log_blowup_factor = blowup;
+         let mut scheme = CommitmentSchemeProver::<SimdBackend, MC>::with_memory_pool(config, &twiddles, &pool);
+@@ -956,6 +955,43 @@ mod sourced_port_tests {
+         assert_eq!(proof.proof.queried_values.len(), 1);
+     }
+     #[test]
++    fn combined_regrowth_matches_stored_quotients_for_coefficient_and_sourced_columns() {
++        // Regrown columns that keep their coefficients, sourced ones and stored ones, of three
++        // sizes and two points (one shared by every column, one by some), in one quotient.
++        let blowup = 1; let lifting = 13;
++        let twiddles = SimdBackend::precompute_twiddles(CanonicCoset::new(lifting).circle_domain().half_coset);
++        let pool = BaseColumnPool::<SimdBackend>::new();
++        let coefficients: Vec<_> = (0..12).map(|column| {
++            let log = [10, 11, 12][column % 3];
++            CircleCoefficients::<SimdBackend>::new((0..1 << log).map(|row| BaseField::from((row * (31 + column) + 5 * column + 3) % 2147483647)).collect())
++        }).collect();
++        let full = SimdBackend::evaluate_polynomials(coefficients.clone(), blowup, &twiddles, true, &pool);
++        let regrown: Vec<Poly<SimdBackend>> = full.iter().zip(&coefficients).enumerate().map(|(column, (poly, coeffs))| {
++            let mut evals = poly.evals.clone();
++            match column % 4 {
++                0 => Poly::new(Some(coeffs.clone()), evals),
++                1 | 2 => { evals.values = Col::<SimdBackend, BaseField>::zeros(0); Poly::new(Some(coeffs.clone()), evals) }
++                _ => {
++                    let domain = CanonicCoset::new(coeffs.log_size()).circle_domain();
++                    let values = coeffs.evaluate_with_twiddles(domain, &twiddles).values.to_cpu();
++                    Poly::from_source(poly.evals.domain, std::sync::Arc::new(Values { log_size: coeffs.log_size(), values }))
++                }
++            }
++        }).collect();
++        let points = [CirclePoint::<SecureField>::get_point(98765), CirclePoint::<SecureField>::get_point(1234567)];
++        let samples = TreeVec(vec![full.iter().enumerate().map(|(column, poly)| {
++            let points = if column % 2 == 0 { &points[..] } else { &points[..1] };
++            points.iter().map(|&point| PointSample { point, value: poly.eval_at_point(point, None) }).collect()
++        }).collect()]);
++        let columns = TreeVec(vec![full.iter().map(|p| &p.evals).collect()]);
++        let expected = crate::prover::pcs::quotient_ops::compute_fri_quotients::<SimdBackend>(&columns, &samples, SecureField::from(11), lifting, &twiddles, blowup);
++        let columns: TreeVec<Vec<&CircleEvaluation<SimdBackend, BaseField, BitReversedOrder>>> = TreeVec(vec![regrown.iter().map(|p| &p.evals).collect()]);
++        assert_eq!(columns[0].iter().filter(|c| c.values.len() == 0).count(), 9);
++        let polys = TreeVec(vec![regrown.iter().collect()]);
++        let actual = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&polys), &samples, SecureField::from(11), lifting, &twiddles, blowup);
++        assert_eq!(actual.values.to_cpu().columns, expected.values.to_cpu().columns);
++    }
++    #[test]
+     fn source_regrowth_preserves_batch_tree_and_sample_identities_and_rejects_wrong_source() {
+         type MC = Blake2sM31MerkleChannel;
+         let blowup = 2; let lifting = 13;
+@@ -995,8 +1031,8 @@ mod sourced_port_tests {
+         let columns = TreeVec(full.iter().map(|tree| tree.polynomials.iter().map(|p| &p.evals).collect()).collect());
+         let expected = crate::prover::pcs::quotient_ops::compute_fri_quotients::<SimdBackend>(&columns, &samples, SecureField::from(7), lifting, &twiddles, blowup);
+         let columns = TreeVec(sourced.iter().map(|tree| tree.polynomials.iter().map(|p| &p.evals).collect()).collect());
+-        let regrow = |tree: usize, column: usize| sourced[tree].polynomials[column].stripe0(&twiddles).into_owned();
+-        let actual = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&regrow), &samples, SecureField::from(7), lifting, &twiddles, blowup);
++        let polys = TreeVec(sourced.iter().map(|tree| tree.polynomials.iter().collect()).collect());
++        let actual = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&polys), &samples, SecureField::from(7), lifting, &twiddles, blowup);
+         assert_eq!(actual.values.to_cpu().columns, expected.values.to_cpu().columns);
+ 
+         // The source is a caller obligation, not a new trust boundary: substituting a different
+diff --git a/crates/stwo/src/prover/pcs/quotient_ops.rs b/crates/stwo/src/prover/pcs/quotient_ops.rs
+index 0f0ea75..e429e3b 100644
+--- a/crates/stwo/src/prover/pcs/quotient_ops.rs
++++ b/crates/stwo/src/prover/pcs/quotient_ops.rs
+@@ -10,8 +10,12 @@ use crate::core::fields::m31::BaseField;
+ use crate::core::fields::qm31::SecureField;
+ use crate::core::pcs::TreeVec;
+ use crate::core::pcs::quotients::{
+-    ColumnSampleBatch, PointSample, build_samples_with_randomness_and_periodicity,
++    ColumnSampleBatch, PointSample, build_samples_with_randomness_and_periodicity, column_line_coeffs,
+ };
++use crate::core::poly::circle::CanonicCoset;
++use crate::prover::air::component_prover::{Poly, source_column};
++use crate::prover::backend::{Backend, Col};
++use crate::prover::poly::circle::CircleCoefficients;
+ use crate::prover::AccumulationOps;
+ use crate::prover::backend::{Column, ColumnOps};
+ use crate::prover::poly::BitReversedOrder;
+@@ -52,6 +56,13 @@ pub trait QuotientOps: PolyOps {
+         log_blowup_factor: u32,
+         twiddles: &TwiddleTree<Self>,
+     ) -> SecureEvaluation<Self, BitReversedOrder>;
++
++    /// `dst += factor * src`, row by row (`src` and `dst` have the same length).
++    fn accumulate_scaled(
++        dst: &mut SecureColumnByCoords<Self>,
++        src: &Col<Self, BaseField>,
++        factor: SecureField,
++    );
+ }
+ 
+ /// Helper struct that keeps track of the accumulation of the numerators involved in the FRI
+@@ -85,7 +96,7 @@ pub struct AccumulatedNumerators<B: ColumnOps<BaseField>> {
+     pub first_linear_term_acc: SecureField,
+ }
+ 
+-pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
++pub fn compute_fri_quotients<B: Backend>(
+     columns: &TreeVec<Vec<&CircleEvaluation<B, BaseField, BitReversedOrder>>>,
+     samples: &TreeVec<Vec<Vec<PointSample>>>,
+     random_coeff: SecureField,
+@@ -105,21 +116,17 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+ }
+ 
+ /// Regrows the stripe-0 evaluation of the column `(tree, column)` that stores no values.
+-pub type RegrowStripe<'a, B> =
+-    dyn Fn(usize, usize) -> CircleEvaluation<B, BaseField, BitReversedOrder> + Sync + 'a;
+-
+-/// The most stored-nothing columns whose stripe 0 is regrown at once in
+-/// [`compute_fri_quotients_with_regrowth`]: the regrown stripes are its only extra memory.
+-const REGROWN_BATCH: usize = 16;
+-
+ /// [`compute_fri_quotients`] where some columns store no values (an empty evaluation on their
+-/// domain) and `regrow` reproduces their stripe 0. Their numerators are accumulated
+-/// [`REGROWN_BATCH`] columns at a time and added to those of the stored columns of the same size
+-/// and sample point. Field addition is exact, so the accumulations, and the quotients, are those
+-/// of a single pass over every column.
+-pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
++/// domain) and `regrow` holds their polynomials (`regrow[tree][column]`), which keep their
++/// coefficients or a source of their trace values. For each size and sample point, the
++/// numerator `Σ (cᵢ fᵢ - bᵢ)` of those columns is linear in the columns, and so are
++/// interpolation and evaluation: `Σ cᵢ fᵢ` is combined on the trace domain (sources) or in
++/// coefficients, and only its four coordinates are evaluated on stripe 0, instead of every
++/// column. Field arithmetic is exact, so the accumulations, and the quotients, are those of a
++/// single pass over every column's stripe 0.
++pub fn compute_fri_quotients_with_regrowth<B: Backend>(
+     columns: &TreeVec<Vec<&CircleEvaluation<B, BaseField, BitReversedOrder>>>,
+-    regrow: Option<&RegrowStripe<'_, B>>,
++    regrow: Option<&TreeVec<Vec<&Poly<B>>>>,
+     samples: &TreeVec<Vec<Vec<PointSample>>>,
+     random_coeff: SecureField,
+     lifting_log_size: u32,
+@@ -195,28 +202,13 @@ pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
+         .collect();
+     accumulated_numerators_vec.extend(accumulations.into_iter().flatten());
+ 
+-    // The columns that store no values, a bounded batch of regrown stripes at a time.
++    // The columns that store no values: one combination per size and sample point.
+     for group in regrown_groups {
+         let regrow = regrow.unwrap();
+-        for batch in group.chunks(REGROWN_BATCH) {
+-            #[cfg(feature = "parallel")]
+-            let stripes: Vec<_> =
+-                batch.par_iter().map(|&(_, &(tree, column))| regrow(tree, column)).collect();
+-            #[cfg(not(feature = "parallel"))]
+-            let stripes: Vec<_> =
+-                batch.iter().map(|&(_, &(tree, column))| regrow(tree, column)).collect();
+-            let stripes = stripes.iter().collect_vec();
+-            let samples_with_randomness = batch.iter().map(|((_, s), _)| *s).collect_vec();
+-            let sample_batches = ColumnSampleBatch::new_vec(&samples_with_randomness);
+-            #[cfg(feature = "parallel")]
+-            let accumulations: Vec<Vec<AccumulatedNumerators<B>>> =
+-                sample_batches.par_iter().map(|batch| accumulate_batch(&stripes, batch)).collect();
+-            #[cfg(not(feature = "parallel"))]
+-            let accumulations: Vec<Vec<AccumulatedNumerators<B>>> =
+-                sample_batches.iter().map(|batch| accumulate_batch(&stripes, batch)).collect();
+-            for accumulation in accumulations.into_iter().flatten() {
+-                add_accumulation(&mut accumulated_numerators_vec, accumulation);
+-            }
++        let polys = group.iter().map(|&(_, &(tree, column))| regrow[tree][column]).collect_vec();
++        let samples_with_randomness = group.iter().map(|((_, s), _)| *s).collect_vec();
++        for batch in ColumnSampleBatch::new_vec(&samples_with_randomness) {
++            add_accumulation(&mut accumulated_numerators_vec, combine_regrown(&polys, &batch, twiddles));
+         }
+     }
+ 
+@@ -258,6 +250,71 @@ pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
+     )
+ }
+ 
++/// The numerator accumulation of `batch` over `polys` (of one size, storing no values) on their
++/// stripe 0: `Σ cᵢ fᵢ` is combined from the sources' trace values and from the kept
++/// coefficients, its four coordinates are evaluated on stripe 0 once, and `Σ bᵢ` is subtracted
++/// through the constant coefficient (the first circle basis polynomial is 1).
++fn combine_regrown<B: Backend>(
++    polys: &[&Poly<B>],
++    batch: &ColumnSampleBatch,
++    twiddles: &TwiddleTree<B>,
++) -> AccumulatedNumerators<B> {
++    let domain = polys[batch.cols_vals_randpows[0].column_index].evals.domain;
++    let trace_log_size = |poly: &Poly<B>| match (&poly.source, &poly.coeffs) {
++        (Some(source), _) if poly.is_sourced() => source.log_size(),
++        (_, Some(coeffs)) => coeffs.log_size(),
++        _ => poly.evals.values.len().ilog2(),
++    };
++    let log_size = trace_log_size(polys[batch.cols_vals_randpows[0].column_index]);
++    let line_coeffs = column_line_coeffs(std::slice::from_ref(batch)).pop().unwrap();
++    let mut traces: Option<SecureColumnByCoords<B>> = None;
++    let mut coeffs: Option<SecureColumnByCoords<B>> = None;
++    for (data, &(_, _, c)) in zip(&batch.cols_vals_randpows, &line_coeffs) {
++        let poly = polys[data.column_index];
++        assert_eq!(trace_log_size(poly), log_size);
++        if poly.is_sourced() {
++            let values = source_column::<B>(poly.source.as_deref().unwrap());
++            let acc = traces.get_or_insert_with(|| SecureColumnByCoords::zeros(1 << log_size));
++            B::accumulate_scaled(acc, &values, c);
++        } else {
++            let regrown;
++            let poly_coeffs = match &poly.coeffs {
++                Some(poly_coeffs) => poly_coeffs,
++                None => { regrown = poly.regrown_coefficients(); &regrown }
++            };
++            let acc = coeffs.get_or_insert_with(|| SecureColumnByCoords::zeros(1 << log_size));
++            B::accumulate_scaled(acc, &poly_coeffs.coeffs, c);
++        }
++    }
++    let trace_domain = CanonicCoset::new(log_size).circle_domain();
++    let mut combined = coeffs.unwrap_or_else(|| SecureColumnByCoords::zeros(1 << log_size));
++    if let Some(traces) = traces {
++        let trace_twiddles = B::subdomain_twiddles(trace_domain.half_coset);
++        let interpolated = SecureColumnByCoords {
++            columns: traces.columns.map(|values| {
++                CircleEvaluation::<B, BaseField, BitReversedOrder>::new(trace_domain, values)
++                    .interpolate_with_twiddles(&trace_twiddles)
++                    .coeffs
++            }),
++        };
++        B::accumulate(&mut combined, &interpolated);
++    }
++    let b_sum: SecureField = line_coeffs.iter().map(|(_, b, _)| b).sum();
++    combined.set(0, combined.at(0) - b_sum);
++    let partial_numerators_acc = SecureColumnByCoords {
++        columns: combined.columns.map(|coord| {
++            let mut values = Col::<B, BaseField>::zeros(1 << log_size);
++            B::evaluate_stripe_into(&CircleCoefficients::new(coord), domain, twiddles, 0, &mut values);
++            values
++        }),
++    };
++    AccumulatedNumerators {
++        sample_point: batch.point,
++        partial_numerators_acc,
++        first_linear_term_acc: line_coeffs.iter().map(|(a, ..)| a).sum(),
++    }
++}
++
+ /// Adds `accumulation` to the accumulation in `accumulations` of the same sample point and size,
+ /// or appends it, keeping the vector sorted by size.
+ fn add_accumulation<B: AccumulationOps>(

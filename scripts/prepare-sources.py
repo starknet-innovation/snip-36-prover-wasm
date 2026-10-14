@@ -4,6 +4,7 @@ import json,subprocess,sys,tarfile,hashlib,shutil,argparse
 from executor_manifests import check_manifests, patch_fingerprint
 from prover_sources import fingerprint, check_receipt, write_receipt, require_pristine, PROVER_PROFILES
 root=Path(__file__).resolve().parents[1];build=root/'build';pins=json.loads((root/'pins.json').read_text())
+ROUND_TWO_LAYERS=['quotient-combine','striped-fri-layers','exact-pool','stripe-passes']
 def run(*args):subprocess.run(args,check=True)
 def clone(name,url,rev):
  p=build/name
@@ -42,6 +43,9 @@ if mode in PROVER_PROFILES:
   for layer in ['sourced-stwo','sourced-circuits','sourced-utils']:patches[layer]=root/'patches/prover'/f'{layer}.patch'
   patches['circuit-lock']=root/'patches/prover/circuits.Cargo.lock'
   patches['sparse-merkle']=root/'patches/prover/sparse-merkle.patch'
+  # Round-two memory layers; the tradeoff and kernel profiles keep their validated sources.
+  if mode=='prover-memory':
+   for layer in ROUND_TWO_LAYERS:patches[layer]=root/'patches/prover'/f'{layer}.patch'
   if mode=='prover-tradeoffs':patches['tradeoffs']=root/'patches/prover/tradeoffs.patch'
   if mode=='prover-kernels':patches['kernels']=root/'patches/prover/kernels.patch'
  marker=build/'proving-utils/.wasm-patches-complete';patch_digest=fingerprint(patches)
@@ -57,6 +61,8 @@ if mode in PROVER_PROFILES:
   for layer,name in [('sourced-stwo','stwo'),('sourced-circuits','stwo-circuits'),('sourced-utils','proving-utils')]:apply(build/name,patches[layer])
   (build/'stwo-circuits/Cargo.lock').write_bytes(patches['circuit-lock'].read_bytes())
   apply(build/'stwo',patches['sparse-merkle'])
+  for layer in ROUND_TWO_LAYERS:
+   if layer in patches:apply(build/'stwo',patches[layer])
   if 'tradeoffs' in patches:apply(build/'stwo',patches['tradeoffs'])
   if 'kernels' in patches:apply(build/'stwo',patches['kernels'])
   (build/'proving-utils/Cargo.lock').write_bytes((root/'patches/prover/candidate.Cargo.lock').read_bytes())

@@ -1,0 +1,44 @@
+{
+ "module_sha256": "e7f78a8ff98f2c5dae2e40e50e0c87a5fe7181c7b87a5683e10529b1187cbe21",
+ "sources": "fresh prover-memory preparation with quotient-combine, striped-fri-layers, exact-pool, stripe-passes",
+ "command": "node scripts/offline-proof.mjs prove artifacts/port/corpus-01 build/wasm/<sha>.wasm <sha> build/target-native/release/examples/spike_native artifacts/port/round2-proof-01",
+ "scope": "single browser run per workload; not a paired campaign",
+ "workloads": {
+  "balance": {
+   "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+   "matches_pr08_proof": true,
+   "native_verified": true,
+   "proof_tamper_rejected": true,
+   "statement_tamper_rejected": true,
+   "rust_requested_peak_bytes": 1736572499,
+   "wasm_linear_memory_bytes": 2252210176,
+   "prove_ms": 76281
+  },
+  "coinflip-heads": {
+   "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+   "matches_pr08_proof": true,
+   "native_verified": true,
+   "proof_tamper_rejected": true,
+   "statement_tamper_rejected": true,
+   "rust_requested_peak_bytes": 1736213430,
+   "wasm_linear_memory_bytes": 2216755200,
+   "prove_ms": 78482
+  },
+  "coinflip-tails": {
+   "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+   "matches_pr08_proof": true,
+   "native_verified": true,
+   "proof_tamper_rejected": true,
+   "statement_tamper_rejected": true,
+   "rust_requested_peak_bytes": 1736213098,
+   "wasm_linear_memory_bytes": 2250637312,
+   "prove_ms": 87844
+  }
+ },
+ "tests": {
+  "stwo_lib": "263 passed (prover and prover,parallel)",
+  "npm_test": "72 passed",
+  "python_prover": "14 passed",
+  "executor_manifests": "OK"
+ }
+}
