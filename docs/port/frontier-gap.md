@@ -67,7 +67,7 @@ peak; both are needed to reach about 1.24 GB.
    from stwo-air-infra overwrites the edits. The fork's contestants edited them anyway.
    The compliant alternative is the generic read-back (an `EvalAtRow` over committed
    columns that recomputes the tuples; no generated file edited), which is a larger
-   build. Decision outstanding.
+   build. Declined: no hand edits of generated files; the read-back is the route.
 
 2. **Packed circuit base-tree sources** (frontier `M11_PACK=2`, `M11_PACK_LEGS=1`;
    `PackedTrace` in `crates/stwo/src/prover/air/component_prover.rs`, `pack_column` in

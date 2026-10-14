@@ -611,8 +611,8 @@
   ]
  },
  {
-  "mechanism": "round 2 (planned): Cairo lookup tuple narrowing",
-  "status": "decision outstanding: about -0.44 GB of Cairo residency on balance (frontier-gap.md); requires editing AIR-generated stwo-cairo witness files, which stwo-cairo CLAUDE.md forbids; the compliant alternative is the Cairo lookup data read-back",
+  "mechanism": "round 2 (declined): Cairo lookup tuple narrowing",
+  "status": "declined 2026-10-14: no hand edits of AIR-generated stwo-cairo files; the gain (about -0.44 GB, frontier-gap.md) is pursued through the Cairo lookup data read-back instead",
   "source_references": [
    {
     "kind": "commit",
