@@ -46,7 +46,7 @@ All five layers give the same proof bytes (balance proof SHA-256 prefix
 alternating runs against a reference built from the PR-08 sources: total 66.17 →
 65.29 s; circuit FRI quotients 1.08 → 0.83 s; no phase measurably slower.
 
-The native peak is now the Cairo base commit (1.569 GB), then the Cairo interaction
+The native peak is now the Cairo base commit (1.569 GB; the gap to the fork frontier, 1.238 GB on the same workload, is analysed in [frontier-gap.md](frontier-gap.md)), then the Cairo interaction
 write (1.513 GB), circuit composition (1.494 GB) and circuit base commit (1.483 GB).
 The Cairo sites hold lookup data from the AIR-generated witness writers, which
 stwo-cairo forbids editing by hand; the generic read-back recorded in the ledger is

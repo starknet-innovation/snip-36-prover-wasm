@@ -556,7 +556,7 @@
  },
  {
   "mechanism": "round 2 (planned): Cairo lookup data read-back",
-  "status": "planned; Cairo base commit (1.569 GB, current native peak) and interaction write (1.513 GB) are the next sites; 0.95 GB of large blocks live at the base commit come from Write base trace. 60 of 68 Cairo witness component files are AIR-generated, which stwo-cairo CLAUDE.md forbids editing by hand, so only the generic read-back (an EvalAtRow over committed columns, no generated file edited) is admissible",
+  "status": "planned; Cairo base commit (1.569 GB, current native peak) and interaction write (1.513 GB) are the next sites; 0.95 GB of large blocks live at the base commit come from Write base trace. 60 of 68 Cairo witness component files are AIR-generated, which stwo-cairo CLAUDE.md forbids editing by hand, so only the generic read-back (an EvalAtRow over committed columns, no generated file edited) is admissible; it is the compliant route to the tuple-narrowing gain measured in frontier-gap.md",
   "source_references": [
    {
     "kind": "bulletin",
@@ -609,5 +609,56 @@
     "credit": "fkiene rgr1_36fb1aa0"
    }
   ]
+ },
+ {
+  "mechanism": "round 2 (planned): Cairo lookup tuple narrowing",
+  "status": "decision outstanding: about -0.44 GB of Cairo residency on balance (frontier-gap.md); requires editing AIR-generated stwo-cairo witness files, which stwo-cairo CLAUDE.md forbids; the compliant alternative is the Cairo lookup data read-back",
+  "source_references": [
+   {
+    "kind": "commit",
+    "commit": "66670df77c50e387f67204c5e0a25d2dfd8652d4",
+    "files": [
+     "crates/prover/src/witness/prelude.rs",
+     "crates/prover/src/witness/components/*.rs"
+    ],
+    "credit": "record f2498dc7 (66670df), ryun1 per the commit message; narrow_xor4/narrow_big"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (planned): packed circuit base-tree sources",
+  "status": "planned next: about -0.25 GB of circuit tree residency on balance (frontier-gap.md); prover-side stwo only; needs regrowth-avoiding readers to hold time",
+  "source_references": [
+   {
+    "kind": "commit",
+    "commit": "66670df77c50e387f67204c5e0a25d2dfd8652d4",
+    "files": [
+     "crates/stwo/src/prover/air/component_prover.rs",
+     "crates/stwo/src/prover/pcs/mod.rs"
+    ],
+    "credit": "M11_PACK=2 / PackedTrace in record f2498dc7 (66670df)"
+   },
+   {
+    "kind": "bulletin",
+    "where": "bt1_60a1a3a2078f4458798a1cbb (nadai2010)",
+    "credit": "trace-domain quotient combine, barycentric weights and decommit plans for packed columns"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (planned): lazy circuit preprocessing",
+  "status": "planned: about -0.06 GB held through the proof (frontier-gap.md)",
+  "source_references": [
+   {
+    "kind": "bulletin",
+    "where": "bt1_60a1a3a2078f4458798a1cbb",
+    "credit": "realadii rgr1_e6eff4e6, tarekeleter rgr1_d1944c0a (cited by nadai2010)"
+   }
+  ]
+ },
+ {
+  "mechanism": "round 2 (planned): WASM linear-memory fragmentation",
+  "status": "to investigate: linear memory about 0.65 GB above the requested peak and not lowered by the last 0.17 GB cut; no frontier equivalent (native returns pages to the system)",
+  "source_references": []
  }
 ]
