@@ -1,0 +1,941 @@
+diff --git a/crates/stwo/src/prover/backend/simd/blake2s.rs b/crates/stwo/src/prover/backend/simd/blake2s.rs
+--- a/crates/stwo/src/prover/backend/simd/blake2s.rs
++++ b/crates/stwo/src/prover/backend/simd/blake2s.rs
+@@ -3,19 +3,19 @@
+ 
+ use std::array;
+ use std::mem::transmute;
+-use std::simd::u32x16;
++use std::simd::{simd_swizzle, u32x8, u32x16};
+ 
+ use bytemuck::cast_slice;
+ use itertools::Itertools;
+ #[cfg(feature = "parallel")]
+ use rayon::prelude::*;
+ 
++use super::SimdBackend;
+ use super::m31::LOG_N_LANES;
+-use super::SimdBackend;
+ use crate::core::fields::m31::BaseField;
+-use crate::core::vcs::blake2_hash::{reduce_to_m31, Blake2sHash};
++use crate::core::vcs::MerkleHasher;
++use crate::core::vcs::blake2_hash::{Blake2sHash, reduce_to_m31};
+ use crate::core::vcs::blake2_merkle::{Blake2sM31MerkleHasher, Blake2sMerkleHasher};
+-use crate::core::vcs::MerkleHasher;
+ use crate::parallel_iter;
+ use crate::prover::backend::{Col, Column, ColumnOps};
+ use crate::prover::vcs::ops::MerkleOps;
+@@ -91,10 +91,9 @@
+             // No columns in the layer.
+             if columns.is_empty() {
+                 let (prev_chunk_u32s, t) = match prev_layer {
+-                    Some(prev_layer) => (
+-                        cast_slice::<_, u32>(&prev_layer[(i << 5)..((i + 1) << 5)]),
+-                        64,
+-                    ),
++                    Some(prev_layer) => {
++                        (cast_slice::<_, u32>(&prev_layer[(i << 5)..((i + 1) << 5)]), 64)
++                    }
+                     None => ([0; 16].as_slice(), 0),
+                 };
+                 let msgs: [u32x16; 16] = array::from_fn(|j| {
+@@ -175,14 +174,7 @@
+ }
+ 
+ pub fn compress_finalize(state: [u32x16; 8], last_block: [u32x16; 16], t: u64) -> [u32x16; 8] {
+-    compress16(
+-        state,
+-        last_block,
+-        u32x16::splat(t as u32),
+-        ZEROS,
+-        u32x16::splat(0xFFFFFFFF),
+-        ZEROS,
+-    )
++    compress16(state, last_block, u32x16::splat(t as u32), ZEROS, u32x16::splat(0xFFFFFFFF), ZEROS)
+ }
+ 
+ /// Compresses and finalizes 16 instances of BLAKE2s.
+@@ -340,9 +332,7 @@
+         let (d5, d13) = data[10].deinterleave(data[11]);
+         let (d6, d14) = data[12].deinterleave(data[13]);
+         let (d7, d15) = data[14].deinterleave(data[15]);
+-        data = [
+-            d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15,
+-        ];
++        data = [d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15];
+     }
+ 
+     data
+@@ -365,6 +355,104 @@
+     states
+ }
+ 
++/// Applies [`u32::rotate_right(N)`] to each element of the 8-lane vector.
++#[inline(always)]
++fn rotate8<const N: u32>(x: u32x8) -> u32x8 {
++    (x >> N) | (x << (u32::BITS - N))
++}
++
++/// One BLAKE2s `G` mixing step on an 8-lane slice of the state.
++#[inline(always)]
++fn g8(v: &mut [u32x8; 16], a: usize, b: usize, c: usize, d: usize, x: u32x8, y: u32x8) {
++    v[a] = v[a] + v[b] + x;
++    v[d] = rotate8::<16>(v[d] ^ v[a]);
++    v[c] += v[d];
++    v[b] = rotate8::<12>(v[b] ^ v[c]);
++    v[a] = v[a] + v[b] + y;
++    v[d] = rotate8::<8>(v[d] ^ v[a]);
++    v[c] += v[d];
++    v[b] = rotate8::<7>(v[b] ^ v[c]);
++}
++
++/// One BLAKE2s round `R` on an 8-lane slice of the state.
++#[inline(always)]
++fn round8<const R: usize>(v: &mut [u32x8; 16], m: &[u32x8; 16]) {
++    let s = &SIGMA[R];
++    g8(v, 0, 4, 8, 12, m[s[0] as usize], m[s[1] as usize]);
++    g8(v, 1, 5, 9, 13, m[s[2] as usize], m[s[3] as usize]);
++    g8(v, 2, 6, 10, 14, m[s[4] as usize], m[s[5] as usize]);
++    g8(v, 3, 7, 11, 15, m[s[6] as usize], m[s[7] as usize]);
++    g8(v, 0, 5, 10, 15, m[s[8] as usize], m[s[9] as usize]);
++    g8(v, 1, 6, 11, 12, m[s[10] as usize], m[s[11] as usize]);
++    g8(v, 2, 7, 8, 13, m[s[12] as usize], m[s[13] as usize]);
++    g8(v, 3, 4, 9, 14, m[s[14] as usize], m[s[15] as usize]);
++}
++
++/// Compresses the low (`HI == false`) or high (`HI == true`) 8 of the 16 BLAKE2s instances.
++///
++/// A full 16-word state of 8-lane vectors exactly fills the 16 AVX2 vector registers, whereas the
++/// 16-lane state needs twice as many and spills on every step. Running the two halves one after
++/// the other keeps each of them in registers; the result is bit-identical.
++#[inline(never)]
++fn compress16_8lane<const HI: bool>(
++    h_vecs: &[u32x16; 8],
++    msg_vecs: &[u32x16; 16],
++    count_low: u32x16,
++    count_high: u32x16,
++    lastblock: u32x16,
++    lastnode: u32x16,
++) -> [u32x8; 8] {
++    let pick = |x: u32x16| -> u32x8 {
++        if HI {
++            simd_swizzle!(x, [8, 9, 10, 11, 12, 13, 14, 15])
++        } else {
++            simd_swizzle!(x, [0, 1, 2, 3, 4, 5, 6, 7])
++        }
++    };
++    let h: [u32x8; 8] = std::array::from_fn(|i| pick(h_vecs[i]));
++    let m: [u32x8; 16] = std::array::from_fn(|i| pick(msg_vecs[i]));
++    let mut v = [
++        h[0],
++        h[1],
++        h[2],
++        h[3],
++        h[4],
++        h[5],
++        h[6],
++        h[7],
++        u32x8::splat(IV[0]),
++        u32x8::splat(IV[1]),
++        u32x8::splat(IV[2]),
++        u32x8::splat(IV[3]),
++        u32x8::splat(IV[4]) ^ pick(count_low),
++        u32x8::splat(IV[5]) ^ pick(count_high),
++        u32x8::splat(IV[6]) ^ pick(lastblock),
++        u32x8::splat(IV[7]) ^ pick(lastnode),
++    ];
++
++    round8::<0>(&mut v, &m);
++    round8::<1>(&mut v, &m);
++    round8::<2>(&mut v, &m);
++    round8::<3>(&mut v, &m);
++    round8::<4>(&mut v, &m);
++    round8::<5>(&mut v, &m);
++    round8::<6>(&mut v, &m);
++    round8::<7>(&mut v, &m);
++    round8::<8>(&mut v, &m);
++    round8::<9>(&mut v, &m);
++
++    [
++        h[0] ^ v[0] ^ v[8],
++        h[1] ^ v[1] ^ v[9],
++        h[2] ^ v[2] ^ v[10],
++        h[3] ^ v[3] ^ v[11],
++        h[4] ^ v[4] ^ v[12],
++        h[5] ^ v[5] ^ v[13],
++        h[6] ^ v[6] ^ v[14],
++        h[7] ^ v[7] ^ v[15],
++    ]
++}
++
+ /// Compresses 16 blake2s instances.
+ pub fn compress16(
+     h_vecs: [u32x16; 8],
+@@ -374,46 +462,15 @@
+     lastblock: u32x16,
+     lastnode: u32x16,
+ ) -> [u32x16; 8] {
+-    let mut v = [
+-        h_vecs[0],
+-        h_vecs[1],
+-        h_vecs[2],
+-        h_vecs[3],
+-        h_vecs[4],
+-        h_vecs[5],
+-        h_vecs[6],
+-        h_vecs[7],
+-        u32x16::splat(IV[0]),
+-        u32x16::splat(IV[1]),
+-        u32x16::splat(IV[2]),
+-        u32x16::splat(IV[3]),
+-        u32x16::splat(IV[4]) ^ count_low,
+-        u32x16::splat(IV[5]) ^ count_high,
+-        u32x16::splat(IV[6]) ^ lastblock,
+-        u32x16::splat(IV[7]) ^ lastnode,
+-    ];
+-
+-    round(&mut v, msg_vecs, 0);
+-    round(&mut v, msg_vecs, 1);
+-    round(&mut v, msg_vecs, 2);
+-    round(&mut v, msg_vecs, 3);
+-    round(&mut v, msg_vecs, 4);
+-    round(&mut v, msg_vecs, 5);
+-    round(&mut v, msg_vecs, 6);
+-    round(&mut v, msg_vecs, 7);
+-    round(&mut v, msg_vecs, 8);
+-    round(&mut v, msg_vecs, 9);
+-
+-    [
+-        h_vecs[0] ^ v[0] ^ v[8],
+-        h_vecs[1] ^ v[1] ^ v[9],
+-        h_vecs[2] ^ v[2] ^ v[10],
+-        h_vecs[3] ^ v[3] ^ v[11],
+-        h_vecs[4] ^ v[4] ^ v[12],
+-        h_vecs[5] ^ v[5] ^ v[13],
+-        h_vecs[6] ^ v[6] ^ v[14],
+-        h_vecs[7] ^ v[7] ^ v[15],
+-    ]
++    let lo = compress16_8lane::<false>(
++        &h_vecs, &msg_vecs, count_low, count_high, lastblock, lastnode,
++    );
++    let hi = compress16_8lane::<true>(
++        &h_vecs, &msg_vecs, count_low, count_high, lastblock, lastnode,
++    );
++    std::array::from_fn(|i| {
++        simd_swizzle!(lo[i], hi[i], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
++    })
+ }
+ 
+ #[cfg(test)]
+@@ -422,7 +479,7 @@
+     use std::mem::transmute;
+     use std::simd::u32x16;
+ 
+-    use aligned::{Aligned, A64};
++    use aligned::{A64, Aligned};
+     use bytemuck::cast_slice;
+     use rand::rngs::SmallRng;
+     use rand::{Rng, SeedableRng};
+@@ -442,19 +499,13 @@
+         let lastblock = 3;
+         let lastnode = 4;
+         let res_unvectorized = array::from_fn(|i| {
+-            compress(
+-                states[i], msgs[i], count_low, count_high, lastblock, lastnode,
+-            )
++            compress(states[i], msgs[i], count_low, count_high, lastblock, lastnode)
+         });
+ 
+         let res_vectorized: [[u32; 8]; 16] = unsafe {
+             transmute(untranspose_states(compress16(
+-                transpose_states(transmute::<Aligned<A64, [[u32; 8]; 16]>, [u32x16; 8]>(
+-                    states,
+-                )),
+-                transpose_msgs(transmute::<Aligned<A64, [[u32; 16]; 16]>, [u32x16; 16]>(
+-                    msgs,
+-                )),
++                transpose_states(transmute::<Aligned<A64, [[u32; 8]; 16]>, [u32x16; 8]>(states)),
++                transpose_msgs(transmute::<Aligned<A64, [[u32; 16]; 16]>, [u32x16; 16]>(msgs)),
+                 u32x16::splat(count_low),
+                 u32x16::splat(count_high),
+                 u32x16::splat(lastblock),
+@@ -478,7 +529,7 @@
+     #[test]
+     fn hash_16_works() {
+         let mut rng = SmallRng::seed_from_u64(1055);
+-        let msgs: [[u32; 16]; 16] = array::from_fn(|_| rng.gen::<[u32; 16]>());
++        let msgs: [[u32; 16]; 16] = array::from_fn(|_| rng.r#gen::<[u32; 16]>());
+         let expected: [[u8; 32]; 16] = array::from_fn(|i| {
+             let state = msgs[i];
+             let mut hasher = Blake2sHasher::new();
+diff --git a/crates/stwo/src/prover/backend/simd/grind.rs b/crates/stwo/src/prover/backend/simd/grind.rs
+--- a/crates/stwo/src/prover/backend/simd/grind.rs
++++ b/crates/stwo/src/prover/backend/simd/grind.rs
+@@ -1,19 +1,18 @@
+-use std::simd::cmp::SimdPartialOrd;
+-use std::simd::num::SimdUint;
+-use std::simd::u32x16;
++use std::simd::cmp::{SimdOrd, SimdPartialEq};
++use std::simd::{simd_swizzle, u32x8, u32x16};
+ 
+ use bytemuck::cast_slice;
+ #[cfg(feature = "parallel")]
+ use rayon::prelude::*;
+-use tracing::{span, Level};
++use tracing::{Level, span};
+ 
+ use super::SimdBackend;
+ use crate::core::channel::Blake2sChannelGeneric;
+ use crate::core::fields::m31::P;
+ use crate::core::proof_of_work::GrindOps;
+ use crate::core::vcs::blake2_hash::Blake2sHasherGeneric;
+-use crate::prover::backend::simd::blake2s::hash_16;
+-use crate::prover::backend::simd::m31::{PackedM31, N_LANES};
++use crate::prover::backend::simd::blake2s::{IV, SIGMA};
++use crate::prover::backend::simd::m31::N_LANES;
+ 
+ // Note: GRIND_LOW_BITS is a cap on how much extra time we need to wait for all threads to finish.
+ // It must be <= 30 if we want to guarantee that the lowest 32 bits of the nonce are < 2^31 - 1.
+@@ -58,34 +57,183 @@
+     }
+ }
+ 
++/// Rotates each 32-bit lane right by `N`.
++#[inline(always)]
++fn rotr8<const N: u32>(x: u32x8) -> u32x8 {
++    (x >> N) | (x << (u32::BITS - N))
++}
++
++/// Adds message word `idx` of the grind block `digest (8 words) || nonce low || nonce high ||
++/// zeros (6 words)` to `a`. The zero padding words are never materialized.
++#[inline(always)]
++fn add_grind_msg(a: u32x8, m: &[u32x8; 10], idx: u8) -> u32x8 {
++    if (idx as usize) < m.len() { a + m[idx as usize] } else { a }
++}
++
++/// One BLAKE2s `G` mixing step on 8 nonce lanes.
++#[inline(always)]
++fn g8(v: &mut [u32x8; 16], [a, b, c, d]: [usize; 4], m: &[u32x8; 10], x: u8, y: u8) {
++    v[a] = add_grind_msg(v[a] + v[b], m, x);
++    v[d] = rotr8::<16>(v[d] ^ v[a]);
++    v[c] += v[d];
++    v[b] = rotr8::<12>(v[b] ^ v[c]);
++    v[a] = add_grind_msg(v[a] + v[b], m, y);
++    v[d] = rotr8::<8>(v[d] ^ v[a]);
++    v[c] += v[d];
++    v[b] = rotr8::<7>(v[b] ^ v[c]);
++}
++
++/// One BLAKE2s round on 8 nonce lanes.
++#[inline(always)]
++fn round8<const R: usize>(v: &mut [u32x8; 16], m: &[u32x8; 10]) {
++    let s = &SIGMA[R];
++    g8(v, [0, 4, 8, 12], m, s[0], s[1]);
++    g8(v, [1, 5, 9, 13], m, s[2], s[3]);
++    g8(v, [2, 6, 10, 14], m, s[4], s[5]);
++    g8(v, [3, 7, 11, 15], m, s[6], s[7]);
++    g8(v, [0, 5, 10, 15], m, s[8], s[9]);
++    g8(v, [1, 6, 11, 12], m, s[10], s[11]);
++    g8(v, [2, 7, 8, 13], m, s[12], s[13]);
++    g8(v, [3, 4, 9, 14], m, s[14], s[15]);
++}
++
++/// Scalar `G`, used for the part of the compression that does not depend on the nonce.
++fn g_scalar(v: &mut [u32; 16], [a, b, c, d]: [usize; 4], x: u32, y: u32) {
++    v[a] = v[a].wrapping_add(v[b]).wrapping_add(x);
++    v[d] = (v[d] ^ v[a]).rotate_right(16);
++    v[c] = v[c].wrapping_add(v[d]);
++    v[b] = (v[b] ^ v[c]).rotate_right(12);
++    v[a] = v[a].wrapping_add(v[b]).wrapping_add(y);
++    v[d] = (v[d] ^ v[a]).rotate_right(8);
++    v[c] = v[c].wrapping_add(v[d]);
++    v[b] = (v[b] ^ v[c]).rotate_right(7);
++}
++
++/// The BLAKE2s state after every step of round 0 that does not depend on the nonce.
++///
++/// The grind block holds the digest in words 0..8, the nonce in words 8 and 9 and zeros in words 10
++/// to 15. In round 0 the message words are used in order, so of the eight `G` steps only
++/// `G(0, 5, 10, 15)` (words 8 and 9) varies with the nonce. The other seven are computed once.
++struct GrindPrefix {
++    v: [u32; 16],
++    digest: [u32; 8],
++}
++
++impl GrindPrefix {
++    /// `n_bytes` is the number of hashed bytes: the digest and the 64 bit nonce.
++    fn new(digest: &[u32], n_bytes: u32) -> Self {
++        let digest: [u32; 8] = std::array::from_fn(|i| digest[i]);
++        // Initial state of the hasher (parameter block: |Key| = 0x00, |HashLength| = 0x20).
++        let h0 = IV[0] ^ 0x01010020;
++        let mut v = [
++            h0,
++            IV[1],
++            IV[2],
++            IV[3],
++            IV[4],
++            IV[5],
++            IV[6],
++            IV[7],
++            IV[0],
++            IV[1],
++            IV[2],
++            IV[3],
++            IV[4] ^ n_bytes,
++            IV[5],
++            // Last block flag.
++            IV[6] ^ 0xFFFF_FFFF,
++            IV[7],
++        ];
++        g_scalar(&mut v, [0, 4, 8, 12], digest[0], digest[1]);
++        g_scalar(&mut v, [1, 5, 9, 13], digest[2], digest[3]);
++        g_scalar(&mut v, [2, 6, 10, 14], digest[4], digest[5]);
++        g_scalar(&mut v, [3, 7, 11, 15], digest[6], digest[7]);
++        g_scalar(&mut v, [1, 6, 11, 12], 0, 0);
++        g_scalar(&mut v, [2, 7, 8, 13], 0, 0);
++        g_scalar(&mut v, [3, 4, 9, 14], 0, 0);
++        Self { v, digest }
++    }
++
++    /// Returns the first 32 bits of the hash of `digest || nonce` for 8 nonces that share the high
++    /// word `high` and have the given low words.
++    #[inline(always)]
++    fn hash_word0(&self, high: u32x8, low: u32x8) -> u32x8 {
++        let splat = u32x8::splat;
++        let m: [u32x8; 10] = std::array::from_fn(|i| match i {
++            0..=7 => splat(self.digest[i]),
++            8 => low,
++            _ => high,
++        });
++        let mut v: [u32x8; 16] = std::array::from_fn(|i| splat(self.v[i]));
++        // Round 0, `G(0, 5, 10, 15)`: the only step that depends on the nonce.
++        let a = splat(self.v[0].wrapping_add(self.v[5])) + low;
++        let d = rotr8::<16>(splat(self.v[15]) ^ a);
++        let c = splat(self.v[10]) + d;
++        let b = rotr8::<12>(splat(self.v[5]) ^ c);
++        let a = a + b + high;
++        let d = rotr8::<8>(d ^ a);
++        let c = c + d;
++        let b = rotr8::<7>(b ^ c);
++        v[0] = a;
++        v[5] = b;
++        v[10] = c;
++        v[15] = d;
++        round8::<1>(&mut v, &m);
++        round8::<2>(&mut v, &m);
++        round8::<3>(&mut v, &m);
++        round8::<4>(&mut v, &m);
++        round8::<5>(&mut v, &m);
++        round8::<6>(&mut v, &m);
++        round8::<7>(&mut v, &m);
++        round8::<8>(&mut v, &m);
++        // Only the first output word is tested, so the compiler drops every step of the last round
++        // that does not feed `v[0]` or `v[8]`.
++        round8::<9>(&mut v, &m);
++        splat(IV[0] ^ 0x01010020) ^ v[0] ^ v[8]
++    }
++}
++
++/// Mask for the tested 32-bit word; unsupported difficulties have no possible solution.
++fn grind_mask(pow_bits: u32) -> Option<u32x8> {
++    if pow_bits > u32::BITS {
++        return None;
++    }
++    Some(u32x8::splat(if pow_bits == u32::BITS { u32::MAX } else { (1u32 << pow_bits) - 1 }))
++}
++
+ fn grind_blake<const IS_M31_OUTPUT: bool>(digest: &[u32], hi: u32, pow_bits: u32) -> Option<u64> {
+     const DIGEST_SIZE: usize = std::mem::size_of::<[u32; 8]>();
+     const NONCE_SIZE: usize = std::mem::size_of::<u64>();
++    // Match the original trailing_zeros predicate: difficulties above 32 always fail.
++    // Reject before reading the digest or constructing the prefix.
++    let mask = grind_mask(pow_bits)?;
+-    let zero: u32x16 = u32x16::splat(0);
++    let prefix = GrindPrefix::new(digest, (DIGEST_SIZE + NONCE_SIZE) as u32);
+     let offsets_vec = u32x16::from(std::array::from_fn(|i| i as u32));
+-    let pow_bits = u32x16::splat(pow_bits);
+-
+-    let state: [_; 8] = std::array::from_fn(|i| u32x16::splat(digest[i]));
++    // `trailing_zeros(x) >= pow_bits` iff the `pow_bits` lowest bits of `x` are zero.
++    let zero = u32x8::splat(0);
++    let modulus = u32x8::splat(P);
+ 
+     let mut attempt_low = offsets_vec;
+-    let attempt_high = u32x16::splat(hi);
++    let attempt_high = u32x8::splat(hi);
+     for low in (0..(1 << GRIND_LOW_BITS)).step_by(N_LANES) {
+-        let msgs = std::array::from_fn(|i| match i {
+-            0..=7 => state[i],
+-            8 => attempt_low,
+-            9 => attempt_high,
+-            _ => zero,
+-        });
+-        let res = hash_16(msgs, (DIGEST_SIZE + NONCE_SIZE) as u64);
+-        let res0 = if IS_M31_OUTPUT {
+-            PackedM31::reduce_simd(res[0]).into_simd()
+-        } else {
+-            res[0]
+-        };
+-        let success_mask = res0.trailing_zeros().simd_ge(pow_bits);
+-        if success_mask.any() {
+-            let i = success_mask.to_array().iter().position(|&x| x).unwrap();
+-            return Some(((hi as u64) << 32) + low as u64 + i as u64);
++        // The 16 nonces are hashed as two groups of 8, one after the other: a full state of 8-lane
++        // vectors fits the 16 AVX2 registers.
++        let groups: [u32x8; 2] = [
++            simd_swizzle!(attempt_low, [0, 1, 2, 3, 4, 5, 6, 7]),
++            simd_swizzle!(attempt_low, [8, 9, 10, 11, 12, 13, 14, 15]),
++        ];
++        for (group, group_low) in groups.into_iter().enumerate() {
++            let mut res0 = prefix.hash_word0(attempt_high, group_low);
++            if IS_M31_OUTPUT {
++                // Reduce modulo `P`, as `reduce_to_m31` does for the hash output.
++                res0 = res0.simd_min(res0 - modulus);
++                res0 = res0.simd_min(res0 - modulus);
++            }
++            let success_mask = (res0 & mask).simd_eq(zero);
++            if success_mask.any() {
++                let i = success_mask.to_array().iter().position(|&x| x).unwrap();
++                return Some(((hi as u64) << 32) + low as u64 + (group * 8 + i) as u64);
++            }
+         }
+         attempt_low += u32x16::splat(N_LANES as u32);
+     }
+@@ -139,6 +287,9 @@
+     found.expect("Grind failed to find a solution.")
+ }
+ 
++// TODO: replace with an optimized SIMD Poseidon implementation, similar to the path used for
++// `Blake2sChannelGeneric` above.
++
+ #[cfg(not(target_arch = "wasm32"))]
+ pub mod poseidon252 {
+     use starknet_crypto::poseidon_hash_many;
+@@ -194,7 +345,41 @@
+     use itertools::Itertools;
+ 
+     use super::*;
+-    use crate::core::channel::{Blake2sChannel, Channel};
++    use crate::core::channel::{Blake2sChannel, Blake2sM31Channel, Channel};
++
++    #[test]
++    fn test_grind_mask_matches_scalar_trailing_zeros() {
++        let words = [0, 1, 1u32 << 31, u32::MAX, P, P - 1, 2, 1u32 << 30];
++        let lanes = u32x8::from(words);
++        for pow_bits in [0, 1, 31, 32, 33, 64, u32::MAX] {
++            let actual = grind_mask(pow_bits)
++                .map(|mask| (lanes & mask).simd_eq(u32x8::splat(0)).to_array())
++                .unwrap_or([false; 8]);
++            let expected = words.map(|word| word.trailing_zeros() >= pow_bits);
++            assert_eq!(actual, expected, "pow_bits={pow_bits}");
++        }
++    }
++
++    #[test]
++    fn test_grind_blake_rejects_above_word_width_before_prefix() {
++        for pow_bits in [33, 64, u32::MAX] {
++            // An empty digest also proves rejection happens before GrindPrefix reads it.
++            assert_eq!(grind_blake::<false>(&[], 0, pow_bits), None);
++            assert_eq!(grind_blake::<true>(&[], 0, pow_bits), None);
++        }
++    }
++
++    #[test]
++    #[should_panic(expected = "pow_bits > 32 is not supported")]
++    fn test_grind_blake_public_rejects_above_word_width() {
++        SimdBackend::grind(&Blake2sChannel::default(), 33);
++    }
++
++    #[test]
++    #[should_panic(expected = "pow_bits > 32 is not supported")]
++    fn test_grind_blake_m31_public_rejects_above_word_width() {
++        SimdBackend::grind(&Blake2sM31Channel::default(), 33);
++    }
+ 
+     #[cfg(all(feature = "parallel", feature = "slow-tests"))]
+     #[test]
+@@ -230,9 +415,7 @@
+         let mut channel = C::default();
+         channel.mix_u64(0);
+ 
+-        let results = (0..n_attempts)
+-            .map(|_| SimdBackend::grind(&channel, pow_bits))
+-            .collect_vec();
++        let results = (0..n_attempts).map(|_| SimdBackend::grind(&channel, pow_bits)).collect_vec();
+ 
+         assert!(results.iter().all(|r| r == &results[0]));
+     }
+diff --git a/crates/stwo/src/prover/backend/simd/circle.rs b/crates/stwo/src/prover/backend/simd/circle.rs
+--- a/crates/stwo/src/prover/backend/simd/circle.rs
++++ b/crates/stwo/src/prover/backend/simd/circle.rs
+@@ -206,18 +206,21 @@
+         let mut values = eval.values;
+         let twiddles = domain_line_twiddles_from_tree(eval.domain, &twiddles.itwiddles);
+ 
+-        // Safe because [PackedBaseField] is aligned on 64 bytes.
++        let inv = PackedBaseField::broadcast(BaseField::from(eval.domain.size()).inverse());
++        // SAFETY: values owns the initialized evaluation buffer of domain.size()
++        // u32 elements, with PackedBaseField alignment and exclusive mutable access.
++        // log_size matches that domain and this SIMD path's supported minimum;
++        // the inverse twiddle slices were derived from the same domain's tree.
++        // inv is the valid field inverse of the nonzero domain size.
+         unsafe {
+-            ifft::ifft(
++            ifft::ifft_scaled(
+                 transmute::<*mut PackedBaseField, *mut u32>(values.data.as_mut_ptr()),
+                 &twiddles,
+                 log_size as usize,
++                Some(inv),
+             );
+         }
+ 
+-        // TODO(alont): Cache this inversion.
+-        let inv = PackedBaseField::broadcast(BaseField::from(eval.domain.size()).inverse());
+-        values.data.iter_mut().for_each(|x| *x *= inv);
+ 
+         CircleCoefficients::new(values)
+     }
+diff --git a/crates/stwo/src/prover/backend/simd/quotients.rs b/crates/stwo/src/prover/backend/simd/quotients.rs
+--- a/crates/stwo/src/prover/backend/simd/quotients.rs
++++ b/crates/stwo/src/prover/backend/simd/quotients.rs
+@@ -1,4 +1,5 @@
+ use std::iter::zip;
++use std::simd::u64x8;
+ 
+ use itertools::{zip_eq, Itertools};
+ use num_traits::Zero;
+@@ -11,7 +12,7 @@
+ use super::qm31::PackedSecureField;
+ use super::SimdBackend;
+ use crate::core::circle::CirclePoint;
+-use crate::core::fields::m31::BaseField;
++use crate::core::fields::m31::{BaseField, P};
+ use crate::core::fields::qm31::SecureField;
+ use crate::core::fields::FieldExpOps;
+ use crate::core::pcs::quotients::{quotient_constants, ColumnSampleBatch};
+@@ -205,6 +206,34 @@
+ /// Note that `columns` are assumed to be evaluations over a possibly larger domain containing
+ /// `subdomain`. It must hold that the points of `subdomain` in bit-reversed order form a prefix of
+ /// the points of the larger domain in bit-reversed order.
++// Canonical M31 residue of arbitrary u64 lanes. The first fold is at most
++// P + (2^33 - 1), and the second is at most P + 4. The final expression
++// therefore subtracts P exactly when needed, before even/odd OR-packing.
++#[inline(always)]
++fn canonical_accumulator(x: u64x8) -> u64x8 {
++    let p = u64x8::splat(P as u64);
++    let fold = |x: u64x8| (x & p) + (x >> 31);
++    let y = fold(fold(x));
++    (y + ((y + u64x8::splat(1)) >> 31)) & p
++}
++
++// Four products <= P*(P-1) fit u64. Their first fold is <= 5P.
++// Between canonical reductions each lane is <= P-1 + 1024*5P < 2^64,
++// independently of the total number of terms (including native callers).
++const ACCUMULATOR_GROUP_LIMIT: usize = 1024;
++type RowAcc = [[u64x8; 2]; 4];
++
++#[inline(always)]
++fn reduce_accumulators(acc: &mut [RowAcc]) {
++    for row in acc {
++        for coordinate in row {
++            for parity in coordinate {
++                *parity = canonical_accumulator(*parity);
++            }
++        }
++    }
++}
++
+ fn accumulate_numerators_on_subdomain(
+     subdomain: CircleDomain,
+     sample_batch: &ColumnSampleBatch,
+@@ -213,10 +242,57 @@
+ ) -> SecureColumnByCoords<SimdBackend> {
+     // This constant is chosen empirically by benchmarking.
+     const NUMERATORS_CHUNK_SIZE: usize = 1 << 6;
++    // Number of packed rows accumulated together in a pass over all the terms.
++    const ROW_BLOCK: usize = 16;
++
++    #[inline(always)]
++    fn accumulate_group<const G: usize>(
++        acc: &mut [RowAcc],
++        cols: [&[PackedBaseField]; G],
++        coeffs: &[[u32; 4]; G],
++    ) {
++        for (r, row_acc) in acc.iter_mut().enumerate() {
++            let mut even = [u64x8::splat(0); G];
++            let mut odd = [u64x8::splat(0); G];
++            for g in 0..G {
++                let w = u64x8::from_array(bytemuck::cast::<PackedBaseField, [u64; 8]>(cols[g][r]));
++                even[g] = w & u64x8::splat(0xFFFF_FFFF);
++                odd[g] = w >> 32;
++            }
++            for k in 0..4 {
++                let mut pe = even[0] * u64x8::splat(coeffs[0][k] as u64);
++                let mut po = odd[0] * u64x8::splat(coeffs[0][k] as u64);
++                for g in 1..G {
++                    pe += even[g] * u64x8::splat(coeffs[g][k] as u64);
++                    po += odd[g] * u64x8::splat(coeffs[g][k] as u64);
++                }
++                row_acc[k][0] += (pe & u64x8::splat(P as u64)) + (pe >> 31);
++                row_acc[k][1] += (po & u64x8::splat(P as u64)) + (po >> 31);
++            }
++        }
++    }
+ 
+     let mut values =
+         unsafe { SecureColumnByCoords::<SimdBackend>::uninitialized(subdomain.size()) };
+ 
++    // Per-term data, shared by all chunks.
++    let terms: Vec<(&[PackedBaseField], [u32; 4])> =
++        zip_eq(&sample_batch.cols_vals_randpows, quotient_coeffs)
++            .map(|(numerator_data, (_, _, c))| {
++                let col_data = &columns[numerator_data.column_index].data;
++                (&col_data[..], [c.0.0.0, c.0.1.0, c.1.0.0, c.1.1.0])
++            })
++            .collect();
++    // The sum of the row independent `b` terms, negated.
++    let b_sum: SecureField = quotient_coeffs.iter().map(|(_, b, _)| b).sum();
++    let neg_b_sum = -b_sum;
++    let neg_b = [
++        PackedBaseField::broadcast(neg_b_sum.0.0),
++        PackedBaseField::broadcast(neg_b_sum.0.1),
++        PackedBaseField::broadcast(neg_b_sum.1.0),
++        PackedBaseField::broadcast(neg_b_sum.1.1),
++    ];
++
+     #[cfg(not(feature = "parallel"))]
+     let iter = values.chunks_mut(NUMERATORS_CHUNK_SIZE);
+ 
+@@ -225,27 +301,63 @@
+ 
+     iter.enumerate().for_each(|(chunk_idx, mut values_dst)| {
+         let chunk_start = chunk_idx * NUMERATORS_CHUNK_SIZE;
+-        // Initialize accumulators for the chunk.
+-        let mut accumulators = [PackedSecureField::zero(); NUMERATORS_CHUNK_SIZE];
+         // This is needed because the last chunk may be smaller than
+         // `NUMERATORS_CHUNK_SIZE`.
+         let packed_chunk_len = values_dst.0[0].0.len();
+-        let accumulators = &mut accumulators[..packed_chunk_len];
+-
+-        for (numerator_data, (_, b, c)) in zip_eq(&sample_batch.cols_vals_randpows, quotient_coeffs)
+-        {
+-            let col_data = &columns[numerator_data.column_index].data;
+-            let b_broadcast = PackedSecureField::broadcast(*b);
+-            let c_broadcast = PackedSecureField::broadcast(*c);
+-            for (i, acc) in accumulators.iter_mut().enumerate() {
+-                let val = col_data[chunk_start + i];
+-                *acc += c_broadcast * val - b_broadcast;
+-            }
+-        }
+-
+-        for (i, acc) in accumulators.iter().enumerate() {
+-            unsafe {
+-                values_dst.set_packed(i, *acc);
++
++        for block_start in (0..packed_chunk_len).step_by(ROW_BLOCK) {
++            let n_rows = ROW_BLOCK.min(packed_chunk_len - block_start);
++            let first = chunk_start + block_start;
++            let mut acc = [[[u64x8::splat(0); 2]; 4]; ROW_BLOCK];
++            let acc_rows = &mut acc[..n_rows];
++
++            let mut quads = terms.chunks_exact(4);
++            for (group_idx, q) in quads.by_ref().enumerate() {
++                accumulate_group::<4>(
++                    acc_rows,
++                    [
++                        &q[0].0[first..first + n_rows],
++                        &q[1].0[first..first + n_rows],
++                        &q[2].0[first..first + n_rows],
++                        &q[3].0[first..first + n_rows],
++                    ],
++                    &[q[0].1, q[1].1, q[2].1, q[3].1],
++                );
++                if (group_idx + 1) % ACCUMULATOR_GROUP_LIMIT == 0 {
++                    reduce_accumulators(acc_rows);
++                }
++            }
++            match quads.remainder() {
++                [a, b, c] => accumulate_group::<3>(
++                    acc_rows,
++                    [
++                        &a.0[first..first + n_rows],
++                        &b.0[first..first + n_rows],
++                        &c.0[first..first + n_rows],
++                    ],
++                    &[a.1, b.1, c.1],
++                ),
++                [a, b] => accumulate_group::<2>(
++                    acc_rows,
++                    [&a.0[first..first + n_rows], &b.0[first..first + n_rows]],
++                    &[a.1, b.1],
++                ),
++                [a] => accumulate_group::<1>(acc_rows, [&a.0[first..first + n_rows]], &[a.1]),
++                _ => {}
++            }
++
++            // Includes the final 0..3 terms; each lane is canonical before packing.
++            reduce_accumulators(acc_rows);
++            for (r, row_acc) in acc_rows.iter().enumerate() {
++                let coords: [PackedBaseField; 4] = std::array::from_fn(|k| {
++                    // Both operands are < P < 2^32, so their packed bits cannot overlap.
++                    let packed = row_acc[k][0] | (row_acc[k][1] << 32);
++                    let lanes = bytemuck::cast::<[u64; 8], PackedBaseField>(packed.to_array());
++                    PackedBaseField::reduce_simd(lanes.into_simd()) + neg_b[k]
++                });
++                unsafe {
++                    values_dst.set_packed(block_start + r, PackedSecureField::from_packed_m31s(coords));
++                }
+             }
+         }
+     });
+@@ -289,7 +401,7 @@
+     use rand::{Rng, SeedableRng};
+ 
+     use crate::core::circle::SECURE_FIELD_CIRCLE_GEN;
+-    use crate::core::fields::m31::BaseField;
++    use crate::core::fields::m31::{BaseField, P};
+     use crate::core::fields::qm31::SecureField;
+     use crate::core::pcs::quotients::{
+         build_samples_with_randomness_and_periodicity, ColumnSampleBatch, PointSample,
+@@ -304,6 +416,53 @@
+     use crate::prover::poly::BitReversedOrder;
+     use crate::prover::QuotientOps;
+     use crate::qm31;
++
++    #[test]
++    fn test_canonical_accumulator_full_u64_range() {
++        // The old single fold spills into the odd lane for these high accumulators.
++        let cases = [0, P as u64, P as u64 + 1, 2 * P as u64,
++            (1u64 << 63) - 1, 1u64 << 63, u64::MAX - 1, u64::MAX];
++        let reduced = super::canonical_accumulator(std::simd::u64x8::from_array(cases)).to_array();
++        assert_eq!(reduced, cases.map(|x| x % P as u64));
++    }
++
++    #[test]
++    fn test_deferred_numerators_reduction_boundaries() {
++        use crate::core::fields::m31::M31;
++        use crate::core::pcs::quotients::NumeratorData;
++        use crate::prover::backend::simd::m31::PackedBaseField;
++        use num_traits::Zero;
++
++        let domain = CanonicCoset::new(5).circle_domain();
++        // Preserve redundant zero P in the packed input; to_array would canonicalize it.
++        let lane_values = [0, P, P - 1, 1, 2, P - 2, 17, 99, P, 0, 1, P - 1, 5, 6, 7, 8];
++        let mut values = BaseColumn::from_cpu(&vec![M31(0); domain.size()]);
++        values.data.fill(PackedBaseField::from_array(lane_values.map(M31)));
++        let column = CircleEvaluation::new(domain, values);
++        let coefficients = [P - 1, 0, 1, P - 2];
++        let c = SecureField::from_m31_array(coefficients.map(M31));
++        for groups in [0, 1, 1023, 1024, 1025, 2048] {
++            for remainder in 0..4 {
++                let n = 4 * groups + remainder;
++                let batch = ColumnSampleBatch {
++                    point: SECURE_FIELD_CIRCLE_GEN,
++                    cols_vals_randpows: (0..n).map(|_| NumeratorData {
++                        column_index: 0, sample_value: SecureField::zero(),
++                        random_coeff: SecureField::zero(),
++                    }).collect(),
++                };
++                let result = super::accumulate_numerators_on_subdomain(domain, &batch,
++                    &[&column], &vec![(SecureField::zero(), SecureField::zero(), c); n]);
++                for row in 0..domain.size() {
++                    let expected = SecureField::from_m31_array(coefficients.map(|coefficient| {
++                        M31(((n as u128 * lane_values[row % 16] as u128 * coefficient as u128)
++                            % P as u128) as u32)
++                    }));
++                    assert_eq!(result.at(row), expected, "groups={groups} remainder={remainder} row={row}");
++                }
++            }
++        }
++    }
+ 
+     #[test]
+     fn test_simd_and_cpu_numerators_are_consistent() {
+diff --git a/crates/stwo/src/prover/backend/simd/fft/ifft.rs b/crates/stwo/src/prover/backend/simd/fft/ifft.rs
+--- a/crates/stwo/src/prover/backend/simd/fft/ifft.rs
++++ b/crates/stwo/src/prover/backend/simd/fft/ifft.rs
+@@ -29,13 +29,39 @@
+ ///
+ /// # Safety
+ ///
+-/// Behavior is undefined if `values` does not have the same alignment as [`PackedBaseField`].
++/// The buffer, twiddle, representation, and exclusive-access requirements of
++/// [`ifft_scaled`] apply to this unscaled entry point as well.
+ pub unsafe fn ifft(values: *mut u32, twiddle_dbl: &[&[u32]], log_n_elements: usize) {
++    // SAFETY: the caller must meet the ICFFT buffer and twiddle requirements
++    // described by ifft_scaled; no additional scale is supplied here.
++    ifft_scaled(values, twiddle_dbl, log_n_elements, None);
++}
++
++/// Performs the ICFFT, optionally multiplying every resulting coefficient by `scale`.
++///
++/// # Safety
++///
++/// `values` must point to an exclusively accessible, initialized, writable buffer
++/// of `2^log_n_elements` u32 elements aligned to `PackedBaseField`. Each element
++/// must use the permitted packed M31 representation (0..=P). The log must be
++/// supported by the allocated buffer and twiddle tree, and at least
++/// `MIN_FFT_LOG_SIZE`. `twiddle_dbl` must contain the compatible inverse twiddle
++/// layers and lengths for that transform; it must not alias the writable buffer.
++/// Any supplied scale must be a valid `PackedBaseField`.
++pub unsafe fn ifft_scaled(values: *mut u32, twiddle_dbl: &[&[u32]], log_n_elements: usize, scale: Option<PackedBaseField>) {
+     assert!(log_n_elements >= MIN_FFT_LOG_SIZE as usize);
+ 
+     let log_n_vecs = log_n_elements - LOG_N_LANES as usize;
+     if log_n_elements <= CACHED_FFT_LOG_SIZE as usize {
+         ifft_lower_with_vecwise(values, twiddle_dbl, log_n_elements, log_n_elements);
++        if let Some(scale) = scale {
++            for i in 0..1 << (log_n_elements - LOG_N_LANES as usize) {
++                // SAFETY: i indexes one aligned packed vector in the exclusive,
++                // initialized 2^log_n_elements buffer required by this function.
++                let ptr = values.add(i << LOG_N_LANES as usize);
++                (PackedBaseField::load(ptr) * scale).store(ptr);
++            }
++        }
+         return;
+     }
+ 
+@@ -53,6 +79,7 @@
+         &twiddle_dbl[3 + fft_layers_pre_transpose..],
+         log_n_elements,
+         fft_layers_post_transpose,
++        scale,
+     );
+ }
+ 
+@@ -127,13 +154,16 @@
+ ///
+ /// # Safety
+ ///
+-/// `values` must have the same alignment as [`PackedBaseField`].
+-/// `fft_layers` must be at least 4.
++/// `values` must satisfy the buffer, representation and exclusive-access
++/// requirements of [`ifft_scaled`] for `log_size`. `fft_layers` must be at
++/// least 4 and at most `log_size - LOG_N_LANES`; the twiddle slices must match
++/// those remaining layers. Any `scale` must be a valid packed field value.
+ pub unsafe fn ifft_lower_without_vecwise(
+     values: *mut u32,
+     twiddle_dbl: &[&[u32]],
+     log_size: usize,
+     fft_layers: usize,
++    scale: Option<PackedBaseField>,
+ ) {
+     assert!(log_size >= LOG_N_LANES as usize);
+ 
+@@ -158,6 +188,16 @@
+                         index_h,
+                     );
+                 }
++            }
++        }
++        if let Some(scale) = scale {
++            // SAFETY: index_h partitions the buffer into disjoint chunks of
++            // 2^fft_layers packed vectors. This iteration alone writes its chunk;
++            // each butterfly pass above completes before scaling the same chunk.
++            let chunk = values.add(index_h << (fft_layers + LOG_N_LANES as usize));
++            for i in 0..1 << fft_layers {
++                let ptr = chunk.add(i << LOG_N_LANES as usize);
++                (PackedBaseField::load(ptr) * scale).store(ptr);
+             }
+         }
+     });
