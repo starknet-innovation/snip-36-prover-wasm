@@ -88,9 +88,10 @@ try {
               return scenario === "unsupported" ? ["0.10.2"] : ["0.10.4-rc.0"];
             if (
               r.type === "wallet_addInvokeTransaction" &&
-              r.params.api_version !== "0.10.4-rc.0"
+              "api_version" in r.params
             )
-              throw Error("Wallet API version was not preserved");
+              // An rc-only wallet must get no api_version (spec pattern has no suffix).
+              throw Error("Pre-release Wallet API version was sent");
             return window.walletTestCall();
           },
         };
