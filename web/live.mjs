@@ -340,8 +340,10 @@ async function walletTx(name, calls, material) {
     response = material
       ? await withTimeout(
           sent,
-          120000,
-          "Your wallet did not respond to the proof-bearing settlement within 2 minutes; it may not support attached proofs. If it shows a prompt later, reject it. Download the proof and recovery file, then settle from the command line with npm run settle (see docs/live-coinflip.md).",
+          // Above the test adapter's worst case (RPC calls plus a 120 s gateway submit)
+          // and long enough to review a real wallet prompt.
+          300000,
+          "Your wallet did not respond to the proof-bearing settlement within 5 minutes; it may not support attached proofs. If it shows a prompt later, reject it. Download the proof and recovery file, then settle from the command line with npm run settle (see docs/live-coinflip.md).",
         )
       : await sent;
   } catch (e) {

@@ -56,6 +56,7 @@ function finish(label) {
   for (const n of ["heads", "tails"]) $("#" + n).disabled = false;
   clearInterval(timer);
   builds.disable(false);
+  $("#load-round").disabled = false;
   $("#state").textContent = label;
   $("#run").disabled = false;
   $("#cancel").disabled = true;
@@ -170,6 +171,7 @@ window.startRun = (request, source, options = {}) => {
     $("#state").textContent = "RUNNING";
     $("#run").disabled = true;
     builds.disable(true);
+    $("#load-round").disabled = true;
     for (const n of ["heads", "tails"]) $("#" + n).disabled = true;
     $("#cancel").disabled = false;
     started = performance.now();

@@ -492,3 +492,7 @@ footer {
   font-size: 13px;
   font-weight: 600;
 }
+.file-button:has(input:disabled) {
+  opacity: 0.4;
+  cursor: default;
+}

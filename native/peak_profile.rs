@@ -52,12 +52,12 @@ unsafe impl GlobalAlloc for Metered {
 static ALLOCATOR: Metered = Metered;
 
 #[derive(Default)]
-struct Stats { count: u64, max_peak: usize, max_live_at_enter: usize, max_growth: usize }
+struct Stats { count: u64, max_peak: usize, max_live_at_enter: usize, max_growth: usize, total_ns: u128 }
 #[derive(Default)]
 struct State {
     names: BTreeMap<u64, String>,
-    // (span id, path, live at enter, WINDOW saved from the enclosing span)
-    stack: Vec<(u64, String, usize, usize)>,
+    // (span id, path, live at enter, WINDOW saved from the enclosing span, entered at)
+    stack: Vec<(u64, String, usize, usize, std::time::Instant)>,
     spans: BTreeMap<String, Stats>,
     stages: Vec<(String, usize, usize)>,
 }
@@ -95,14 +95,14 @@ impl Subscriber for Profiler {
         let path = match state.stack.last() { Some((_, parent, ..)) => format!("{parent} > {name}"), None => name };
         let live = LIVE.load(Ordering::Relaxed);
         let saved = WINDOW.swap(live, Ordering::Relaxed);
-        state.stack.push((id.into_u64(), path, live, saved));
+        state.stack.push((id.into_u64(), path, live, saved, std::time::Instant::now()));
     }
     fn exit(&self, id: &Id) {
         let mut state = self.state.lock().unwrap();
         let Some(position) = state.stack.iter().rposition(|entry| entry.0 == id.into_u64()) else { return };
         // Spans close innermost-first on this single-threaded path; fold any stragglers.
         while state.stack.len() > position {
-            let (_, path, enter_live, saved) = state.stack.pop().unwrap();
+            let (_, path, enter_live, saved, entered) = state.stack.pop().unwrap();
             let peak = WINDOW.load(Ordering::Relaxed);
             WINDOW.store(saved.max(peak), Ordering::Relaxed);
             let stats = state.spans.entry(path).or_default();
@@ -110,6 +110,7 @@ impl Subscriber for Profiler {
             stats.max_peak = stats.max_peak.max(peak);
             stats.max_live_at_enter = stats.max_live_at_enter.max(enter_live);
             stats.max_growth = stats.max_growth.max(peak - enter_live);
+            stats.total_ns += entered.elapsed().as_nanos();
         }
     }
 }
@@ -133,7 +134,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "peak_bytes": PEAK.load(Ordering::Relaxed),
         "stages": state.stages.iter().map(|(m, live, peak)| serde_json::json!({"message": m, "live": live, "peak": peak})).collect::<Vec<_>>(),
         "spans": spans.iter().map(|(path, s)| serde_json::json!({"path": path, "count": s.count, "max_peak": s.max_peak,
-            "max_live_at_enter": s.max_live_at_enter, "max_growth": s.max_growth})).collect::<Vec<_>>(),
+            "max_live_at_enter": s.max_live_at_enter, "max_growth": s.max_growth, "total_seconds": s.total_ns as f64 / 1e9})).collect::<Vec<_>>(),
     });
     fs::write(out.join("profile.json"), serde_json::to_vec_pretty(&report)?)?;
     println!("peak_bytes={}", PEAK.load(Ordering::Relaxed));
