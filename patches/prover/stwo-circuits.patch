@@ -1,0 +1,639 @@
+diff --git a/crates/circuit_common/src/preprocessed.rs b/crates/circuit_common/src/preprocessed.rs
+index 76aa910..3c0faf0 100644
+--- a/crates/circuit_common/src/preprocessed.rs
++++ b/crates/circuit_common/src/preprocessed.rs
+@@ -47,7 +47,7 @@ fn fill_binary_op_columns<G: Gate>(
+     gates: &[G],
+     op_code: OpCode,
+     multiplicities: &[usize],
+-    columns: &mut [Vec<usize>; N_QM31_OPS_PP_COLUMNS],
++    columns: &mut [CompactColumn; N_QM31_OPS_PP_COLUMNS],
+ ) {
+     let op_code_idx = op_code as usize;
+     for gate in gates.iter() {
+@@ -77,7 +77,7 @@ fn fill_binary_op_columns<G: Gate>(
+ fn fill_permutation_columns(
+     gates: &[Permutation],
+     multiplicities: &[usize],
+-    columns: &mut [Vec<usize>; N_QM31_OPS_PP_COLUMNS],
++    columns: &mut [CompactColumn; N_QM31_OPS_PP_COLUMNS],
+     first_unused_address: usize,
+ ) {
+     let add_op_code_idx = OpCode::Add as usize;
+@@ -135,7 +135,7 @@ fn add_qm31_ops_to_preprocessed_trace(
+     pp_trace: &mut PreProcessedTrace,
+ ) -> Qm31OpsTraceGenerator {
+     let Qm31OpsGates { add, sub, mul, pointwise_mul, permutation } = gates;
+-    let mut qm31_ops_columns: [_; N_QM31_OPS_PP_COLUMNS] = std::array::from_fn(|_| vec![]);
++    let mut qm31_ops_columns: [_; N_QM31_OPS_PP_COLUMNS] = std::array::from_fn(|_| CompactColumn::default());
+     fill_binary_op_columns(add, OpCode::Add, multiplicities, &mut qm31_ops_columns);
+     fill_binary_op_columns(sub, OpCode::Sub, multiplicities, &mut qm31_ops_columns);
+     fill_binary_op_columns(mul, OpCode::Mul, multiplicities, &mut qm31_ops_columns);
+@@ -170,8 +170,8 @@ fn add_qm31_ops_to_preprocessed_trace(
+ /// is empty, no columns are added. Preprocessed columns are in the following format:
+ /// | in0_address | in1_address |
+ fn add_eq_to_preprocessed_trace(eq: &[Eq], pp_trace: &mut PreProcessedTrace) {
+-    let mut eq_in0_address = vec![];
+-    let mut eq_in1_address = vec![];
++    let mut eq_in0_address = CompactColumn::default();
++    let mut eq_in1_address = CompactColumn::default();
+     for Eq { in0, in1 } in eq {
+         eq_in0_address.push(*in0);
+         eq_in1_address.push(*in1);
+@@ -188,11 +188,11 @@ fn add_triple_xor_to_preprocessed_trace(
+     multiplicities: &[usize],
+     pp_trace: &mut PreProcessedTrace,
+ ) {
+-    let mut triple_xor_input_addr_0 = vec![];
+-    let mut triple_xor_input_addr_1 = vec![];
+-    let mut triple_xor_input_addr_2 = vec![];
+-    let mut triple_xor_output_addr = vec![];
+-    let mut triple_xor_multiplicity = vec![];
++    let mut triple_xor_input_addr_0 = CompactColumn::default();
++    let mut triple_xor_input_addr_1 = CompactColumn::default();
++    let mut triple_xor_input_addr_2 = CompactColumn::default();
++    let mut triple_xor_output_addr = CompactColumn::default();
++    let mut triple_xor_multiplicity = CompactColumn::default();
+     for TripleXor { input_a, input_b, input_c, out } in triple_xor.iter() {
+         triple_xor_input_addr_0.push(*input_a);
+         triple_xor_input_addr_1.push(*input_b);
+@@ -230,7 +230,7 @@ const N_M31_TO_U32_PP_COLUMNS: usize = 3;
+ fn fill_m31_to_u32_columns(
+     gates: &[M31ToU32],
+     multiplicities: &[usize],
+-    columns: &mut [Vec<usize>; N_M31_TO_U32_PP_COLUMNS],
++    columns: &mut [CompactColumn; N_M31_TO_U32_PP_COLUMNS],
+ ) {
+     for M31ToU32 { input, out } in gates.iter() {
+         columns[0].push(*input);
+@@ -244,7 +244,7 @@ fn add_m31_to_u32_to_preprocessed_trace(
+     multiplicities: &[usize],
+     pp_trace: &mut PreProcessedTrace,
+ ) {
+-    let mut columns: [_; N_M31_TO_U32_PP_COLUMNS] = std::array::from_fn(|_| vec![]);
++    let mut columns: [_; N_M31_TO_U32_PP_COLUMNS] = std::array::from_fn(|_| CompactColumn::default());
+     fill_m31_to_u32_columns(m31_to_u32, multiplicities, &mut columns);
+ 
+     let ids = ["m31_to_u32_input_addr", "m31_to_u32_output_addr", "m31_to_u32_multiplicity"];
+@@ -261,17 +261,17 @@ fn add_blake_g_gate_to_preprocessed_trace(
+     multiplicities: &[usize],
+     pp_trace: &mut PreProcessedTrace,
+ ) {
+-    let mut blake_g_gate_input_addr_a = vec![];
+-    let mut blake_g_gate_input_addr_b = vec![];
+-    let mut blake_g_gate_input_addr_c = vec![];
+-    let mut blake_g_gate_input_addr_d = vec![];
+-    let mut blake_g_gate_input_addr_f0 = vec![];
+-    let mut blake_g_gate_input_addr_f1 = vec![];
+-    let mut blake_g_gate_output_addr_a = vec![];
+-    let mut blake_g_gate_output_addr_b = vec![];
+-    let mut blake_g_gate_output_addr_c = vec![];
+-    let mut blake_g_gate_output_addr_d = vec![];
+-    let mut blake_g_gate_multiplicity = vec![];
++    let mut blake_g_gate_input_addr_a = CompactColumn::default();
++    let mut blake_g_gate_input_addr_b = CompactColumn::default();
++    let mut blake_g_gate_input_addr_c = CompactColumn::default();
++    let mut blake_g_gate_input_addr_d = CompactColumn::default();
++    let mut blake_g_gate_input_addr_f0 = CompactColumn::default();
++    let mut blake_g_gate_input_addr_f1 = CompactColumn::default();
++    let mut blake_g_gate_output_addr_a = CompactColumn::default();
++    let mut blake_g_gate_output_addr_b = CompactColumn::default();
++    let mut blake_g_gate_output_addr_c = CompactColumn::default();
++    let mut blake_g_gate_output_addr_d = CompactColumn::default();
++    let mut blake_g_gate_multiplicity = CompactColumn::default();
+     for BlakeGGate {
+         input_a,
+         input_b,
+@@ -355,15 +355,126 @@ fn add_blake_g_gate_to_preprocessed_trace(
+     );
+ }
+ 
++/// Lossless compact storage. Gate columns are built here directly, rather than
++/// allocating a full `Vec<usize>` before narrowing it.
++#[derive(Clone, Debug, PartialEq, Eq)]
++enum CompactColumn {
++    Bits { len: usize, words: Vec<u64> },
++    Narrow(Vec<u32>),
++    Wide(Vec<usize>),
++    Fixed { log_size: u32, kind: FixedKind },
++}
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++enum FixedKind { Seq, XorRhs(u32), XorLhs(u32), XorResult(u32) }
++
++impl Default for CompactColumn {
++    fn default() -> Self { Self::Bits { len: 0, words: Vec::new() } }
++}
++
++impl CompactColumn {
++    fn len(&self) -> usize {
++        match self {
++            Self::Bits { len, .. } => *len,
++            Self::Narrow(values) => values.len(),
++            Self::Wide(values) => values.len(),
++            Self::Fixed { log_size, .. } => 1_usize << log_size,
++        }
++    }
++    fn at(&self, row: usize) -> usize {
++        assert!(row < self.len());
++        match self {
++            Self::Bits { words, .. } => ((words[row / 64] >> (row % 64)) & 1) as usize,
++            Self::Narrow(values) => values[row] as usize,
++            Self::Wide(values) => values[row],
++            Self::Fixed { kind, .. } => match kind {
++                FixedKind::Seq => row,
++                FixedKind::XorRhs(n) => row >> n,
++                FixedKind::XorLhs(n) => row & ((1_usize << n) - 1),
++                FixedKind::XorResult(n) => (row >> n) ^ (row & ((1_usize << n) - 1)),
++            },
++        }
++    }
++    fn iter(&self) -> impl ExactSizeIterator<Item = usize> + '_ {
++        (0..self.len()).map(|row| self.at(row))
++    }
++    fn push(&mut self, value: usize) {
++        if matches!(self, Self::Bits { .. }) && value > 1 {
++            // The existing prefix consists only of literal booleans.
++            *self = Self::Narrow(self.iter().map(|v| u32::try_from(v).unwrap()).collect());
++        }
++        if matches!(self, Self::Narrow(_)) && u32::try_from(value).is_err() {
++            *self = Self::Wide(self.iter().collect());
++        }
++        match self {
++            Self::Bits { len, words } => {
++                if *len % 64 == 0 { words.push(0); }
++                words[*len / 64] |= (value as u64) << (*len % 64);
++                *len += 1;
++            }
++            Self::Narrow(values) => values.push(u32::try_from(value).unwrap()),
++            Self::Wide(values) => values.push(value),
++            Self::Fixed { .. } => panic!("Cannot append to formula-generated column"),
++        }
++    }
++    fn as_wide(&self) -> std::borrow::Cow<'_, [usize]> {
++        match self {
++            Self::Wide(values) => std::borrow::Cow::Borrowed(values),
++            _ => std::borrow::Cow::Owned(self.iter().collect()),
++        }
++    }
++}
++impl Extend<usize> for CompactColumn {
++    fn extend<I: IntoIterator<Item = usize>>(&mut self, values: I) {
++        for value in values { self.push(value); }
++    }
++}
++
++#[cfg(test)]
++mod compact_tests {
++    use super::*;
++    #[test]
++    fn widths_and_boolean_word_boundaries_are_lossless() {
++        for len in [0, 1, 63, 64, 65, 127, 128, 129] {
++            let expected: Vec<_> = (0..len).map(|row| row % 2).collect();
++            let mut column = CompactColumn::default(); column.extend(expected.iter().copied());
++            assert_eq!(column.iter().collect::<Vec<_>>(), expected);
++            assert!(matches!(column, CompactColumn::Bits { .. }));
++            column.push(u32::MAX as usize);
++            assert!(matches!(column, CompactColumn::Narrow(_)));
++            assert_eq!(column.at(len), u32::MAX as usize);
++            #[cfg(target_pointer_width = "64")]
++            {
++                column.push(u32::MAX as usize + 1);
++                assert!(matches!(column, CompactColumn::Wide(_)));
++                assert_eq!(column.at(len + 1), u32::MAX as usize + 1);
++                assert_eq!(column.iter().take(len).collect::<Vec<_>>(), expected);
++            }
++        }
++    }
++    #[test]
++    fn generated_lookup_values_preserve_original_order_and_lengths() {
++        for n in [4, 7, 8, 9, 10] {
++            let original = gen_xor_columns(n as usize);
++            for (i, kind) in [FixedKind::XorRhs(n), FixedKind::XorLhs(n), FixedKind::XorResult(n)].into_iter().enumerate() {
++                let generated = CompactColumn::Fixed { log_size: 2 * n, kind };
++                assert_eq!(generated.iter().collect::<Vec<_>>(), original[i]);
++            }
++        }
++        let seq = CompactColumn::Fixed { log_size: 16, kind: FixedKind::Seq };
++        assert_eq!(seq.iter().collect::<Vec<_>>(), (0..1 << 16).collect::<Vec<_>>());
++    }
++}
++
+ /// A collection of preprocessed columns, whose values are publicly acknowledged, and independent of
+ /// the proof.
+ #[derive(Clone, Debug, Default, PartialEq)]
+ pub struct PreProcessedTrace {
+-    columns: OrderedHashMap<PreProcessedColumnId, Vec<usize>>,
++    columns: OrderedHashMap<PreProcessedColumnId, CompactColumn>,
+ }
+ 
+ impl PreProcessedTrace {
+-    fn push_column(&mut self, id: PreProcessedColumnId, column: Vec<usize>) {
++    fn push_column(&mut self, id: PreProcessedColumnId, column: CompactColumn) {
+         assert!(
+             self.columns.insert(id.clone(), column).is_none(),
+             "Duplicate preprocessed column id: {id:?}"
+@@ -385,36 +496,13 @@ impl PreProcessedTrace {
+     ///   all ordered pairs of n-bit values (`lhs`, `rhs`) and their XOR, used by the
+     ///   `VerifyBitwiseXor` components.
+     fn add_fixed_preprocessed_columns(pp_trace: &mut PreProcessedTrace) {
+-        // Seq column of size 2^16, needed by range_check_16.
+-        pp_trace.push_column(
+-            PreProcessedColumnId { id: "seq_16".to_owned() },
+-            (0..1_usize << 16).collect(),
+-        );
+-
+-        // Bitwise XOR columns of sizes 2^4, 2^7, 2^8, 2^9, 2^10.
+-        let bitwise_xor: Vec<Vec<usize>> = [4, 7, 8, 9, 10]
+-            .into_iter()
+-            .flat_map(|n_bits| gen_xor_columns(n_bits).into_iter())
+-            .collect();
+-        let xor_col_ids = [
+-            "bitwise_xor_4_0",
+-            "bitwise_xor_4_1",
+-            "bitwise_xor_4_2",
+-            "bitwise_xor_7_0",
+-            "bitwise_xor_7_1",
+-            "bitwise_xor_7_2",
+-            "bitwise_xor_8_0",
+-            "bitwise_xor_8_1",
+-            "bitwise_xor_8_2",
+-            "bitwise_xor_9_0",
+-            "bitwise_xor_9_1",
+-            "bitwise_xor_9_2",
+-            "bitwise_xor_10_0",
+-            "bitwise_xor_10_1",
+-            "bitwise_xor_10_2",
+-        ];
+-        for (id, column) in zip_eq(xor_col_ids, bitwise_xor) {
+-            pp_trace.push_column(PreProcessedColumnId { id: id.to_owned() }, column);
++        pp_trace.push_column(PreProcessedColumnId { id: "seq_16".to_owned() },
++            CompactColumn::Fixed { log_size: 16, kind: FixedKind::Seq });
++        for n in [4, 7, 8, 9, 10] {
++            for (i, kind) in [FixedKind::XorRhs(n), FixedKind::XorLhs(n), FixedKind::XorResult(n)].into_iter().enumerate() {
++                pp_trace.push_column(PreProcessedColumnId { id: format!("bitwise_xor_{n}_{i}") },
++                    CompactColumn::Fixed { log_size: 2 * n, kind });
++            }
+         }
+     }
+ 
+@@ -432,24 +520,23 @@ impl PreProcessedTrace {
+ 
+     #[cfg(feature = "prover")]
+     pub fn get_trace<B: Backend>(&self) -> Vec<CircleEvaluation<B, BaseField, BitReversedOrder>> {
+-        let to_evaluation = |vec: &[usize]| {
+-            let col = Col::<B, BaseField>::from_iter(vec.iter().cloned().map(BaseField::from));
++        let to_evaluation = |vec: &CompactColumn| {
++            let col = Col::<B, BaseField>::from_iter(vec.iter().map(BaseField::from));
+             CircleEvaluation::new(CanonicCoset::new(col.len().ilog2()).circle_domain(), col)
+         };
+ 
+         self.columns.values().map(|c| to_evaluation(c)).collect()
+     }
+ 
+-    pub fn get_column(&self, id: &PreProcessedColumnId) -> &Vec<usize> {
+-        self.columns.get(id).unwrap_or_else(|| panic!("Missing preprocessed column {id:?}"))
++    pub fn get_column(&self, id: &PreProcessedColumnId) -> std::borrow::Cow<'_, [usize]> {
++        self.columns.get(id).unwrap_or_else(|| panic!("Missing preprocessed column {id:?}")).as_wide()
+     }
+ 
+     #[cfg(feature = "prover")]
+     pub fn get_packed_column(&self, id: &PreProcessedColumnId) -> Vec<PackedM31> {
+-        let column = self.get_column(id);
+-        column
+-            .chunks_exact(N_LANES)
+-            .map(|c| PackedM31::from_array(std::array::from_fn(|i| BaseField::from(c[i]))))
++        let column = self.columns.get(id).unwrap();
++        (0..column.len() / N_LANES)
++            .map(|row| PackedM31::from_array(std::array::from_fn(|i| BaseField::from(column.at(row * N_LANES + i)))))
+             .collect::<Vec<_>>()
+     }
+ }
+@@ -536,6 +623,7 @@ impl PreprocessedCircuit {
+ 
+ /// Generates three columns of size (2^n_bits)^2. The first two columns are all ordered pairs of
+ /// n-bit values, and the third column contains the bitwise XOR of each pair.
++#[cfg(test)]
+ fn gen_xor_columns(n_bits: usize) -> [Vec<usize>; 3] {
+     let size = 1_usize << (2 * n_bits);
+     let mask = (1_usize << n_bits) - 1;
+@@ -551,3 +639,22 @@ fn gen_xor_columns(n_bits: usize) -> [Vec<usize>; 3] {
+     }
+     columns
+ }
++
++#[cfg(test)]
++mod ownership_tests {
++    use super::*;
++    use circuits::context::Context;
++    use stwo::core::fields::qm31::QM31;
++    #[test]
++    fn explicit_values_survive_blinding_and_padding_in_order() {
++        for seed in [7, 9] {
++            let mut context = Context::<QM31>::default().finalize(false);
++            crate::finalize::add_zk_blinding(&mut context, [seed; 32], 2);
++            finalize_context(&mut context);
++            assert!(context.is_circuit_valid());
++            let expected = context.values().clone();
++            let values = context.into_values();
++            assert_eq!(values, expected);
++        }
++    }
++}
+diff --git a/crates/circuit_prover/src/prover.rs b/crates/circuit_prover/src/prover.rs
+index e10f292..52f60cd 100644
+--- a/crates/circuit_prover/src/prover.rs
++++ b/crates/circuit_prover/src/prover.rs
+@@ -129,6 +129,48 @@ pub fn prove_circuit_with_precompute<'a, MC>(
+     values: &[QM31],
+     pcs_config: PcsConfig,
+ ) -> Result<CircuitProof<MC::H>, ProvingError>
++where
++    MC: MerkleChannel,
++    SimdBackend: stwo::prover::backend::BackendForChannel<MC>,
++{
++    prove_circuit_with_values(base_column_pool, twiddles, preprocessed_circuit,
++        preprocessed_tree, ProofValues::Borrowed(values), pcs_config)
++}
++
++pub fn prove_circuit_with_owned_values<'a, MC>(
++    base_column_pool: &BaseColumnPool<SimdBackend>,
++    twiddles: &TwiddleTree<SimdBackend>,
++    preprocessed_circuit: &PreprocessedCircuit,
++    preprocessed_tree: MaybeOwned<'a, CommitmentTreeProver<SimdBackend, MC>>,
++    values: Vec<QM31>,
++    pcs_config: PcsConfig,
++) -> Result<CircuitProof<MC::H>, ProvingError>
++where
++    MC: MerkleChannel,
++    SimdBackend: stwo::prover::backend::BackendForChannel<MC>,
++{
++    prove_circuit_with_values(base_column_pool, twiddles, preprocessed_circuit,
++        preprocessed_tree, ProofValues::Owned(values), pcs_config)
++}
++
++enum ProofValues<'a> {
++    Borrowed(&'a [QM31]),
++    Owned(Vec<QM31>),
++}
++impl AsRef<[QM31]> for ProofValues<'_> {
++    fn as_ref(&self) -> &[QM31] {
++        match self { Self::Borrowed(values) => values, Self::Owned(values) => values }
++    }
++}
++
++fn prove_circuit_with_values<'a, MC>(
++    base_column_pool: &BaseColumnPool<SimdBackend>,
++    twiddles: &TwiddleTree<SimdBackend>,
++    preprocessed_circuit: &PreprocessedCircuit,
++    preprocessed_tree: MaybeOwned<'a, CommitmentTreeProver<SimdBackend, MC>>,
++    values: ProofValues<'_>,
++    pcs_config: PcsConfig,
++) -> Result<CircuitProof<MC::H>, ProvingError>
+ where
+     MC: MerkleChannel,
+     SimdBackend: stwo::prover::backend::BackendForChannel<MC>,
+@@ -166,7 +208,7 @@ where
+     // Base trace.
+     let mut tree_builder = commitment_scheme.tree_builder();
+     let (claim, component_log_sizes, interaction_generator) = write_trace(
+-        values,
++        values.as_ref(),
+         preprocessed_trace.clone(),
+         *n_outputs,
+         &mut tree_builder,
+@@ -174,6 +216,8 @@ where
+         twiddles,
+     );
+ 
++    // The interaction generator owns all data needed after base-trace writing.
++    drop(values);
+     claim.mix_into(channel);
+     tree_builder.commit(channel);
+ 
+diff --git a/crates/circuit_prover/src/prover_test.rs b/crates/circuit_prover/src/prover_test.rs
+index a6e1ada..b011185 100644
+--- a/crates/circuit_prover/src/prover_test.rs
++++ b/crates/circuit_prover/src/prover_test.rs
+@@ -472,3 +472,35 @@ fn test_finalize_context() {
+     assert!(qm31_ops.is_power_of_two());
+     context.validate_circuit();
+ }
++
++#[test]
++fn test_owned_values_are_isolated_across_sequential_calls_and_errors() {
++    use crate::prover::{prove_circuit_with_owned_values, prove_circuit_with_precompute};
++    use stwo::core::poly::circle::CanonicCoset;
++    use stwo::core::utils::MaybeOwned;
++    use stwo::prover::CommitmentTreeProver;
++    use stwo::prover::poly::circle::PolyOps;
++    let mut context = build_fibonacci_context().finalize(false);
++    let preprocessed = PreprocessedCircuit::preprocess_circuit(&mut context);
++    let values = context.into_values();
++    let default_config = PcsConfig::default();
++    let log_size = preprocessed.trace_log_size + default_config.fri_config.log_blowup_factor;
++    let config = PcsConfig { lifting_log_size: Some(log_size), ..default_config };
++    let twiddles = SimdBackend::precompute_twiddles(CanonicCoset::new(log_size).circle_domain().half_coset);
++    let pool = BaseColumnPool::<SimdBackend>::new();
++    let coefficients = SimdBackend::interpolate_columns(preprocessed.preprocessed_trace.get_trace::<SimdBackend>(), &twiddles);
++    let tree = CommitmentTreeProver::<SimdBackend, Blake2sM31MerkleChannel>::new(
++        coefficients, config.fri_config.log_blowup_factor, &twiddles, true, config.lifting_log_size, &pool);
++    let borrowed = prove_circuit_with_precompute(&pool, &twiddles, &preprocessed, MaybeOwned::Borrowed(&tree), &values, config).unwrap();
++    let roots = borrowed.stark_proof.proof.commitments.clone();
++    stwo_verify(borrowed, &preprocessed);
++    for _ in 0..2 {
++        let failed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
++            prove_circuit_with_owned_values(&pool, &twiddles, &preprocessed, MaybeOwned::Borrowed(&tree), Vec::new(), config)
++        }));
++        assert!(failed.is_err());
++        let owned = prove_circuit_with_owned_values(&pool, &twiddles, &preprocessed, MaybeOwned::Borrowed(&tree), values.clone(), config).unwrap();
++        assert_eq!(owned.stark_proof.proof.commitments.0, roots.0);
++        stwo_verify(owned, &preprocessed);
++    }
++}
+diff --git a/crates/circuit_prover/src/witness/components/blake_g_gate.rs b/crates/circuit_prover/src/witness/components/blake_g_gate.rs
+index a9636a3..549abc5 100644
+--- a/crates/circuit_prover/src/witness/components/blake_g_gate.rs
++++ b/crates/circuit_prover/src/witness/components/blake_g_gate.rs
+@@ -133,16 +133,16 @@ pub fn write_trace(
+         .get_column(&PreProcessedColumnId { id: "blake_g_gate_multiplicity".to_owned() });
+ 
+     let inputs = extract_component_inputs(
+-        input_addr_a,
+-        input_addr_b,
+-        input_addr_c,
+-        input_addr_d,
+-        input_addr_f0,
+-        input_addr_f1,
+-        output_addr_a,
+-        output_addr_b,
+-        output_addr_c,
+-        output_addr_d,
++        &input_addr_a,
++        &input_addr_b,
++        &input_addr_c,
++        &input_addr_d,
++        &input_addr_f0,
++        &input_addr_f1,
++        &output_addr_a,
++        &output_addr_b,
++        &output_addr_c,
++        &output_addr_d,
+         context_values,
+     );
+ 
+@@ -152,6 +152,7 @@ pub fn write_trace(
+     let log_size = size.ilog2();
+ 
+     let packed_inputs = pack_values(&inputs);
++    drop(inputs);
+ 
+     let preprocessed_columns = [
+         input_addr_a,
+diff --git a/crates/circuit_prover/src/witness/components/eq.rs b/crates/circuit_prover/src/witness/components/eq.rs
+index fc975dd..5634c36 100644
+--- a/crates/circuit_prover/src/witness/components/eq.rs
++++ b/crates/circuit_prover/src/witness/components/eq.rs
+@@ -49,7 +49,7 @@ pub fn write_trace(
+     let in1_address =
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "eq_in1_address".to_owned() });
+ 
+-    let inputs = extract_component_inputs(in0_address, in1_address, context_values);
++    let inputs = extract_component_inputs(&in0_address, &in1_address, context_values);
+ 
+     let n_rows = inputs.len();
+     assert_ne!(n_rows, 0);
+diff --git a/crates/circuit_prover/src/witness/components/m_31_to_u_32.rs b/crates/circuit_prover/src/witness/components/m_31_to_u_32.rs
+index 8145a68..dff7204 100644
+--- a/crates/circuit_prover/src/witness/components/m_31_to_u_32.rs
++++ b/crates/circuit_prover/src/witness/components/m_31_to_u_32.rs
+@@ -42,7 +42,7 @@ pub fn write_trace(
+     let multiplicity_col = preprocessed_trace
+         .get_column(&PreProcessedColumnId { id: "m31_to_u32_multiplicity".to_owned() });
+ 
+-    let inputs = extract_component_inputs(input_addr_col, context_values);
++    let inputs = extract_component_inputs(&input_addr_col, context_values);
+ 
+     let n_rows = inputs.len();
+     assert_ne!(n_rows, 0);
+diff --git a/crates/circuit_prover/src/witness/components/qm31_ops.rs b/crates/circuit_prover/src/witness/components/qm31_ops.rs
+index 37753d9..0c1e4c0 100644
+--- a/crates/circuit_prover/src/witness/components/qm31_ops.rs
++++ b/crates/circuit_prover/src/witness/components/qm31_ops.rs
+@@ -85,9 +85,9 @@ pub fn write_trace(
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "qm31_ops_mults".to_owned() });
+ 
+     let inputs = extract_component_inputs(
+-        in0_address,
+-        in1_address,
+-        out_address,
++        &in0_address,
++        &in1_address,
++        &out_address,
+         context_values,
+         trace_generator,
+     );
+diff --git a/crates/circuit_prover/src/witness/components/triple_xor.rs b/crates/circuit_prover/src/witness/components/triple_xor.rs
+index 9e34971..0a912d9 100644
+--- a/crates/circuit_prover/src/witness/components/triple_xor.rs
++++ b/crates/circuit_prover/src/witness/components/triple_xor.rs
+@@ -73,10 +73,10 @@ pub fn write_trace(
+         .get_column(&PreProcessedColumnId { id: "triple_xor_multiplicity".to_owned() });
+ 
+     let inputs = extract_component_inputs(
+-        input_addr_col_0,
+-        input_addr_col_1,
+-        input_addr_col_2,
+-        output_addr_col,
++        &input_addr_col_0,
++        &input_addr_col_1,
++        &input_addr_col_2,
++        &output_addr_col,
+         context_values,
+     );
+ 
+diff --git a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs
+index e1a9bd9..52fa759 100644
+--- a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs
++++ b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_4.rs
+@@ -77,9 +77,9 @@ fn write_trace_simd(
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_4_1".to_owned() });
+     let bitwise_xor_4_2 =
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_4_2".to_owned() });
+-    let bitwise_xor_4_0 = pack_preprocessed_column(bitwise_xor_4_0);
+-    let bitwise_xor_4_1 = pack_preprocessed_column(bitwise_xor_4_1);
+-    let bitwise_xor_4_2 = pack_preprocessed_column(bitwise_xor_4_2);
++    let bitwise_xor_4_0 = pack_preprocessed_column(&bitwise_xor_4_0);
++    let bitwise_xor_4_1 = pack_preprocessed_column(&bitwise_xor_4_1);
++    let bitwise_xor_4_2 = pack_preprocessed_column(&bitwise_xor_4_2);
+ 
+     (trace.par_iter_mut(), lookup_data.par_iter_mut()).into_par_iter().enumerate().for_each(
+         |(row_index, (row, lookup_data))| {
+diff --git a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs
+index cccee8c..1757894 100644
+--- a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs
++++ b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_7.rs
+@@ -77,9 +77,9 @@ fn write_trace_simd(
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_7_1".to_owned() });
+     let bitwise_xor_7_2 =
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_7_2".to_owned() });
+-    let bitwise_xor_7_0 = pack_preprocessed_column(bitwise_xor_7_0);
+-    let bitwise_xor_7_1 = pack_preprocessed_column(bitwise_xor_7_1);
+-    let bitwise_xor_7_2 = pack_preprocessed_column(bitwise_xor_7_2);
++    let bitwise_xor_7_0 = pack_preprocessed_column(&bitwise_xor_7_0);
++    let bitwise_xor_7_1 = pack_preprocessed_column(&bitwise_xor_7_1);
++    let bitwise_xor_7_2 = pack_preprocessed_column(&bitwise_xor_7_2);
+ 
+     (trace.par_iter_mut(), lookup_data.par_iter_mut()).into_par_iter().enumerate().for_each(
+         |(row_index, (row, lookup_data))| {
+diff --git a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs
+index 634fa2d..ea0723e 100644
+--- a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs
++++ b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_8.rs
+@@ -77,9 +77,9 @@ fn write_trace_simd(
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_8_1".to_owned() });
+     let bitwise_xor_8_2 =
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_8_2".to_owned() });
+-    let bitwise_xor_8_0 = pack_preprocessed_column(bitwise_xor_8_0);
+-    let bitwise_xor_8_1 = pack_preprocessed_column(bitwise_xor_8_1);
+-    let bitwise_xor_8_2 = pack_preprocessed_column(bitwise_xor_8_2);
++    let bitwise_xor_8_0 = pack_preprocessed_column(&bitwise_xor_8_0);
++    let bitwise_xor_8_1 = pack_preprocessed_column(&bitwise_xor_8_1);
++    let bitwise_xor_8_2 = pack_preprocessed_column(&bitwise_xor_8_2);
+ 
+     (trace.par_iter_mut(), lookup_data.par_iter_mut()).into_par_iter().enumerate().for_each(
+         |(row_index, (row, lookup_data))| {
+diff --git a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs
+index 923be91..371abc6 100644
+--- a/crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs
++++ b/crates/circuit_prover/src/witness/components/verify_bitwise_xor_9.rs
+@@ -77,9 +77,9 @@ fn write_trace_simd(
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_9_1".to_owned() });
+     let bitwise_xor_9_2 =
+         preprocessed_trace.get_column(&PreProcessedColumnId { id: "bitwise_xor_9_2".to_owned() });
+-    let bitwise_xor_9_0 = pack_preprocessed_column(bitwise_xor_9_0);
+-    let bitwise_xor_9_1 = pack_preprocessed_column(bitwise_xor_9_1);
+-    let bitwise_xor_9_2 = pack_preprocessed_column(bitwise_xor_9_2);
++    let bitwise_xor_9_0 = pack_preprocessed_column(&bitwise_xor_9_0);
++    let bitwise_xor_9_1 = pack_preprocessed_column(&bitwise_xor_9_1);
++    let bitwise_xor_9_2 = pack_preprocessed_column(&bitwise_xor_9_2);
+ 
+     (trace.par_iter_mut(), lookup_data.par_iter_mut()).into_par_iter().enumerate().for_each(
+         |(row_index, (row, lookup_data))| {
+diff --git a/crates/circuits/src/context.rs b/crates/circuits/src/context.rs
+index fcc49a3..a33558a 100644
+--- a/crates/circuits/src/context.rs
++++ b/crates/circuits/src/context.rs
+@@ -268,6 +268,12 @@ pub struct FinalizedContext<Value: IValue> {
+ }
+ 
+ impl<Value: IValue> FinalizedContext<Value> {
++    /// Consumes the finalized, blinded and padded context, releasing its gates and
++    /// metadata while explicitly transferring the values to this proof's caller.
++    pub fn into_values(self) -> Vec<Value> {
++        self.context.values
++    }
++
+     pub fn circuit(&self) -> &Circuit {
+         &self.context.circuit
+     }
