@@ -80,12 +80,15 @@
             <label class="check"
               ><input id="ready" type="checkbox" /><span
                 >I can finish this round<small
-                  >Reveal within 24 hours or forfeit the test stake. Full
-                  proving needs about 14 GiB available memory and recent desktop
-                  Chromium. Save the recovery file after committing.</small
+                  >Reveal within 24 hours or forfeit the test stake. Proving
+                  needs recent desktop Chromium and the memory of the build
+                  chosen below. Save the recovery file after committing.</small
                 ></span
               ></label
             >
+<div class="field-label">Prover build</div>
+            <div id="builds" class="build-picker" aria-label="Prover build"></div>
+            <p id="build-note" class="help"></p>
             <div class="actions">
               <button
                 id="next"
@@ -185,6 +188,7 @@
                 <span>PROOF</span><strong id="live-proof-size">—</strong>
               </div>
             </div>
+            <p id="measured" class="help"></p>
           </section>
         </div>
         <section class="panel game-explanation">

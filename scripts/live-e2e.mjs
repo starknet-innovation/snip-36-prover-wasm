@@ -75,6 +75,8 @@ try {
     await page.waitForFunction(() => !!window.coinflipLive.state.round);
   }
   await page.check("#ready");
+  // Daily evidence stays on the released prover, whatever the page recommends.
+  await page.check('input[name="prover-build"][value="standard"]');
   const start = Date.now();
   let last = "";
   let proofChecked = false,

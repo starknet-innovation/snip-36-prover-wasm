@@ -25,7 +25,14 @@ import {
   outcome,
 } from "./live-core.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
+import { buildPicker, measuredSummary } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
+const builds = buildPicker(
+  $("#builds"),
+  (_, b) =>
+    ($("#build-note").textContent =
+      `Needs ${b.need} free memory. Both builds produce identical proofs; only memory use and speed differ.`),
+);
 let config,
   connection,
   round,
@@ -109,6 +116,7 @@ function render() {
   for (const n of ["heads", "tails"])
     $("#pick-" + n).disabled = !!round || busy;
   $("#stake").disabled = !!round || busy;
+  builds.disable(busy);
   $("#round-details").textContent = round
     ? JSON.stringify(
         {
@@ -411,6 +419,10 @@ const controller = new PublicRunController({
     $("#live-coin").classList.remove("spinning");
     $("#live-proof-size").textContent =
       (receipt.report.proof_bytes / 1024).toFixed(1) + " KB";
+    $("#measured").textContent = measuredSummary(
+      receipt.report,
+      receipt.report.prover_build,
+    );
     message(
       "Proof generated locally. Review and submit settlement in your wallet.",
     );
@@ -437,10 +449,12 @@ async function prove() {
         ((performance.now() - started) / 1000).toFixed(0) + " s"),
     1000,
   );
-  controller.start(request, {
-    endpoint: RPC,
-    block_id: { block_hash: header.block_hash },
-  });
+  $("#measured").textContent = "";
+  controller.start(
+    request,
+    { endpoint: RPC, block_id: { block_hash: header.block_hash } },
+    { build: builds.get() },
+  );
   render();
 }
 $("#next").onclick = () =>

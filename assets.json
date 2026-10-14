@@ -13,6 +13,12 @@
       "path": "web/sequencer-prover.wasm",
       "bytes": 91384741,
       "sha256": "1f76da1636c1e0e5f9952b3b49fc23d5a93493c2b94d3a2ec221965aa802a8aa"
+    },
+    {
+      "name": "prover-memory.wasm",
+      "path": "web/prover-memory.wasm",
+      "bytes": 95089547,
+      "sha256": "33fc17171636822400f4e548c1f2a3f2f8e7069525355020de8d5a0edbb4b5ae"
     }
   ]
 }

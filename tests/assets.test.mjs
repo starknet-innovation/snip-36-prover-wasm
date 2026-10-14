@@ -21,6 +21,7 @@ const manifest = {
   assets: [
     { name: "executor.wasm", path: "web/auth/browser_virtual_os_bg.wasm" },
     { name: "prover.wasm", path: "web/sequencer-prover.wasm" },
+    { name: "prover-memory.wasm", path: "web/prover-memory.wasm" },
   ].map((asset) => ({
     ...asset,
     bytes: wasm.length,

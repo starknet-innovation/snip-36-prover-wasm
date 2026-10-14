@@ -443,3 +443,43 @@ footer {
     animation: none;
   }
 }
+.field-label {
+  font-size: 13px;
+  margin: 22px 0 8px;
+}
+.build-picker {
+  display: grid;
+  gap: 8px;
+}
+.build-option {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.build-option:has(input:checked) {
+  border-color: var(--accent);
+}
+.build-option input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+.build-stats {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 16px;
+  margin-top: 10px;
+  font: 10px monospace;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.build-stats strong {
+  display: block;
+  margin-top: 4px;
+  font: 500 15px system-ui;
+  letter-spacing: 0;
+  color: var(--ink);
+}

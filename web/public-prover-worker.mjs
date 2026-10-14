@@ -1,18 +1,21 @@
 import { loadMemory64 } from "./sequencer-memory64.mjs";
+import { PROVER_BUILDS } from "./prover-builds.mjs";
 self.onmessage = async (event) => {
   // Dedicated Worker messages have an empty origin and no Window source.
   // Reject window-style and synthetic events before reading their payload.
   if (event.origin !== "" || event.source !== null || !event.isTrusted) return;
   if (!event.data || typeof event.data !== "object") return;
-  const { id, pie, expectedWasm } = event.data;
+  const { id, pie, expectedWasm, build = "standard" } = event.data;
   const start = performance.now(),
     send = (data) => self.postMessage({ id, ...data });
   try {
     if (!(pie instanceof ArrayBuffer) || !pie.byteLength)
       throw Error("Missing browser-generated PIE");
+    if (!Object.hasOwn(PROVER_BUILDS, build))
+      throw Error("Unknown prover build");
     const loadStarted = performance.now();
     const api = await loadMemory64(
-      "./sequencer-prover.wasm",
+      PROVER_BUILDS[build].url,
       (message) => send({ kind: "panic", message }),
       (stage) => send({ kind: "stage", ...stage }),
       expectedWasm,
@@ -37,6 +40,7 @@ self.onmessage = async (event) => {
       output_preimage: result.output_preimage,
       report: {
         runtime: "browser Worker memory64",
+        prover_build: build,
         ...api.identity,
         userAgent: navigator.userAgent,
         pie_sha256: await sha(pie),

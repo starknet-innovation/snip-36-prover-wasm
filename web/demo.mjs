@@ -1,6 +1,13 @@
 import { coinflipResult, PLAY_SELECTOR } from "./coinflip-runtime.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
+import { buildPicker, measuredSummary } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
+const builds = buildPicker(
+  $("#builds"),
+  (_, b) =>
+    ($("#build-note").textContent =
+      `Needs ${b.need} free memory. Both builds produce identical proofs; only memory use and speed differ.`),
+);
 let timer,
   started,
   sequence = 0;
@@ -43,6 +50,7 @@ function finish(label) {
   $("#coin").classList.remove("spinning");
   for (const n of ["heads", "tails"]) $("#" + n).disabled = false;
   clearInterval(timer);
+  builds.disable(false);
   $("#state").textContent = label;
   $("#run").disabled = false;
   $("#cancel").disabled = true;
@@ -73,6 +81,10 @@ const controller = new PublicRunController({
     } else {
       step("proof", "done");
       $("#proof-size").textContent = size(data.report.proof_bytes);
+      $("#measured").textContent = measuredSummary(
+        data.report,
+        data.report.prover_build,
+      );
       download("proof.json", JSON.stringify(data));
       download(
         "proof.bin",
@@ -132,11 +144,13 @@ window.startRun = (request, source, options = {}) => {
   step("state", "active");
   $("#pie-size").textContent = "—";
   $("#proof-size").textContent = "—";
+  $("#measured").textContent = "";
   $("#details").textContent = "Running…";
   const id = controller.start(request, source, options);
   if (controller.active) {
     $("#state").textContent = "RUNNING";
     $("#run").disabled = true;
+    builds.disable(true);
     for (const n of ["heads", "tails"]) $("#" + n).disabled = true;
     $("#cancel").disabled = false;
     started = performance.now();
@@ -216,6 +230,7 @@ $("#run").onclick = async () => {
     if (generation !== sequence) return;
     window.startRun(request, source, {
       executionOnly: !$("#full-proof").checked,
+      build: builds.get(),
     });
   } catch (e) {
     if (generation !== sequence) return;

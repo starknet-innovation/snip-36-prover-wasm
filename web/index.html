@@ -104,12 +104,14 @@
             <label class="check"
               ><input id="full-proof" type="checkbox" /><span
                 >Generate the full recursive proof<small
-                  >Downloads 128 MB total. Requires a recent memory64-capable
-                  browser and about 14 GiB available memory. Usually takes
-                  several minutes.</small
+                  >Downloads about 130 MB. Requires a recent memory64-capable
+                  browser and the memory of the build chosen below.</small
                 ></span
               ></label
             >
+<div class="field-label">Prover build</div>
+            <div id="builds" class="build-picker" aria-label="Prover build"></div>
+            <p id="build-note" class="help"></p>
             <div class="actions">
               <button id="run" class="primary">
                 Run execution <span>↗</span></button
@@ -156,6 +158,7 @@
                 <span>PROOF SIZE</span><strong id="proof-size">—</strong>
               </div>
             </div>
+            <p id="measured" class="help"></p>
             <div role="status" aria-live="polite" id="status">
               Ready when you are. Execution downloads a 36 MB Wasm module.
             </div>
