@@ -24,6 +24,15 @@ test("loaded bytes must match expected WASM before instantiation", async (t) => 
   assert.deepEqual(new Uint8Array(instantiate.mock.calls[0].arguments[0]), bytes);
 });
 
+test("default load keeps cached streaming compile", async (t) => {
+  const fetch = t.mock.method(globalThis, "fetch", async () => new Response(new Uint8Array([0])));
+  const streaming = t.mock.method(WebAssembly, "instantiateStreaming", async () => ({ instance: { exports: {} } }));
+  const api = await loadMemory64("local", () => {}, () => {});
+  assert.equal(fetch.mock.calls[0].arguments.length, 1);
+  assert.equal(streaming.mock.callCount(), 1);
+  assert.deepEqual(api.identity, {});
+});
+
 test("trusted expected bootloader output agrees with retained independently verified CoinFlip evidence", async () => {
   const fixture = JSON.parse(await readFile("fixtures/coinflip/heads.json"));
   const evidence = JSON.parse(await readFile("evidence/coinflip-browser-proof.json"));
