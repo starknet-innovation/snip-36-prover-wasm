@@ -1,0 +1,55 @@
+[
+  {
+    "name": "balance",
+    "fixture": "fixtures/captured-execution.json",
+    "fixture_sha256": "a52b94e100b86a1aba8b3e2e5fec309801ed071ef1c27aceca0595bc64cf5ab2",
+    "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+    "expected_output_preimage": [
+      "0x1",
+      "0x7",
+      "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+      "0x5649525455414c5f534e4f5330",
+      "0xf5d334",
+      "0x31d7e77a1a55236f80df9a3e57b0f6e08e3e6f3a3caf5efbf03cbb1b9006a93",
+      "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+      "0x0"
+    ],
+    "expected_source": "committed execution output plus pinned single-task bootloader header"
+  },
+  {
+    "name": "coinflip-heads",
+    "fixture": "fixtures/coinflip/heads.json",
+    "fixture_sha256": "3b857183eea993c1f20bf7b6f292f891f9166b9dc51dc26a49c1427e9b9c0960",
+    "pie_sha256": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+    "expected_output_preimage": [
+      "0x1",
+      "0x8",
+      "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+      "0x5649525455414c5f534e4f5330",
+      "0xf5de4d",
+      "0x11baf41521fb4643aad32762f95912f2c9c451400e0ca9a89f8ce9573eff79e",
+      "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+      "0x1",
+      "0x2ee1d0a51cf022c9a1136707aba0ce70dc425895b1671e6cf5489fcca0052cb"
+    ],
+    "expected_source": "committed execution output plus pinned single-task bootloader header"
+  },
+  {
+    "name": "coinflip-tails",
+    "fixture": "fixtures/coinflip/tails.json",
+    "fixture_sha256": "3898c63700ce1f63f2ac82a107b2a78516575f4454aed8fffde24f09113c3158",
+    "pie_sha256": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13",
+    "expected_output_preimage": [
+      "0x1",
+      "0x8",
+      "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+      "0x5649525455414c5f534e4f5330",
+      "0xf5de4d",
+      "0x11baf41521fb4643aad32762f95912f2c9c451400e0ca9a89f8ce9573eff79e",
+      "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+      "0x1",
+      "0x3e8a6fc0136a9e961a86bc205f760de1bd46ef64c7cca6d63a4ba570f974378"
+    ],
+    "expected_source": "committed execution output plus pinned single-task bootloader header"
+  }
+]

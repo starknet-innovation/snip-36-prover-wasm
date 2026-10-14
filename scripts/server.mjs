@@ -2,7 +2,7 @@ import http from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-export async function startServer(port = 8767) {
+export async function startServer(port = 8767, { proverBytes } = {}) {
   const root = path.resolve("web");
   const server = http.createServer(async (req, res) => {
     try {
@@ -13,7 +13,8 @@ export async function startServer(port = 8767) {
       if (file === "/") file = "/index.html";
       file = path.resolve(root, "." + file);
       if (!file.startsWith(root + path.sep)) throw Error();
-      const body = await readFile(file);
+      const body = proverBytes && file === path.join(root, "sequencer-prover.wasm")
+        ? proverBytes : await readFile(file);
       res.writeHead(200, {
         "Content-Type": file.endsWith(".wasm")
           ? "application/wasm"

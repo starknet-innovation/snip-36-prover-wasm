@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "registered_before_candidate_measurements": true,
+  "purpose": "Compare portable memory candidate against unchanged pinned source-built prover; released module is an additional control",
+  "identity_records_required": [
+    "source SHAs",
+    "patch digests",
+    "Cargo metadata/features",
+    "Rust/LLVM/Node/Chromium versions",
+    "WASM SHA256/size",
+    "host/RAM/power policy"
+  ],
+  "corpus": [
+    "balance",
+    "coinflip-heads",
+    "coinflip-tails"
+  ],
+  "larger_input": "No independently expected larger retained input currently available; cannot claim larger-workload gains",
+  "warmup_pairs": 1,
+  "measured_pairs": 5,
+  "ordering": "alternate baseline,candidate and candidate,baseline by pair; fresh Worker per proof",
+  "timeout_ms_per_proof": 1200000,
+  "summary": "median paired candidate/baseline ratios, each workload separately",
+  "stability_gate": {
+    "all_attempts_succeed": true,
+    "maximum_time_coefficient_of_variation_each_side": 0.05
+  },
+  "acceptance": {
+    "maximum_median_prove_time_ratio": 1.05,
+    "maximum_median_rust_requested_peak_ratio": 0.85,
+    "maximum_median_linear_memory_ratio": 0.85
+  },
+  "boundaries": {
+    "load": "fetch, hash, compile and instantiate inside Worker, before init",
+    "init": "spike_init call",
+    "prove": "spike_prove call including PIE parsing and result copy",
+    "fresh_worker_total": "Worker creation through proof receipt in parent",
+    "requested_rust_peak": "cumulative allocator requested peak in fresh instance",
+    "linear_memory": "instance memory byteLength; memory can only grow",
+    "process_peak": "500 ms sampled summed Chromium-family RSS; shared pages may be double counted, transient peaks may be missed; not private memory or a hard peak",
+    "retention": "separate repeated-proof session; cannot use cumulative peak as per-phase peak"
+  },
+  "failed_attempts": "Retain all attempts, timeouts and OOMs. No ratios if either side fails stability.",
+  "smoke_validation": "One corpus traversal is a correctness smoke check and is not this benchmark campaign."
+}

@@ -3,6 +3,7 @@ import { chromium } from "playwright";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { totalmem } from "node:os";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { startServer } from "./server.mjs";
 const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
 await mkdir(dir, { recursive: true });
@@ -13,6 +14,10 @@ if (totalmem() < 14 * 1024 ** 3)
     "The full recursive prover needs a runner with at least 14 GiB RAM",
   );
 const input = JSON.parse(await readFile(path.join(dir, "browser-input.json")));
+const wasm = await readFile("web/sequencer-prover.wasm");
+const expectedWasm = { bytes: wasm.length, sha256: createHash("sha256").update(wasm).digest("hex") };
+if (process.env.PROVER_SHA256 && process.env.PROVER_SHA256 !== expectedWasm.sha256)
+  throw Error("Candidate WASM replaced before validation");
 const server = await startServer(0);
 const port = server.address().port;
 let browser;
@@ -36,8 +41,8 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`);
   await page.waitForFunction(() => typeof window.startRun === "function");
   await page.evaluate(
-    (input) => window.startRun(input.request, input.source),
-    input,
+    ({ input, expectedWasm }) => window.startRun(input.request, input.source, { expectedWasm }),
+    { input, expectedWasm },
   );
   await page.waitForFunction(
     () => window.runComplete || window.runError,
@@ -47,6 +52,8 @@ try {
   const error = await page.evaluate(() => window.runError);
   if (error) throw Error(error);
   const report = await page.evaluate(() => window.runComplete.report);
+  if (report.wasm_sha256 !== expectedWasm.sha256 || report.wasm_bytes !== expectedWasm.bytes)
+    throw Error("Browser did not prove with the expected WASM bytes");
   console.log(JSON.stringify(report, null, 2));
   // Replay execution independently in another actual Worker, with no provider network reads.
   const execution = JSON.parse(

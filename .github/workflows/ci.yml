@@ -30,6 +30,8 @@ jobs:
           persist-credentials: false
       - name: Test executor manifest consistency guards
         run: python3 -m unittest discover -s tests -p 'test_executor_manifests.py'
+      - name: Test prover preparation and resolution guards
+        run: python3 -m unittest discover -s tests -p 'test_prover*.py'
       - name: Prepare the pinned executor workspace
         run: python3 scripts/prepare-sources.py executor
       - name: Resolve the mirror and real sources with the reviewed lock
@@ -52,6 +54,26 @@ jobs:
         run: |
           for f in scripts/*.mjs web/*.mjs; do node --check "$f"; done
           bash -n scripts/build.sh
+  prover-dependencies:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Prepare baseline, candidate and pristine verifier independently
+        run: |
+          python3 scripts/prepare-sources.py prover
+          python3 scripts/prepare-sources.py prover-memory
+          python3 scripts/prepare-sources.py native
+      - name: Check actual locked Cargo resolution
+        run: |
+          port_rust=$(python3 -c 'import json; print(json.load(open("pins.json"))["rust"])')
+          rustup toolchain install "$port_rust" --profile minimal
+          cargo +"$port_rust" metadata --locked --format-version 1 --filter-platform wasm64-unknown-unknown --no-default-features --manifest-path build/baseline/proving-utils/Cargo.toml > build/baseline-metadata.json
+          cargo +"$port_rust" metadata --locked --format-version 1 --filter-platform wasm64-unknown-unknown --no-default-features --manifest-path build/memory/proving-utils/Cargo.toml > build/candidate-metadata.json
+          cargo +"$port_rust" metadata --locked --format-version 1 --manifest-path build/native-prover/Cargo.toml > build/native-metadata.json
+          python3 scripts/check-prover-resolution.py build/baseline-metadata.json build/candidate-metadata.json build/native-metadata.json
   browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

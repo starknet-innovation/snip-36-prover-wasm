@@ -68,6 +68,21 @@ try {
       `${module}: owner message accepted; foreign and synthetic events rejected`,
     );
   }
+  const mismatch = await page.evaluate(() => new Promise((resolve, reject) => {
+    const worker = new Worker("./public-prover-worker.mjs", { type: "module" });
+    const timer = setTimeout(() => { worker.terminate(); reject(Error("Identity test timed out")); }, 30000);
+    worker.onerror = (event) => { clearTimeout(timer); worker.terminate(); reject(Error(event.message)); };
+    worker.onmessage = ({ data }) => {
+      clearTimeout(timer);
+      worker.terminate();
+      resolve(data);
+    };
+    worker.postMessage({ id: "identity", pie: new Uint8Array([1]).buffer,
+      expectedWasm: { bytes: 8, sha256: "0".repeat(64) } });
+  }));
+  assert.equal(mismatch.kind, "error");
+  assert.match(mismatch.error, /Prover WASM identity mismatch/);
+  console.log("Prover rejects replaced WASM before initialization/proving");
 } finally {
   await browser.close();
   await new Promise((resolve) => server.close(resolve));
