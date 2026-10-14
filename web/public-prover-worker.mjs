@@ -18,7 +18,11 @@ self.onmessage = async (event) => {
       PROVER_BUILDS[build].url,
       (message) => send({ kind: "panic", message }),
       (stage) => send({ kind: "stage", ...stage }),
-      expectedWasm,
+      // Always hash the module so every receipt records which bytes proved it.
+      expectedWasm ?? {
+        sha256: PROVER_BUILDS[build].sha256,
+        bytes: PROVER_BUILDS[build].bytes,
+      },
     );
     const load_ms = performance.now() - loadStarted;
     let t = performance.now();

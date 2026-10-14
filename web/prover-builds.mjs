@@ -6,6 +6,8 @@ export const PROVER_BUILDS = Object.freeze({
     label: "Standard",
     note: "Unchanged pinned prover (v0.1.0)",
     url: "./sequencer-prover.wasm",
+    sha256: "1f76da1636c1e0e5f9952b3b49fc23d5a93493c2b94d3a2ec221965aa802a8aa",
+    bytes: 91384741,
     peak_bytes: 13826136697,
     linear_bytes: 14366539776,
     prove_ms: 59400,
@@ -15,6 +17,8 @@ export const PROVER_BUILDS = Object.freeze({
     label: "Memory-optimised",
     note: "Opt-in prover-memory profile (v0.2.0-memory)",
     url: "./prover-memory.wasm",
+    sha256: "33fc17171636822400f4e548c1f2a3f2f8e7069525355020de8d5a0edbb4b5ae",
+    bytes: 95089547,
     peak_bytes: 2311203058,
     linear_bytes: 3307667456,
     prove_ms: 80415,
@@ -71,5 +75,5 @@ export function buildPicker(root, onChange = () => {}) {
 // One-line summary of what this browser actually measured for a proof receipt.
 export function measuredSummary(report, key) {
   const b = PROVER_BUILDS[key] ?? PROVER_BUILDS.standard;
-  return `${b.label}: proved in ${s(report.prove_ms)} (reference ${s(b.prove_ms)}) · linear memory ${gb(report.wasm_linear_memory_bytes)} · Rust heap peak ${gb(report.rust_requested_peak_bytes)}`;
+  return `${b.label}: proved in ${s(report.prove_ms)} (reference ${s(b.prove_ms)}) · linear memory ${gb(report.wasm_linear_memory_bytes)} · Rust heap peak ${gb(report.rust_requested_peak_bytes)} · module ${report.wasm_sha256.slice(0, 8)}… verified`;
 }
