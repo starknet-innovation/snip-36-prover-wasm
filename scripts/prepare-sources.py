@@ -38,6 +38,7 @@ if mode in PROVER_PROFILES:
   patches['lock']=root/'patches/prover/candidate.Cargo.lock'
   patches['stwo-circuits']=root/'patches/prover/stwo-circuits.patch'
   patches['lifetimes']=root/'patches/prover/lifetimes.patch'
+  patches['striped']=root/'patches/prover/striped.patch'
   if mode=='prover-tradeoffs':patches['tradeoffs']=root/'patches/prover/tradeoffs.patch'
   if mode=='prover-kernels':patches['kernels']=root/'patches/prover/kernels.patch'
  marker=build/'proving-utils/.wasm-patches-complete';patch_digest=fingerprint(patches)
@@ -49,6 +50,7 @@ if mode in PROVER_PROFILES:
  if memory_profile:
   apply(build/'proving-utils',root/'patches/prover/candidate-workspace.patch')
   apply(build/'proving-utils',patches['lifetimes'])
+  apply(build/'stwo',patches['striped'])
   if 'tradeoffs' in patches:apply(build/'stwo',patches['tradeoffs'])
   if 'kernels' in patches:apply(build/'stwo',patches['kernels'])
   (build/'proving-utils/Cargo.lock').write_bytes((root/'patches/prover/candidate.Cargo.lock').read_bytes())
