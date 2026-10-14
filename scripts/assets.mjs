@@ -14,6 +14,11 @@ const targets = Object.freeze({
     path: "web/sequencer-prover.wasm",
     url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.1.0/prover.wasm",
   },
+  // Opt-in memory-saving prover; pinned to its own prerelease tag.
+  "prover-memory.wasm": {
+    path: "web/prover-memory.wasm",
+    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.2.0-memory/prover-memory.wasm",
+  },
 });
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 
@@ -22,7 +27,7 @@ export function validateManifest(manifest) {
     manifest.repository !== repository ||
     manifest.release !== release ||
     !Array.isArray(manifest.assets) ||
-    manifest.assets.length !== 2
+    manifest.assets.length !== Object.keys(targets).length
   )
     throw Error("Unexpected release manifest");
   const seen = new Set();

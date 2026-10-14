@@ -1,11 +1,19 @@
 import { coinflipResult, PLAY_SELECTOR } from "./coinflip-runtime.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
+import { buildPicker, measuredSummary, gb } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
+const builds = buildPicker(
+  $("#builds"),
+  (_, b) =>
+    ($("#build-note").textContent =
+      `Needs ${b.need} free memory. Both builds produce identical proofs; only memory use and speed differ.`),
+);
 let timer,
   started,
   sequence = 0;
 const urls = [];
 let side = "heads";
+let savedPie = null;
 let roundResult = null;
 for (const name of ["heads", "tails"])
   $("#" + name).onclick = () => {
@@ -24,6 +32,10 @@ async function readCoinflip(receipt) {
 }
 function showRound(proved = false) {
   if (!roundResult) return;
+  // Reflect the executed choice, which differs from the picker for a loaded round.
+  side = roundResult.choice === 0 ? "heads" : "tails";
+  for (const n of ["heads", "tails"])
+    $("#" + n).setAttribute("aria-pressed", String(n === side));
   const inputs = $("#round-inputs");
   if (inputs)
     inputs.textContent = `Seed ${BigInt(roundResult.seed).toString()} · Player ${roundResult.player.slice(0, 10)}…${roundResult.player.slice(-6)}`;
@@ -43,6 +55,8 @@ function finish(label) {
   $("#coin").classList.remove("spinning");
   for (const n of ["heads", "tails"]) $("#" + n).disabled = false;
   clearInterval(timer);
+  builds.disable(false);
+  $("#load-round").disabled = false;
   $("#state").textContent = label;
   $("#run").disabled = false;
   $("#cancel").disabled = true;
@@ -73,6 +87,11 @@ const controller = new PublicRunController({
     } else {
       step("proof", "done");
       $("#proof-size").textContent = size(data.report.proof_bytes);
+      $("#memory").textContent = gb(data.report.wasm_linear_memory_bytes);
+      $("#measured").textContent = measuredSummary(
+        data.report,
+        data.report.prover_build,
+      );
       download("proof.json", JSON.stringify(data));
       download(
         "proof.bin",
@@ -101,6 +120,9 @@ const controller = new PublicRunController({
       if (data.phase?.includes("virtual")) step("execution", "active");
       if (data.phase?.includes("recursive") || data.kind === "stage")
         step("proof", "active");
+      // The prover reports only at stage boundaries; Wasm memory never shrinks.
+      if (data.wasm_linear_memory_bytes)
+        $("#memory").textContent = gb(data.wasm_linear_memory_bytes);
     }
   },
   onComplete: (data) => {
@@ -116,6 +138,15 @@ const controller = new PublicRunController({
       data.kind === "execution"
         ? "Execution complete. Signature and state witnesses checked; Cairo PIE ready. No recursive proof was requested."
         : "Recursive proof generated locally. Download it for verification or signing and submission with the CLI. This run has not been submitted on-chain.";
+    const pie =
+      data.kind === "execution"
+        ? data.report.pie_sha256
+        : data.execution_report.pie_sha256;
+    if (savedPie)
+      $("#status").textContent +=
+        pie === savedPie
+          ? " Replayed PIE matches the saved round byte for byte."
+          : " Warning: replayed PIE differs from the saved round.";
   },
 });
 window.startRun = (request, source, options = {}) => {
@@ -132,11 +163,15 @@ window.startRun = (request, source, options = {}) => {
   step("state", "active");
   $("#pie-size").textContent = "—";
   $("#proof-size").textContent = "—";
+  $("#measured").textContent = "";
+  $("#memory").textContent = "—";
   $("#details").textContent = "Running…";
   const id = controller.start(request, source, options);
   if (controller.active) {
     $("#state").textContent = "RUNNING";
     $("#run").disabled = true;
+    builds.disable(true);
+    $("#load-round").disabled = true;
     for (const n of ["heads", "tails"]) $("#" + n).disabled = true;
     $("#cancel").disabled = false;
     started = performance.now();
@@ -163,6 +198,7 @@ $("#full-proof").onchange = () => {
     : "Run execution <span>↗</span>";
 };
 $("#run").onclick = async () => {
+  savedPie = null;
   window.runComplete = null;
   window.runError = null;
   const generation = ++sequence;
@@ -216,9 +252,36 @@ $("#run").onclick = async () => {
     if (generation !== sequence) return;
     window.startRun(request, source, {
       executionOnly: !$("#full-proof").checked,
+      build: builds.get(),
     });
   } catch (e) {
     if (generation !== sequence) return;
+    window.runError = String(e);
+    finish("ERROR");
+    $("#status").textContent = String(e);
+  }
+};
+// Replays a saved execution receipt offline from its recorded RPC capture.
+$("#load-round").onchange = async () => {
+  const file = $("#load-round").files[0];
+  $("#load-round").value = "";
+  if (!file || controller.active) return;
+  sequence++;
+  try {
+    const saved = JSON.parse(await file.text());
+    if (saved.kind !== "execution" || !saved.request || !saved.capture)
+      throw Error(
+        "Load an execution.json or coinflip-execution.json file; only execution files contain the recorded state. Proof files do not.",
+      );
+    if (saved.request.transaction?.calldata?.[2] !== PLAY_SELECTOR)
+      throw Error("The saved file is not a CoinFlip round");
+    savedPie = saved.report?.pie_sha256 ?? null;
+    window.startRun(
+      saved.request,
+      { capture: saved.capture },
+      { executionOnly: !$("#full-proof").checked, build: builds.get() },
+    );
+  } catch (e) {
     window.runError = String(e);
     finish("ERROR");
     $("#status").textContent = String(e);

@@ -232,6 +232,24 @@ export function proofMaterial(receipt, config, r, g) {
     proof_facts: [...tags, ...expected.slice(2)],
   };
 }
+// Rejects with e.timeout = true if the promise has not settled within ms.
+export function withTimeout(promise, ms, message) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(
+        () => reject(Object.assign(Error(message), { timeout: true })),
+        ms,
+      );
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
+// The spec's API_VERSION pattern has no pre-release suffix; omit it for versions such
+// as "0.10.4-rc.0", which the spec then treats as the wallet's latest version.
+export function apiVersionParam(version) {
+  return /^\d+\.\d+(\.\d+)?$/.test(version) ? { api_version: version } : {};
+}
 export function proofApiVersion(versions) {
   if (!Array.isArray(versions)) return null;
   return (

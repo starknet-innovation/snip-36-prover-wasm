@@ -1,5 +1,5 @@
 import { getStarknet } from "@starknet-io/get-starknet-core";
-import { CHAIN, hex, proofApiVersion } from "./live-core.mjs";
+import { CHAIN, hex, proofApiVersion, apiVersionParam } from "./live-core.mjs";
 export async function discoverWallets() {
   return getStarknet().getAvailableWallets();
 }
@@ -71,7 +71,7 @@ export async function invokeWallet(connection, calls, proof) {
     );
   const params = {
     invoke_transaction: calls,
-    api_version: connection.proofVersion,
+    ...apiVersionParam(connection.proofVersion),
   };
   if (proof) params.proof = proof;
   return connection.wallet.request({

@@ -23,9 +23,17 @@ import {
   revealCalls,
   settleCalls,
   outcome,
+  withTimeout,
 } from "./live-core.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
+import { buildPicker, measuredSummary, gb } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
+const builds = buildPicker(
+  $("#builds"),
+  (_, b) =>
+    ($("#build-note").textContent =
+      `Needs ${b.need} free memory. Both builds produce identical proofs; only memory use and speed differ.`),
+);
 let config,
   connection,
   round,
@@ -109,6 +117,7 @@ function render() {
   for (const n of ["heads", "tails"])
     $("#pick-" + n).disabled = !!round || busy;
   $("#stake").disabled = !!round || busy;
+  builds.disable(busy);
   $("#round-details").textContent = round
     ? JSON.stringify(
         {
@@ -326,9 +335,20 @@ async function walletTx(name, calls, material) {
   message("Confirm " + name + " in your wallet.");
   let response;
   try {
-    response = await invokeWallet(connection, calls, material);
+    const sent = invokeWallet(connection, calls, material);
+    // Some wallets never answer proof-bearing invocations; don't wait forever.
+    response = material
+      ? await withTimeout(
+          sent,
+          // Above the test adapter's worst case (RPC calls plus a 120 s gateway submit)
+          // and long enough to review a real wallet prompt.
+          300000,
+          "Your wallet did not respond to the proof-bearing settlement within 5 minutes; it may not support attached proofs. If it shows a prompt later, reject it. Download the proof and recovery file, then settle from the command line with npm run settle (see docs/live-coinflip.md).",
+        )
+      : await sent;
   } catch (e) {
     if (
+      e.timeout ||
       [113, 4001].includes(e.code) ||
       /refus|reject|denied/i.test(e.message ?? "")
     ) {
@@ -403,6 +423,9 @@ const controller = new PublicRunController({
       );
       render();
     } else if (data.phase) message(data.phase);
+    // The prover reports only at stage boundaries; Wasm memory never shrinks.
+    if (data.wasm_linear_memory_bytes)
+      $("#live-memory").textContent = gb(data.wasm_linear_memory_bytes);
   },
   onComplete: (receipt) => {
     clearInterval(timer);
@@ -411,6 +434,11 @@ const controller = new PublicRunController({
     $("#live-coin").classList.remove("spinning");
     $("#live-proof-size").textContent =
       (receipt.report.proof_bytes / 1024).toFixed(1) + " KB";
+    $("#live-memory").textContent = gb(receipt.report.wasm_linear_memory_bytes);
+    $("#measured").textContent = measuredSummary(
+      receipt.report,
+      receipt.report.prover_build,
+    );
     message(
       "Proof generated locally. Review and submit settlement in your wallet.",
     );
@@ -437,10 +465,13 @@ async function prove() {
         ((performance.now() - started) / 1000).toFixed(0) + " s"),
     1000,
   );
-  controller.start(request, {
-    endpoint: RPC,
-    block_id: { block_hash: header.block_hash },
-  });
+  $("#measured").textContent = "";
+  $("#live-memory").textContent = "—";
+  controller.start(
+    request,
+    { endpoint: RPC, block_id: { block_hash: header.block_hash } },
+    { build: builds.get() },
+  );
   render();
 }
 $("#next").onclick = () =>
