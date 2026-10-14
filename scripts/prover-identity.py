@@ -68,7 +68,7 @@ def main():
                   'llvm': command(args.clang, '--version')},
         'host': {'platform': platform.platform(), 'machine': platform.machine(), 'ram': command('sysctl', '-n', 'hw.memsize'),
                  'power_policy': command('pmset', '-g')},
-        'flags': 'RUSTFLAGS=--cfg getrandom_backend="custom" -C target-feature=+simd128; --locked --release --target wasm64-unknown-unknown -Z build-std=std,panic_abort --no-default-features; stack=8388608 max-memory=17179869184',
+        'flags': 'RUSTFLAGS=--cfg getrandom_backend="custom" -C target-feature=+simd128 --remap-path-prefix (repo=/src, cargo=/cargo, rustup=/rustup); --locked --release --target wasm64-unknown-unknown -Z build-std=std,panic_abort --no-default-features; stack=8388608 max-memory=17179869184',
         'measurement_limit': 'Rust requested peak is cumulative per instance; excludes allocator overhead, JS and RSS. Linear memory never shrinks on free.'
     }
     # Keep a digest of the potentially large source diff instead of embedding vendor code.

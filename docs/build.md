@@ -24,7 +24,7 @@ WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover-memory
 WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover
 ```
 
-Every profile retains its module as `build/wasm/SHA256.wasm`. `prover-memory`
+Every profile retains its module as `build/wasm/SHA256.wasm`. Builds remap the repository, Cargo and rustup paths to `/src`, `/cargo` and `/rustup`, so modules embed no build-machine paths; module hashes therefore differ from builds made before this flag. `prover-memory`
 prepares sources under `build/memory`; `prover-tradeoffs` and `prover-kernels`
 add their separate experiments and also retain modules without installation
 unless `--install` is passed. `prover-baseline` remains the unchanged control
