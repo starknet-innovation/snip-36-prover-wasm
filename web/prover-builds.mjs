@@ -1,7 +1,9 @@
 // Selectable prover modules. Stats are coinflip-heads medians from the paired browser campaigns
 // (standard: docs/port/benchmark-sparse-merkle-01.json; memory: docs/port/benchmark-round2-01.json,
-// same machine). The memory build's prove time is the v0.2.0-memory figure: round 2 measured a
-// 0.997 paired time ratio on balance, and its CoinFlip times failed the stability gate.
+// same machine). The memory figures were measured on the campaign module 4ebd702b, built from the
+// same sources as the released fba4188d. The memory build's prove time is the v0.2.0-memory figure:
+// round 2 measured a 0.997 paired time ratio on balance, and its CoinFlip times failed the
+// stability gate.
 // Proofs are byte-identical across builds; only memory and time differ.
 export const PROVER_BUILDS = Object.freeze({
   standard: Object.freeze({
