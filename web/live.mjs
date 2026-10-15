@@ -135,7 +135,8 @@ function render() {
   for (let i = 1; i <= 4; i++)
     $("#live-step-" + i).className = stages[i - 1] ? "done" : "";
   let label = "Commit & deposit",
-    enabled = !!connection?.proofVersion && $("#ready").checked && !busy;
+    enabled =
+      !!connection?.proofVersion && (!!round || $("#ready").checked) && !busy;
   if (state === 1) {
     label = "Refund unmatched deposit";
     enabled &&= Date.now() / 1000 >= currentGame.deadline;
@@ -153,6 +154,10 @@ function render() {
   }
   if (state === 3) {
     label = proof ? "Settle with wallet" : "Generate browser proof";
+    if (proof && head < proof.anchor.header.block_number + 10) {
+      label = "Waiting for block " + (proof.anchor.header.block_number + 10);
+      enabled = false;
+    }
     $("#seed-status").textContent = "Seed locked: " + currentGame.seed;
   }
   if ([4, 5, 6].includes(state)) {
@@ -190,12 +195,15 @@ function render() {
   else if (stakeError) {
     hint = stakeError;
     label = "Enter a valid stake";
-  } else if (!$("#ready").checked && ![4, 5, 6].includes(state)) {
+  } else if (!round && !$("#ready").checked) {
     hint = "Check “I can finish this round” above to enable this button.";
     label = "Check the acknowledgement above";
   } else if (!enabled && state === 2)
     hint =
       "Waiting for the seed block. The button enables automatically when it is available.";
+  else if (!enabled && state === 3)
+    hint =
+      "The proof is anchored to a recent block. Settlement opens 10 blocks later; the button enables automatically.";
   else if (!enabled && state === 1)
     hint =
       "The unmatched deposit can be refunded after " +
@@ -232,8 +240,7 @@ function renderHistory() {
     b.disabled = busy;
     b.onclick = () =>
       run(async () => {
-        round = validateRound(r, connection.address, config.bank);
-        proof = null;
+        reset(validateRound(r, connection.address, config.bank));
         try {
           proof = await proofDB("get");
         } catch {}
@@ -496,9 +503,6 @@ $("#next").onclick = () =>
       currentGame = { state: 0 };
     }
     const state = currentGame?.state ?? 0;
-    $("#connect").disabled = busy;
-    $("#wallets").disabled = busy;
-    $("#restore").disabled = busy;
     if (state === 0) {
       await walletTx("deposit", depositCalls(round));
       message(
@@ -547,15 +551,27 @@ $("#stop").onclick = () => controller.cancel();
 $("#ready").onchange = render;
 $("#stake").oninput = render;
 $("#refresh").onclick = () => run(refresh);
-$("#new-round").onclick = () => {
-  round = null;
+function reset(next = null) {
+  round = next;
   proof = null;
   currentGame = null;
+  if (next) choice = next.choice;
+  $("#pick-heads").setAttribute("aria-pressed", String(choice === 0));
+  $("#pick-tails").setAttribute("aria-pressed", String(choice === 1));
   $("#live-coin").textContent = "?";
-  $("#result").textContent = "Choose a side for a new round.";
+  $("#result").textContent = next
+    ? "Round loaded."
+    : "Choose a side for a new round.";
   $("#seed-status").textContent = "";
   $("#live-downloads").replaceChildren();
+  $("#live-elapsed").textContent = "—";
+  $("#live-proof-size").textContent = "—";
+  $("#live-memory").textContent = "—";
+  $("#measured").textContent = "";
   urls.splice(0).forEach(URL.revokeObjectURL);
+}
+$("#new-round").onclick = () => {
+  reset();
   render();
 };
 for (const [name, side] of [
@@ -568,8 +584,13 @@ for (const [name, side] of [
     $("#pick-tails").setAttribute("aria-pressed", String(side === 1));
   };
 $("#backup").onclick = () => {
-  downloadable("coinflip-recovery.json", round);
-  $("#live-downloads a:last-child").click();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(
+    new Blob([JSON.stringify(round)], { type: "application/json" }),
+  );
+  a.download = "coinflip-recovery.json";
+  urls.push(a.href);
+  a.click();
 };
 $("#restore").onchange = () =>
   run(async () => {
@@ -577,17 +598,19 @@ $("#restore").onchange = () =>
       throw Error("Connect the wallet that owns the round first");
     const f = $("#restore").files[0];
     if (!f || f.size > 1024 * 1024) throw Error("Recovery file too large");
-    round = validateRound(
-      JSON.parse(await f.text()),
-      connection.address,
-      config.bank,
+    reset(
+      validateRound(
+        JSON.parse(await f.text()),
+        connection.address,
+        config.bank,
+      ),
     );
     persist();
-    proof = null;
     try {
       proof = await proofDB("get");
     } catch {}
     await refresh();
+    if (proof) downloadable("coinflip-proof.json", proof);
     message("Round restored.");
   });
 let wallets = [];
@@ -600,9 +623,7 @@ $("#connect").onclick = () =>
       );
     message("Connecting to " + wallet.name + "…");
     connection = await connectWallet(wallet, message);
-    round = null;
-    currentGame = null;
-    proof = null;
+    reset();
     $("#wallet-status").textContent =
       connection.address.slice(0, 12) +
       "… · " +
