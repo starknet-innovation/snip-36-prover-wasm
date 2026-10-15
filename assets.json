@@ -17,8 +17,8 @@
     {
       "name": "prover-memory.wasm",
       "path": "web/prover-memory.wasm",
-      "bytes": 95089547,
-      "sha256": "33fc17171636822400f4e548c1f2a3f2f8e7069525355020de8d5a0edbb4b5ae"
+      "bytes": 94897180,
+      "sha256": "fba4188d5a2f73d41534e8f7e2b6e312766ea9b8a2c0de098bf4d9f7accf4029"
     }
   ]
 }

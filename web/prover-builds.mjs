@@ -1,5 +1,9 @@
-// Selectable prover modules. Stats are medians from the paired browser campaign
-// (docs/port/benchmark-sparse-merkle-01.json, coinflip-heads workload, same machine).
+// Selectable prover modules. Stats are coinflip-heads medians from the paired browser campaigns
+// (standard: docs/port/benchmark-sparse-merkle-01.json; memory: docs/port/benchmark-round2-01.json,
+// same machine). The memory figures were measured on the campaign module 4ebd702b, built from the
+// same sources as the released fba4188d. The memory build's prove time is the v0.2.0-memory figure:
+// round 2 measured a 0.997 paired time ratio on balance, and its CoinFlip times failed the
+// stability gate.
 // Proofs are byte-identical across builds; only memory and time differ.
 export const PROVER_BUILDS = Object.freeze({
   standard: Object.freeze({
@@ -15,14 +19,14 @@ export const PROVER_BUILDS = Object.freeze({
   }),
   memory: Object.freeze({
     label: "Memory-optimised",
-    note: "Opt-in prover-memory profile (v0.2.0-memory)",
+    note: "Opt-in prover-memory profile (v0.3.0-memory)",
     url: "./prover-memory.wasm",
-    sha256: "33fc17171636822400f4e548c1f2a3f2f8e7069525355020de8d5a0edbb4b5ae",
-    bytes: 95089547,
-    peak_bytes: 2311203058,
-    linear_bytes: 3307667456,
+    sha256: "fba4188d5a2f73d41534e8f7e2b6e312766ea9b8a2c0de098bf4d9f7accf4029",
+    bytes: 94897180,
+    peak_bytes: 1562659763,
+    linear_bytes: 2251816960,
     prove_ms: 80415,
-    need: "about 3.5 GiB",
+    need: "about 2.5 GiB",
   }),
 });
 
