@@ -69,3 +69,19 @@ linear memory 3.25–3.36 → 2.22–2.25 GB. The last layer lowered the request
 Single-run prove times (76–90 s) are not a paired measurement; the paired campaign,
 human review, CI and release remain outstanding. The released v0.2.0-memory module
 and `web/prover-builds.mjs` are unchanged.
+
+Paired campaign ([benchmark-round2-01.json](benchmark-round2-01.json), plan
+`benchmark-plan.json`, baseline the released v0.2.0-memory module `33fc1717…`,
+candidate `4ebd702b…`; 36/36 attempts passed, each natively verified with tamper
+rejection):
+
+| Workload | Prove time ratio | Rust requested peak | Linear memory |
+|---|---:|---:|---:|
+| balance | 0.997 | 2.31 → 1.57 GB (0.679) | 3.25 → 2.25 GB (0.692) |
+| coinflip-heads | unstable | 2.31 → 1.56 GB | 3.35 → 2.25 GB |
+| coinflip-tails | unstable | 2.31 → 1.56 GB | 3.32 → 2.22 GB |
+
+Balance passes every preregistered gate (time CV 0.25%/0.69%). Both CoinFlip
+workloads failed the 5% time-CV gate on both roles: from about 10:07 UTC both
+modules slowed by up to 20% with background host load, so the plan reports no
+ratios for them; their memory medians are listed for reference only.

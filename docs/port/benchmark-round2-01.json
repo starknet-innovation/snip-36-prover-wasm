@@ -1,0 +1,428 @@
+{
+ "campaign": "benchmark-round2-01",
+ "baseline": {
+  "module_sha256": "33fc17171636822400f4e548c1f2a3f2f8e7069525355020de8d5a0edbb4b5ae",
+  "what": "released v0.2.0-memory (PR-08 sources)"
+ },
+ "candidate": {
+  "module_sha256": "4ebd702b3f7522c0d0f467325ed8f073c230349bfa9f2c7edc361504ce7705e6",
+  "what": "round 2 (PR-09-memory-round-2.md)"
+ },
+ "plan": "docs/port/benchmark-plan.json",
+ "registered_at": "2026-10-15T09:48:40.786Z",
+ "repository_head": "b92f4590e308a41393e7396aa6bc002f18c473d1",
+ "chromium": "153.0.8010.12",
+ "node": "v24.18.1",
+ "attempts": {
+  "total": 36,
+  "passed": 36
+ },
+ "attempt_prove_seconds": [
+  {
+   "workload": "balance",
+   "pair": 0,
+   "warmup": true,
+   "role": "baseline",
+   "started_at": "2026-10-15T09:48:40.867Z",
+   "prove_s": 78.0
+  },
+  {
+   "workload": "balance",
+   "pair": 0,
+   "warmup": true,
+   "role": "candidate",
+   "started_at": "2026-10-15T09:50:04.002Z",
+   "prove_s": 76.3
+  },
+  {
+   "workload": "balance",
+   "pair": 1,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T09:51:24.765Z",
+   "prove_s": 76.4
+  },
+  {
+   "workload": "balance",
+   "pair": 1,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T09:52:45.686Z",
+   "prove_s": 76.7
+  },
+  {
+   "workload": "balance",
+   "pair": 2,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T09:54:06.883Z",
+   "prove_s": 76.5
+  },
+  {
+   "workload": "balance",
+   "pair": 2,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T09:55:27.949Z",
+   "prove_s": 76.2
+  },
+  {
+   "workload": "balance",
+   "pair": 3,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T09:56:48.643Z",
+   "prove_s": 77.4
+  },
+  {
+   "workload": "balance",
+   "pair": 3,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T09:58:10.562Z",
+   "prove_s": 76.3
+  },
+  {
+   "workload": "balance",
+   "pair": 4,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T09:59:31.397Z",
+   "prove_s": 76.5
+  },
+  {
+   "workload": "balance",
+   "pair": 4,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:00:52.513Z",
+   "prove_s": 76.1
+  },
+  {
+   "workload": "balance",
+   "pair": 5,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:02:13.253Z",
+   "prove_s": 76.6
+  },
+  {
+   "workload": "balance",
+   "pair": 5,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:03:34.434Z",
+   "prove_s": 76.8
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 0,
+   "warmup": true,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:04:55.808Z",
+   "prove_s": 79.5
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 0,
+   "warmup": true,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:06:19.419Z",
+   "prove_s": 82.6
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 1,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:07:46.107Z",
+   "prove_s": 89.2
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 1,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:09:20.173Z",
+   "prove_s": 81.6
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 2,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:10:47.226Z",
+   "prove_s": 79.6
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 2,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:12:10.975Z",
+   "prove_s": 78.9
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 3,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:13:33.910Z",
+   "prove_s": 80.0
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 3,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:14:58.030Z",
+   "prove_s": 84.6
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 4,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:16:27.122Z",
+   "prove_s": 88.8
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 4,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:18:00.292Z",
+   "prove_s": 93.6
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 5,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:19:38.781Z",
+   "prove_s": 90.3
+  },
+  {
+   "workload": "coinflip-heads",
+   "pair": 5,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:21:13.915Z",
+   "prove_s": 79.0
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 0,
+   "warmup": true,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:22:37.047Z",
+   "prove_s": 88.3
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 0,
+   "warmup": true,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:24:09.442Z",
+   "prove_s": 107.2
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 1,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:26:01.225Z",
+   "prove_s": 112.1
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 1,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:27:59.144Z",
+   "prove_s": 104.9
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 2,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:29:48.911Z",
+   "prove_s": 91.7
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 2,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:31:24.865Z",
+   "prove_s": 94.8
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 3,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:33:04.076Z",
+   "prove_s": 91.4
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 3,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:34:39.753Z",
+   "prove_s": 90.5
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 4,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:36:14.529Z",
+   "prove_s": 90.4
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 4,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:37:49.326Z",
+   "prove_s": 88.9
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 5,
+   "warmup": false,
+   "role": "candidate",
+   "started_at": "2026-10-15T10:39:22.290Z",
+   "prove_s": 89.5
+  },
+  {
+   "workload": "coinflip-tails",
+   "pair": 5,
+   "warmup": false,
+   "role": "baseline",
+   "started_at": "2026-10-15T10:40:55.731Z",
+   "prove_s": 87.9
+  }
+ ],
+ "summary": {
+  "scope": "preregistered paired campaign",
+  "interrupted": false,
+  "declared_attempts": 36,
+  "completed_attempts": 36,
+  "all_accepted": false,
+  "workloads": [
+   {
+    "name": "balance",
+    "roles": {
+     "baseline": {
+      "successful_measured_attempts": 5,
+      "prove_time_cv": 0.0024622991587771527,
+      "medians": {
+       "load_ms": 98.97499999403954,
+       "init_ms": 1595.3600000143051,
+       "prove_ms": 76536.50499999523,
+       "fresh_worker_ms": 78254.3599999845,
+       "rust_requested_peak_bytes": 2311561615,
+       "wasm_linear_memory_bytes": 3249471488,
+       "browser_process_peak_bytes": 3871211520
+      }
+     },
+     "candidate": {
+      "successful_measured_attempts": 5,
+      "prove_time_cv": 0.006935751685972246,
+      "medians": {
+       "load_ms": 98.00499999523163,
+       "init_ms": 1591.6799999773502,
+       "prove_ms": 76396.875,
+       "fresh_worker_ms": 78116.71500000358,
+       "rust_requested_peak_bytes": 1568916560,
+       "wasm_linear_memory_bytes": 2248867840,
+       "browser_process_peak_bytes": 3042689024
+      }
+     }
+    },
+    "stable": true,
+    "median_paired_ratios": {
+     "load_ms": 0.9901995453511865,
+     "init_ms": 0.9943084946262715,
+     "prove_ms": 0.9965008216248553,
+     "fresh_worker_ms": 0.9965543310156543,
+     "rust_requested_peak_bytes": 0.6787258231920416,
+     "wasm_linear_memory_bytes": 0.69207187947482,
+     "browser_process_peak_bytes": 0.7863046294806547
+    },
+    "accepted": true
+   },
+   {
+    "name": "coinflip-heads",
+    "roles": {
+     "baseline": {
+      "successful_measured_attempts": 5,
+      "prove_time_cv": 0.0490767223851866,
+      "medians": {
+       "load_ms": 106.08500000834465,
+       "init_ms": 1678.2350000143051,
+       "prove_ms": 81572.33000001311,
+       "fresh_worker_ms": 83656.69999998808,
+       "rust_requested_peak_bytes": 2311203058,
+       "wasm_linear_memory_bytes": 3349938176,
+       "browser_process_peak_bytes": 3928408064
+      }
+     },
+     "candidate": {
+      "successful_measured_attempts": 5,
+      "prove_time_cv": 0.07567631488292426,
+      "medians": {
+       "load_ms": 114.85500001907349,
+       "init_ms": 1641.324999988079,
+       "prove_ms": 89207.56000000238,
+       "fresh_worker_ms": 90988.84000000358,
+       "rust_requested_peak_bytes": 1562659763,
+       "wasm_linear_memory_bytes": 2251816960,
+       "browser_process_peak_bytes": 3013771264
+      }
+     }
+    },
+    "stable": false,
+    "accepted": false
+   },
+   {
+    "name": "coinflip-tails",
+    "roles": {
+     "baseline": {
+      "successful_measured_attempts": 5,
+      "prove_time_cv": 0.07277574942015336,
+      "medians": {
+       "load_ms": 111.70500001311302,
+       "init_ms": 1687.9900000095367,
+       "prove_ms": 90461.38499999046,
+       "fresh_worker_ms": 92311.39500001073,
+       "rust_requested_peak_bytes": 2311202726,
+       "wasm_linear_memory_bytes": 3316580352,
+       "browser_process_peak_bytes": 3882795008
+      }
+     },
+     "candidate": {
+      "successful_measured_attempts": 5,
+      "prove_time_cv": 0.101341601079636,
+      "medians": {
+       "load_ms": 115.99000000953674,
+       "init_ms": 1712.4900000095367,
+       "prove_ms": 91369.8900000155,
+       "fresh_worker_ms": 93220.87999999523,
+       "rust_requested_peak_bytes": 1562658919,
+       "wasm_linear_memory_bytes": 2217476096,
+       "browser_process_peak_bytes": 2975072256
+      }
+     }
+    },
+    "stable": false,
+    "accepted": false
+   }
+  ]
+ },
+ "notes": "CoinFlip workloads failed the 5% time-CV gate on both roles (baseline 4.9%/7.3%, candidate 7.6%/10.1%): times drift on both roles from about 10:07 UTC with background host load; under the plan no ratios are reported for them. Memory medians are recorded but not claimed as ratios."
+}
