@@ -37,10 +37,11 @@ block (profiler `SNAP` events):
 |---|---:|---:|---:|
 | Cairo base-trace write output (0.41 GB trace + lookup data), at the Cairo base commit | 0.952 GB | 0.510 GB | 0.44 GB |
 | Circuit trees, at the start of the circuit `prove_ex` | 0.955 GB | 0.710 GB | 0.25 GB |
-| Held through the whole proof (circuit preprocessing) | 0.118 GB | 0.060 GB | 0.06 GB |
+| Live at the start of the proof (estimate: circuit preprocessing) | 0.118 GB | 0.060 GB | 0.06 GB |
 
-Each commit adds about the same on top in both builds; the difference is what is
-already resident. Per phase (peak / live on entry, GB):
+The frontier's commits add more on top than this port's (Cairo base commit +0.28
+against +0.15 GB, circuit base commit +0.46 against +0.15 GB); it is lower only
+because much less is already resident. Per phase (peak / live on entry, GB):
 
 | Phase | Port | Frontier |
 |---|---:|---:|
@@ -59,7 +60,10 @@ peak; both are needed to reach about 1.24 GB.
    trace are stored in the bits their values occupy and widened exactly at interaction
    time: XOR tuples `[relation, a, b, a^b]` become `a | b << 16` (4 words to 1), and
    `memory_id_to_big` tuples (28 limbs of 9 bits) become 11 words instead of 30.
-   Cairo lookup data falls from about 0.54 GB to about 0.10 GB.
+   Estimated from the table above, assuming both builds hold the same 0.41 GB of
+   base trace (103 M cells): Cairo lookup data about 0.54 GB here against about
+   0.10 GB in the frontier. The fork's newer upstream may differ slightly in trace
+   layout, so this split is an estimate, not a direct measurement.
 
    *Constraint:* the writers are AIR-generated (`// This file was created by the AIR
    team.`, 60 of 68 files in `stwo-cairo/.../witness/components/`), and the pinned
@@ -79,8 +83,9 @@ peak; both are needed to reach about 1.24 GB.
    samples, and decommitment plans on the trace domain. Composition regrows once per
    component.
 
-3. **Lazy circuit preprocessing**: built at first use rather than in the precomputes
-   (about 0.06 GB held through the proof).
+3. **Lazy circuit preprocessing**: built at first use rather than in the precomputes.
+   The 0.06 GB difference in live memory at the start of the proof is attributed to
+   it by inspection of the two flows, not by isolated measurement.
 
 ## Browser ceiling not covered by the frontier
 
