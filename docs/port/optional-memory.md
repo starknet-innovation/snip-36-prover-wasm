@@ -13,7 +13,7 @@ implementation is selected explicitly as `prover-memory`.
 
 Pass `--install` to select an optional profile locally. Each build also retains
 its module at `build/wasm/SHA256.wasm`. `npm run assets` restores the released
-modules, including the v0.2.0-memory module. Both CoinFlip pages let the user
+modules, including the v0.3.0-memory module (round 2). Both CoinFlip pages let the user
 choose the build, preselecting Standard only when `navigator.deviceMemory` reports 32+ GB
 (`web/prover-builds.mjs`); the daily live E2E pins the standard build.
 

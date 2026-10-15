@@ -17,7 +17,7 @@ const targets = Object.freeze({
   // Opt-in memory-saving prover; pinned to its own prerelease tag.
   "prover-memory.wasm": {
     path: "web/prover-memory.wasm",
-    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.2.0-memory/prover-memory.wasm",
+    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.3.0-memory/prover-memory.wasm",
   },
 });
 const sha = (b) => createHash("sha256").update(b).digest("hex");

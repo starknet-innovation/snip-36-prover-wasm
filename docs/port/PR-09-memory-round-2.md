@@ -86,3 +86,11 @@ Balance passes every preregistered gate (time CV 0.25%/0.69%). Both CoinFlip
 workloads failed the 5% time-CV gate on both roles: from about 10:07 UTC both
 modules slowed by up to 20% with background host load, so the plan reports no
 ratios for them; their memory medians are listed for reference only.
+
+Released as [`v0.3.0-memory`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v0.3.0-memory)
+(prerelease), built from merge commit `028e476`: module
+`fba4188d5a2f73d41534e8f7e2b6e312766ea9b8a2c0de098bf4d9f7accf4029` (94,897,180 bytes).
+Its prepared sources are identical to the validated `f6e01963…` build, but the bytes
+differ with the checkout location, so the release bytes were validated on their own:
+all three proofs byte-identical, verified by the pristine verifier, tampering
+rejected, requested peak 1.563–1.569 GB.
