@@ -67,7 +67,7 @@ byte-identical to the PR-08 proofs, pass the pristine 3035dd verifier and reject
 proof and statement tampering. Requested Rust peak 2.31 → 1.563–1.569 GB; WASM
 linear memory 3.25–3.36 → 2.18–2.25 GB across both modules. The last layer lowered the requested peak by
 0.17 GB but not linear memory, which the allocator's high-water mark sets.
-Single-run prove times (76–90 s) are not a paired measurement; the paired campaign,
+Single-run prove times (76–102 s) are not a paired measurement; the paired campaign,
 human review, CI and release remain outstanding. The released v0.2.0-memory module
 and `web/prover-builds.mjs` are unchanged.
 
