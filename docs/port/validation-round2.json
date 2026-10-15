@@ -1,47 +1,5 @@
 {
  "scope": "single browser run per workload (offline-proof.mjs prove, corpus-01); not a paired campaign",
- "final": {
-  "module_sha256": "4ebd702b3f7522c0d0f467325ed8f073c230349bfa9f2c7edc361504ce7705e6",
-  "workloads": {
-   "balance": {
-    "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
-    "matches_pr08_proof": true,
-    "native_verified": true,
-    "proof_tamper_rejected": true,
-    "statement_tamper_rejected": true,
-    "rust_requested_peak_bytes": 1568916560,
-    "wasm_linear_memory_bytes": 2248867840,
-    "prove_ms": 76410
-   },
-   "coinflip-heads": {
-    "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
-    "matches_pr08_proof": true,
-    "native_verified": true,
-    "proof_tamper_rejected": true,
-    "statement_tamper_rejected": true,
-    "rust_requested_peak_bytes": 1562659763,
-    "wasm_linear_memory_bytes": 2251816960,
-    "prove_ms": 84960
-   },
-   "coinflip-tails": {
-    "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
-    "matches_pr08_proof": true,
-    "native_verified": true,
-    "proof_tamper_rejected": true,
-    "statement_tamper_rejected": true,
-    "rust_requested_peak_bytes": 1562658919,
-    "wasm_linear_memory_bytes": 2217476096,
-    "prove_ms": 89652
-   }
-  },
-  "layers": [
-   "quotient-combine",
-   "striped-fri-layers",
-   "exact-pool",
-   "stripe-passes",
-   "circuit-witness"
-  ]
- },
  "intermediate": {
   "module_sha256": "e7f78a8ff98f2c5dae2e40e50e0c87a5fe7181c7b87a5683e10529b1187cbe21",
   "workloads": {
@@ -86,9 +44,96 @@
  "tests": {
   "stwo_lib": "263 passed (prover and prover,parallel)",
   "circuit_prover": "12 passed",
+  "circuit_common": "3 passed",
   "npm_test": "68 passed",
   "python_prover": "OK",
   "executor_manifests": "OK"
  },
- "notes": "Module built from a fresh prover-memory preparation; contains no build-machine paths. WASM linear memory did not fall with the last layer (2.22-2.25 GB) although the requested peak fell 0.17 GB."
+ "notes": "Modules built from fresh prover-memory preparations; no build-machine paths. Linear memory varies run to run by about 0.05 GB at the same requested peak.",
+ "benchmarked": {
+  "module_sha256": "4ebd702b3f7522c0d0f467325ed8f073c230349bfa9f2c7edc361504ce7705e6",
+  "workloads": {
+   "balance": {
+    "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+    "matches_pr08_proof": true,
+    "native_verified": true,
+    "proof_tamper_rejected": true,
+    "statement_tamper_rejected": true,
+    "rust_requested_peak_bytes": 1568916560,
+    "wasm_linear_memory_bytes": 2248867840,
+    "prove_ms": 76410
+   },
+   "coinflip-heads": {
+    "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+    "matches_pr08_proof": true,
+    "native_verified": true,
+    "proof_tamper_rejected": true,
+    "statement_tamper_rejected": true,
+    "rust_requested_peak_bytes": 1562659763,
+    "wasm_linear_memory_bytes": 2251816960,
+    "prove_ms": 84960
+   },
+   "coinflip-tails": {
+    "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+    "matches_pr08_proof": true,
+    "native_verified": true,
+    "proof_tamper_rejected": true,
+    "statement_tamper_rejected": true,
+    "rust_requested_peak_bytes": 1562658919,
+    "wasm_linear_memory_bytes": 2217476096,
+    "prove_ms": 89652
+   }
+  },
+  "layers": [
+   "quotient-combine",
+   "striped-fri-layers",
+   "exact-pool",
+   "stripe-passes",
+   "circuit-witness"
+  ],
+  "note": "module measured by benchmark-round2-01.json; differs from final only in comments and a pass-size guard"
+ },
+ "final": {
+  "module_sha256": "f6e019637fb7f3f644faab6a90fead1668f4f2eda9465b4431de96f1fcc2321b",
+  "workloads": {
+   "balance": {
+    "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+    "matches_pr08_proof": true,
+    "native_verified": true,
+    "proof_tamper_rejected": true,
+    "statement_tamper_rejected": true,
+    "rust_requested_peak_bytes": 1568916560,
+    "wasm_linear_memory_bytes": 2197946368,
+    "prove_ms": 77812
+   },
+   "coinflip-heads": {
+    "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+    "matches_pr08_proof": true,
+    "native_verified": true,
+    "proof_tamper_rejected": true,
+    "statement_tamper_rejected": true,
+    "rust_requested_peak_bytes": 1562659763,
+    "wasm_linear_memory_bytes": 2183659520,
+    "prove_ms": 84733
+   },
+   "coinflip-tails": {
+    "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+    "matches_pr08_proof": true,
+    "native_verified": true,
+    "proof_tamper_rejected": true,
+    "statement_tamper_rejected": true,
+    "rust_requested_peak_bytes": 1562658919,
+    "wasm_linear_memory_bytes": 2234515456,
+    "prove_ms": 102167
+   }
+  },
+  "layers": [
+   "quotient-combine",
+   "striped-fri-layers",
+   "exact-pool",
+   "stripe-passes",
+   "circuit-witness"
+  ],
+  "changes_since_benchmarked": "review fixes: misplaced and stale comments; pass-size arithmetic in u64 bounded by the window; native peak and proof bytes unchanged"
+ }
 }

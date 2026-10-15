@@ -431,9 +431,18 @@ index 549abc5..b1d1420 100644
          let (trace, claimed_sum) = logup_gen.finalize_last();
  
 diff --git a/crates/circuit_prover/src/witness/trace.rs b/crates/circuit_prover/src/witness/trace.rs
-index 4112145..3d36486 100644
+index 4112145..8761890 100644
 --- a/crates/circuit_prover/src/witness/trace.rs
 +++ b/crates/circuit_prover/src/witness/trace.rs
+@@ -47,7 +47,7 @@ where
+ {
+     let preprocessed_trace_ref = preprocessed_trace.as_ref();
+ 
+-    // Parent scope: eq/qm31_ops traces run as spawns alongside everything else.
++    // Eq and qm31_ops run in their own scope first; the gate components and tables follow.
+     let mut eq_result = MaybeUninit::uninit();
+     let mut qm31_ops_result = MaybeUninit::uninit();
+     let mut verify_bitwise_xor_8_state = MaybeUninit::uninit();
 @@ -71,8 +71,10 @@ where
      let mut m_31_to_u_32_trace_data = MaybeUninit::uninit();
      let mut m_31_to_u_32_claim_icg = MaybeUninit::uninit();

@@ -448,8 +448,8 @@
   "persistent_patches": [
    {
     "path": "patches/prover/quotient-combine.patch",
-    "sha256": "01d9b7b394363cfa1296c8c1925dab32f7f65bd3229f2658694b6abe66413761",
-    "bytes": 25406,
+    "sha256": "4c25b4dee5fdb0c35f5fea1622ead92fb648cc57610abfbf239f898e34b9fc3c",
+    "bytes": 25495,
     "files": [
      "crates/stwo/src/prover/backend/cpu/quotients.rs",
      "crates/stwo/src/prover/backend/simd/quotients.rs",
@@ -518,8 +518,8 @@
   "persistent_patches": [
    {
     "path": "patches/prover/stripe-passes.patch",
-    "sha256": "7a8862db0b3b955eebfb45e4a129c09f63d96aaaff8f5ff6684fb83de2227122",
-    "bytes": 29868,
+    "sha256": "c6a70c6a0f2cfe4f8789bed3dadea3139af53e36ca43e85b22f58794ca63b2d6",
+    "bytes": 30168,
     "files": [
      "crates/stwo/src/prover/backend/simd/blake2s_lifted.rs",
      "crates/stwo/src/prover/pcs/mod.rs",
@@ -543,8 +543,8 @@
   "persistent_patches": [
    {
     "path": "patches/prover/circuit-witness.patch",
-    "sha256": "72e87b3e9a615f3a2deab18d74dff942ec1fb1de8002a897d8e142acdbf973df",
-    "bytes": 21857,
+    "sha256": "71c1de8094b626d31973bf724ec7f9f66d7459c00b67349c47223a707b563f13",
+    "bytes": 22291,
     "files": [
      "crates/circuit_prover/src/witness/components/blake_g_gate.rs",
      "crates/circuit_prover/src/witness/trace.rs"

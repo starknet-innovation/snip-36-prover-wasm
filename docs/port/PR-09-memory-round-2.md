@@ -59,12 +59,13 @@ regrowth over coefficient and sourced columns, striped packed layers from 2^12 t
 Python prover and executor-manifest checks. A fresh `prover-memory` preparation
 reproduces the development tree exactly.
 
-Browser ([validation-round2.json](validation-round2.json), module
-`4ebd702b3f7522c0d0f467325ed8f073c230349bfa9f2c7edc361504ce7705e6`, one run per
-workload, no build-machine paths in the module): all three recursive proofs are
+Browser ([validation-round2.json](validation-round2.json), final module
+`f6e019637fb7f3f644faab6a90fead1668f4f2eda9465b4431de96f1fcc2321b`, one run per
+workload, no build-machine paths in the module; the campaign below measured
+`4ebd702b…`, which differs only in review fixes to comments and a pass-size guard): all three recursive proofs are
 byte-identical to the PR-08 proofs, pass the pristine 3035dd verifier and reject
 proof and statement tampering. Requested Rust peak 2.31 → 1.563–1.569 GB; WASM
-linear memory 3.25–3.36 → 2.22–2.25 GB. The last layer lowered the requested peak by
+linear memory 3.25–3.36 → 2.18–2.25 GB across both modules. The last layer lowered the requested peak by
 0.17 GB but not linear memory, which the allocator's high-water mark sets.
 Single-run prove times (76–90 s) are not a paired measurement; the paired campaign,
 human review, CI and release remain outstanding. The released v0.2.0-memory module

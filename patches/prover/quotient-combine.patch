@@ -14,7 +14,7 @@ index 3f4f167..dc4f638 100644
 +    }
  }
 diff --git a/crates/stwo/src/prover/backend/simd/quotients.rs b/crates/stwo/src/prover/backend/simd/quotients.rs
-index 82c12e2..a120f1a 100644
+index 82c12e2..917794f 100644
 --- a/crates/stwo/src/prover/backend/simd/quotients.rs
 +++ b/crates/stwo/src/prover/backend/simd/quotients.rs
 @@ -3,9 +3,9 @@ use std::iter::zip;
@@ -45,14 +45,15 @@ index 82c12e2..a120f1a 100644
  
          // Precompute values needed inside the loop.
          let log_ratios: Vec<u32> = accumulations
-@@ -132,51 +130,64 @@ impl QuotientOps for SimdBackend {
+@@ -132,51 +130,65 @@ impl QuotientOps for SimdBackend {
              .map(|acc| PackedSecureField::broadcast(acc.first_linear_term_acc))
              .collect();
  
 -        // Populate `quotients`.
 +        // Populate `quotients`. The domain points and the denominator inverses are computed per
 +        // block of `DENOMINATOR_CHUNK_SIZE` packed rows rather than for the whole subdomain at
-+        // once; inverses are unique, so they are the same values.
++        // once. No denominator is zero (the sample points lie outside the domain) and inverses are
++        // unique, so they are the same values.
 +        const DENOMINATOR_CHUNK_SIZE: usize = 256;
          #[cfg(not(feature = "parallel"))]
 -        let iter = quotients.chunks_mut(COMBINE_CHUNK_SIZE).enumerate();
@@ -147,7 +148,7 @@ index 82c12e2..a120f1a 100644
          let subdomain_twiddles = TwiddleTree {
              root_coset: eval_subdomain.half_coset,
              // Only itwiddles are needed for interpolation.
-@@ -198,6 +209,14 @@ impl QuotientOps for SimdBackend {
+@@ -198,6 +210,14 @@ impl QuotientOps for SimdBackend {
  
          SecureEvaluation::new(eval_domain, evals)
      }
@@ -162,7 +163,7 @@ index 82c12e2..a120f1a 100644
  }
  
  /// Performs the pointwise accumulation of the numerators on `subdomain`.
-@@ -254,17 +273,10 @@ fn accumulate_numerators_on_subdomain(
+@@ -254,17 +274,10 @@ fn accumulate_numerators_on_subdomain(
  
  fn denominator_inverses(
      sample_points: &[CirclePoint<SecureField>],
@@ -183,7 +184,7 @@ index 82c12e2..a120f1a 100644
          .map(|sample_point| {
              // Extract Pr, Pi.
              let prx = PackedCM31::broadcast(sample_point.x.0);
-@@ -273,8 +285,8 @@ fn denominator_inverses(
+@@ -273,8 +286,8 @@ fn denominator_inverses(
              let piy = PackedCM31::broadcast(sample_point.y.1);
  
              // The iter itself is cloned for each sample batch.
@@ -277,7 +278,7 @@ index 848e5c5..103fb37 100644
  
          // The source is a caller obligation, not a new trust boundary: substituting a different
 diff --git a/crates/stwo/src/prover/pcs/quotient_ops.rs b/crates/stwo/src/prover/pcs/quotient_ops.rs
-index 0f0ea75..e429e3b 100644
+index 0f0ea75..237065b 100644
 --- a/crates/stwo/src/prover/pcs/quotient_ops.rs
 +++ b/crates/stwo/src/prover/pcs/quotient_ops.rs
 @@ -10,8 +10,12 @@ use crate::core::fields::m31::BaseField;
@@ -317,10 +318,11 @@ index 0f0ea75..e429e3b 100644
      columns: &TreeVec<Vec<&CircleEvaluation<B, BaseField, BitReversedOrder>>>,
      samples: &TreeVec<Vec<Vec<PointSample>>>,
      random_coeff: SecureField,
-@@ -105,21 +116,17 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+@@ -104,22 +115,17 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+     )
  }
  
- /// Regrows the stripe-0 evaluation of the column `(tree, column)` that stores no values.
+-/// Regrows the stripe-0 evaluation of the column `(tree, column)` that stores no values.
 -pub type RegrowStripe<'a, B> =
 -    dyn Fn(usize, usize) -> CircleEvaluation<B, BaseField, BitReversedOrder> + Sync + 'a;
 -
@@ -348,7 +350,7 @@ index 0f0ea75..e429e3b 100644
      samples: &TreeVec<Vec<Vec<PointSample>>>,
      random_coeff: SecureField,
      lifting_log_size: u32,
-@@ -195,28 +202,13 @@ pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
+@@ -195,28 +201,13 @@ pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
          .collect();
      accumulated_numerators_vec.extend(accumulations.into_iter().flatten());
  
@@ -382,7 +384,7 @@ index 0f0ea75..e429e3b 100644
          }
      }
  
-@@ -258,6 +250,71 @@ pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
+@@ -258,6 +249,71 @@ pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
      )
  }
  

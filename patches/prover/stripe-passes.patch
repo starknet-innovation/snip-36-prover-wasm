@@ -1,5 +1,5 @@
 diff --git a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
-index 193c4fa..a74af64 100644
+index 193c4fa..8ee5efa 100644
 --- a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
 +++ b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
 @@ -1,4 +1,5 @@
@@ -220,10 +220,10 @@ index 193c4fa..a74af64 100644
      }
  
      /// [`MerkleOpsLifted::build_layers_sparse`] of the packed leaves, built a stripe of
-@@ -402,6 +262,209 @@ impl PackLeavesOps for SimdBackend {
- /// * For all 1 <= k < n:
- ///     1. the sizes in `col_sizes[iₖ + N_FELTS_IN_BLAKE_MESSAGE..iₖ₊₁]` are all equal.
- ///     2. `col_sizes[iₖ] < col_sizes[iₖ₊₁]`.
+@@ -395,6 +255,212 @@ impl PackLeavesOps for SimdBackend {
+         })
+     }
+ }
 +/// The layers of [`MerkleOpsLifted::build_layers_sparse`] from the leaves: the leaves and the
 +/// [`OMITTED_LAYERS`] - 1 layers above them are each dropped once the next one is built.
 +fn sparse_layers<const IS_M31_OUTPUT: bool>(
@@ -296,7 +296,10 @@ index 193c4fa..a74af64 100644
 +        let log_ratio = chunk_max_log_size - prev_chunk_max_log_size;
 +        // The window's columns are fetched a pass of whole message chunks at a time; every
 +        // state absorbs the chunks in order, so the states are those of a single pass.
-+        let chunks_per_pass = (pass_bytes / (N_FELTS_IN_BLAKE_MESSAGE << (chunk_max_log_size + LOG_N_LANES + 2))).max(1);
++        // In u64: the bytes of a chunk of the largest columns can exceed a 32-bit usize.
++        let chunk_bytes = (N_FELTS_IN_BLAKE_MESSAGE as u64) << (chunk_max_log_size + LOG_N_LANES + 2);
++        let window_chunks = ((end - start) / N_FELTS_IN_BLAKE_MESSAGE) as u64;
++        let chunks_per_pass = (pass_bytes as u64 / chunk_bytes).clamp(1, window_chunks.max(1)) as usize;
 +        for pass_start in (start..end).step_by(chunks_per_pass * N_FELTS_IN_BLAKE_MESSAGE) {
 +            let pass_end = end.min(pass_start + chunks_per_pass * N_FELTS_IN_BLAKE_MESSAGE);
 +            let columns = fill(pass_start..pass_end);
@@ -427,10 +430,10 @@ index 193c4fa..a74af64 100644
 +    res
 +}
 +
- fn get_lifting_indices(
-     col_sizes: impl Iterator<Item = usize>,
-     last_chunk_index: usize,
-@@ -563,4 +626,34 @@ mod tests {
+ /// Given a vector of columns sorted by size (in ascending order) and an index `last_chunk_index`
+ /// which is a multiple of N_FELTS_IN_BLAKE_MESSAGE, returns a vector of indices `0 = i₁ < i₂ < ...
+ /// < iₙ = last_chunk_index` (if `last_chunk_index = 0` then n = 1 and i₁ = 0) such that:
+@@ -563,4 +629,34 @@ mod tests {
              check::<true>(log);
          }
      }
