@@ -73,6 +73,7 @@ trait IBrowserCoinFlipBank<TContractState> {
         self: @TContractState, session: felt252,
     ) -> (felt252, u256, felt252, u64, felt252, felt252, u8, u64);
     fn get_config(self: @TContractState) -> (felt252, felt252, felt252);
+    fn get_proof_profile(self: @TContractState) -> (felt252, felt252);
 }
 
 // Each settlement must carry a verified SNIP-36 statement for this exact game.
@@ -90,10 +91,10 @@ fn assert_coinflip_fact(
     assert(choice == 0 || choice == 1, 'Invalid choice');
     assert(outcome == 0 || outcome == 1, 'Invalid outcome');
     assert(facts.len() == 9, 'Expected one proof message');
-    assert(*facts.at(0) == 'PROOF1', 'Wrong proof version');
+    assert(*facts.at(0) == 'PROOF2', 'Wrong proof version');
     assert(*facts.at(1) == 'VIRTUAL_SNOS', 'Wrong proof variant');
     assert(
-        *facts.at(2) == 0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1,
+        *facts.at(2) == 0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324,
         'Wrong program',
     );
     assert(*facts.at(3) == 'VIRTUAL_SNOS0', 'Wrong output version');
@@ -275,6 +276,12 @@ mod BrowserCoinFlipBank {
         fn get_config(self: @ContractState) -> (felt252, felt252, felt252) {
             (self.owner.read().into(), self.coinflip.read().into(), TOKEN)
         }
+        fn get_proof_profile(self: @ContractState) -> (felt252, felt252) {
+            (
+                'PROOF2',
+                0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324,
+            )
+        }
     }
 }
 
@@ -290,8 +297,8 @@ mod proof_tests {
         };
         let h = poseidon_hash_span(array![123, 1, 5, player, seed, choice, outcome, won].span());
         array![
-            'PROOF1', 'VIRTUAL_SNOS',
-            0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1, 'VIRTUAL_SNOS0', 100,
+            'PROOF2', 'VIRTUAL_SNOS',
+            0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324, 'VIRTUAL_SNOS0', 100,
             101, 102, 1, h,
         ]
     }
@@ -299,6 +306,28 @@ mod proof_tests {
     fn matching_game_fact() {
         assert_coinflip_fact(facts(7, 8, 0, 0).span(), 123, 7, 8, 0, 0);
         assert_coinflip_fact(facts(7, 8, 1, 0).span(), 123, 7, 8, 1, 0);
+    }
+    #[test]
+    #[should_panic(expected: ('Wrong proof version',))]
+    fn legacy_proof_version() {
+        let current = facts(7, 8, 0, 0);
+        let mut legacy = array!['PROOF1'];
+        for i in 1_u32..9_u32 {
+            legacy.append(*current.at(i));
+        };
+        assert_coinflip_fact(legacy.span(), 123, 7, 8, 0, 0);
+    }
+    #[test]
+    #[should_panic(expected: ('Wrong program',))]
+    fn legacy_program() {
+        let current = facts(7, 8, 0, 0);
+        let mut legacy = array![];
+        for i in 0_u32..9_u32 {
+            legacy.append(if i == 2 {
+                0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1
+            } else { *current.at(i) });
+        };
+        assert_coinflip_fact(legacy.span(), 123, 7, 8, 0, 0);
     }
     #[test]
     #[should_panic]

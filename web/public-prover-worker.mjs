@@ -1,3 +1,4 @@
+import { BACKEND_RELEASE, PROVING_REVISION, assertProofProfile } from "./prover-profile.mjs";
 import { loadMemory64 } from "./sequencer-memory64.mjs";
 self.onmessage = async (event) => {
   // Dedicated Worker messages have an empty origin and no Window source.
@@ -22,6 +23,7 @@ self.onmessage = async (event) => {
     t = performance.now();
     const result = api.prove(new Uint8Array(pie)),
       prove_ms = performance.now() - t;
+    assertProofProfile(result.proof);
     const sha = async (b) =>
       Array.from(
         new Uint8Array(await crypto.subtle.digest("SHA-256", b)),
@@ -42,8 +44,9 @@ self.onmessage = async (event) => {
         prove_ms,
         total_ms: performance.now() - start,
         ...api.memory(),
-        scope:
-          "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+        backend_release: BACKEND_RELEASE,
+        proving_revision: PROVING_REVISION,
+        scope: "V2 recursive proving in browser; native verification separate",
       },
     });
   } catch (error) {

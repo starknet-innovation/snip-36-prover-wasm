@@ -9,8 +9,8 @@ import {
 export const CHAIN_ID = BigInt("0x534e5f5345504f4c4941");
 export const STRK =
   "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
-export const PROGRAM =
-  "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1";
+import { PROGRAM, PROOF_VERSION } from "../web/prover-profile.mjs";
+export { PROGRAM };
 export const hex = (n) => "0x" + BigInt(n).toString(16);
 const ascii = (s) => BigInt("0x" + Buffer.from(s).toString("hex"));
 export const selector = (name) => hex(keccak(new TextEncoder().encode(name)));
@@ -173,7 +173,7 @@ export function proofFacts(output) {
   )
     throw Error("Unexpected bootloader statement/program");
   return [
-    hex(ascii("PROOF1")),
+    PROOF_VERSION,
     hex(ascii("VIRTUAL_SNOS")),
     ...output.slice(2).map(hex),
   ];

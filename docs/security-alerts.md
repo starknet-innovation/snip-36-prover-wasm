@@ -34,7 +34,7 @@ The executor patch directory exposes all 29 manifests in the supported browser w
 
 ## Remaining nine dependency alerts
 
-`dependency-scope.patch` limits the prepared workspace to `browser_virtual_os` and the dependencies required by its normal, build, optional and development configurations. Unused inherited dependency declarations are removed as well. Full upstream sequencer node, Python-binding, networking and cloud-storage targets are outside this repository's supported executor workspace. The separately pinned native prover/verifier remains unchanged.
+The workspace scope now consolidated in `v2.patch` limits the prepared workspace to `browser_virtual_os` and the dependencies required by its normal, build, optional and development configurations. Unused inherited dependency declarations are removed as well. Full upstream sequencer node, Python-binding, networking and cloud-storage targets are outside this repository's supported executor workspace. The separately pinned native prover/verifier remains unchanged.
 
 | Package / alerts | Remediation |
 | --- | --- |

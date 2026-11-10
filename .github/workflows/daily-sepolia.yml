@@ -9,7 +9,10 @@ concurrency:
   group: sepolia-browser-account
   cancel-in-progress: false
 jobs:
+  wasm:
+    uses: ./.github/workflows/build-wasm.yml
   browser-e2e:
+    needs: wasm
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: sepolia
@@ -20,6 +23,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: browser-wasm-v2
+          path: .
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
@@ -55,7 +62,19 @@ jobs:
           retention-days: 30
       - name: Submit once and require successful closed-block receipt
         run: npm run e2e:submit
+      - name: Check whether a compatible V2 bank is configured
+        id: coinflip-profile
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { supportsProverProfile } from './web/prover-profile.mjs';
+          const compatible = supportsProverProfile(JSON.parse(readFileSync('web/live-config.json')));
+          appendFileSync(process.env.GITHUB_OUTPUT, `compatible=${compatible}\n`);
+          if (!compatible) appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            'CoinFlip skipped: a V2 bank deployment must be configured before new deposits.\n');
+          JS
       - name: Play a live wallet CoinFlip round and settle its browser proof
+        if: steps.coinflip-profile.outputs.compatible == 'true'
         env:
           STARKNET_ACCOUNT_ADDRESS: ${{ vars.STARKNET_ACCOUNT_ADDRESS }}
           STARKNET_PRIVATE_KEY: ${{ secrets.STARKNET_PRIVATE_KEY }}

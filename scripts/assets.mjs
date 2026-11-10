@@ -3,16 +3,17 @@ import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { responseBytes } from "./network.mjs";
+import { execFileSync } from "node:child_process";
 const repository = "starknet-innovation/snip-36-prover-wasm";
-const release = "v0.1.0";
+const release = "v0.2.0";
 const targets = Object.freeze({
   "executor.wasm": {
     path: "web/auth/browser_virtual_os_bg.wasm",
-    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.1.0/executor.wasm",
+    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.2.0/executor.wasm",
   },
   "prover.wasm": {
     path: "web/sequencer-prover.wasm",
-    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.1.0/prover.wasm",
+    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.2.0/prover.wasm",
   },
 });
 const sha = (b) => createHash("sha256").update(b).digest("hex");
@@ -87,5 +88,22 @@ export async function downloadAssets(
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
-  await downloadAssets(JSON.parse(await readFile("assets.json", "utf8")));
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // Source builds carry their own hashes: compiler/platform differences may change module bytes.
+  // A stale receipt fails instead of silently falling back to an incompatible release.
+  let hasSourceReceipt = false;
+  try {
+    await readFile("build/source-assets.json");
+    hasSourceReceipt = true;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (hasSourceReceipt || process.argv.includes("--source"))
+    execFileSync("python3", ["scripts/source-assets.py", "verify"], { stdio: "inherit" });
+  else {
+    const manifest = JSON.parse(await readFile("assets.json", "utf8"));
+    if (manifest.release_status === "unpublished")
+      throw Error("V2 browser release assets are unpublished; build executor and prover with scripts/build.sh first (see docs/build.md)");
+    await downloadAssets(manifest);
+  }
+}

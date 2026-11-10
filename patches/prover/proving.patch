@@ -1,0 +1,578 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 1911f7adc..dc963491e 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -1,5 +1,6 @@
+ [workspace]
+ members = [
++    "crates/browser-prover",
+     # stwo
+     "crates/stwo",
+     "crates/air-utils",
+@@ -223,3 +224,8 @@ opt-level = 3
+ [profile.samply]
+ inherits = "release"
+ debug = true
++
++[patch.crates-io]
++xxhash-rust = { path = "vendor/xxhash-rust-0.8.18" }
++zstd-sys = { path = "vendor/zstd-sys-2.0.16+zstd.1.5.7" }
++getrandom02 = { package = "getrandom", path = "vendor/getrandom-0.2.17" }
+diff --git a/crates/cairo-program-runner-lib/Cargo.toml b/crates/cairo-program-runner-lib/Cargo.toml
+index 393922efb..9a0bee3e0 100644
+--- a/crates/cairo-program-runner-lib/Cargo.toml
++++ b/crates/cairo-program-runner-lib/Cargo.toml
+@@ -21,7 +21,6 @@ num-traits.workspace = true
+ regex.workspace = true
+ serde.workspace = true
+ serde_json.workspace = true
+-sonic-rs.workspace = true
+ starknet-crypto.workspace = true
+ starknet-types-core.workspace = true
+ thiserror.workspace = true
+@@ -36,3 +35,6 @@ tempfile.workspace = true
+ 
+ [lib]
+ doctest = false
++
++[target.'cfg(not(target_family = "wasm"))'.dependencies]
++sonic-rs.workspace = true
+diff --git a/crates/cairo-program-runner-lib/src/hints/privacy_simple_bootloader_hints.rs b/crates/cairo-program-runner-lib/src/hints/privacy_simple_bootloader_hints.rs
+index abe2f22d0..8e253b6b9 100644
+--- a/crates/cairo-program-runner-lib/src/hints/privacy_simple_bootloader_hints.rs
++++ b/crates/cairo-program-runner-lib/src/hints/privacy_simple_bootloader_hints.rs
+@@ -13,6 +13,9 @@ use super::utils::get_program_input_value;
+ use crate::hints::types::PrivacySimpleBootloaderInput;
+ use crate::hints::{SIMPLE_BOOTLOADER_INPUT, vars};
+ 
++const OUTPUT_PREIMAGE_SINK: &str = "browser_output_preimage_sink";
++type OutputSink = std::rc::Rc<std::cell::RefCell<Option<Vec<Felt>>>>;
++
+ /// Loads privacy simple bootloader input from the program input.
+ /// Stores the inner `SimpleBootloaderInput` and the `output_preimage_dump_path` separately
+ /// in the execution scopes.
+@@ -20,6 +23,9 @@ pub fn load_privacy_simple_bootloader_input(
+     exec_scopes: &mut ExecutionScopes,
+ ) -> Result<(), HintError> {
+     let privacy_input: PrivacySimpleBootloaderInput = get_program_input_value(exec_scopes)?;
++    if let Some(sink) = privacy_input.output_preimage_sink {
++        exec_scopes.insert_value(OUTPUT_PREIMAGE_SINK, sink);
++    }
+     exec_scopes.insert_value(SIMPLE_BOOTLOADER_INPUT, privacy_input.simple_bootloader_input);
+     exec_scopes
+         .insert_value(vars::OUTPUT_PREIMAGE_DUMP_PATH, privacy_input.output_preimage_dump_path);
+@@ -41,6 +47,10 @@ pub fn dump_privacy_simple_bootloader_output_preimage(
+     let elements: Vec<Felt> =
+         vm.get_integer_range(output_start, size)?.into_iter().map(|v| v.into_owned()).collect();
+ 
++    if let Ok(sink) = exec_scopes.get::<OutputSink>(OUTPUT_PREIMAGE_SINK) {
++        *sink.borrow_mut() = Some(elements);
++        return Ok(());
++    }
+     let dump_path: PathBuf = exec_scopes.get(vars::OUTPUT_PREIMAGE_DUMP_PATH)?;
+     let json = serde_json::to_string_pretty(&elements).map_err(|e| {
+         HintError::CustomHint(format!("Failed to serialize output preimage: {e}").into())
+diff --git a/crates/cairo-program-runner-lib/src/hints/types.rs b/crates/cairo-program-runner-lib/src/hints/types.rs
+index eab447efc..407f6d866 100644
+--- a/crates/cairo-program-runner-lib/src/hints/types.rs
++++ b/crates/cairo-program-runner-lib/src/hints/types.rs
+@@ -403,6 +403,9 @@ pub struct PrivacySimpleBootloaderInput {
+     #[serde(flatten)]
+     pub simple_bootloader_input: SimpleBootloaderInput,
+     pub output_preimage_dump_path: PathBuf,
++    /// Optional host-owned output sink. It changes transport only, not Cairo execution.
++    #[serde(skip)]
++    pub output_preimage_sink: Option<std::rc::Rc<std::cell::RefCell<Option<Vec<Felt252>>>>>,
+ }
+ 
+ #[derive(Debug, Clone, Deserialize)]
+diff --git a/crates/cairo-program-runner-lib/src/utils.rs b/crates/cairo-program-runner-lib/src/utils.rs
+index 4db826eaa..015292887 100644
+--- a/crates/cairo-program-runner-lib/src/utils.rs
++++ b/crates/cairo-program-runner-lib/src/utils.rs
+@@ -128,6 +128,11 @@ pub fn write_output_to_file(runner: &mut CairoRunner, output_path: PathBuf) -> a
+                 .map_err(|_| anyhow::anyhow!("Failed to parse output line as Felt decimal: {line}"))
+         })
+         .collect::<Result<Vec<Felt252>, anyhow::Error>>()?;
+-    std::fs::write(&output_path, sonic_rs::to_string_pretty(&output_lines)?)?;
++    std::fs::write(&output_path, json::to_string_pretty(&output_lines)?)?;
+     Ok(())
+ }
++
++#[cfg(target_family = "wasm")]
++use serde_json as json;
++#[cfg(not(target_family = "wasm"))]
++use sonic_rs as json;
+diff --git a/crates/privacy_prove/Cargo.toml b/crates/privacy_prove/Cargo.toml
+index 52d2e63c0..dbe392d70 100644
+--- a/crates/privacy_prove/Cargo.toml
++++ b/crates/privacy_prove/Cargo.toml
+@@ -47,6 +47,9 @@ circuit-verifier.workspace = true
+ circuits.workspace = true
+ 
+ # stwo
++stwo.workspace = true
++
++[target.'cfg(not(target_family = "wasm"))'.dependencies]
+ stwo = { workspace = true, features = ["parallel"] }
+ 
+ [dev-dependencies]
+diff --git a/crates/privacy_prove/src/lib.rs b/crates/privacy_prove/src/lib.rs
+index da8b88a77..e757fd5a4 100644
+--- a/crates/privacy_prove/src/lib.rs
++++ b/crates/privacy_prove/src/lib.rs
+@@ -2,6 +2,7 @@ pub mod consts;
+ #[cfg(test)]
+ mod tests;
+ 
++use std::cell::RefCell;
+ use std::cmp::max;
+ use std::error::Error;
+ use std::fs::read_to_string;
+@@ -268,15 +269,16 @@ fn build_privacy_bootloader_input(
+             tasks: vec![pie_task_spec],
+         },
+         output_preimage_dump_path: output_preimage_path.to_path_buf(),
++        output_preimage_sink: None,
+     }
+ }
+ 
+ fn run_privacy_bootloader(pie: CairoPie) -> Result<(ProverInput, Vec<Felt>), Box<dyn Error>> {
+     let _span = span!(Level::INFO, "get_prover_input").entered();
+ 
+-    let output_preimage_file = NamedTempFile::new()?;
+-    let output_preimage_path = output_preimage_file.path();
+-    let bootloader_input = build_privacy_bootloader_input(pie, output_preimage_path);
++    let sink = Rc::new(RefCell::new(None));
++    let mut bootloader_input = build_privacy_bootloader_input(pie, Path::new(""));
++    bootloader_input.output_preimage_sink = Some(sink.clone());
+     let bootloader_program = get_privacy_bootloader_program()?;
+ 
+     info!("Running the program");
+@@ -288,8 +290,8 @@ fn run_privacy_bootloader(pie: CairoPie) -> Result<(ProverInput, Vec<Felt>), Box
+     )?;
+ 
+     info!("Reading the bootloader output preimage");
+-    let output_preimage_content = read_to_string(output_preimage_path)?;
+-    let output_preimage: Vec<Felt> = from_str(&output_preimage_content)?;
++    let output_preimage = sink.borrow_mut().take()
++        .ok_or("privacy bootloader did not provide its output preimage")?;
+ 
+     info!("Adapting the runner output for the prover");
+     let prover_input = adapt(&runner)?;
+diff --git a/crates/prover/src/witness/components/cube_252.rs b/crates/prover/src/witness/components/cube_252.rs
+index a61905516..0e9dbdce8 100644
+--- a/crates/prover/src/witness/components/cube_252.rs
++++ b/crates/prover/src/witness/components/cube_252.rs
+@@ -33,20 +33,23 @@ impl ClaimGenerator {
+         let log_size = packed_size.ilog2() + LOG_N_LANES;
+         packed_inputs.resize(packed_size, *packed_inputs.first().unwrap());
+ 
+-        // Decreasing this value may cause a stack-overflow during witness generation.
+-        // NOTE: This is not autogened, when updating the code, re-add this.
+-        // TODO(Ohad): remove.
+-        const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
+-        let pool =
+-            rayon::ThreadPoolBuilder::new().stack_size(RAYON_THREAD_STACK_SIZE).build().unwrap();
+-        let (trace, lookup_data, sub_component_inputs) = pool.install(|| {
++        let write_trace = || {
+             write_trace_simd(
+                 packed_inputs,
+                 n_active_rows,
+                 range_check_9_9_state,
+                 range_check_20_state,
+             )
+-        });
++        };
++        // Workers use the Wasm linker stack instead of spawning native threads.
++        #[cfg(target_family = "wasm")]
++        let (trace, lookup_data, sub_component_inputs) = write_trace();
++        #[cfg(not(target_family = "wasm"))]
++        let (trace, lookup_data, sub_component_inputs) = {
++            let pool = rayon::ThreadPoolBuilder::new()
++                .stack_size(8 * 1024 * 1024).build().unwrap();
++            pool.install(write_trace)
++        };
+         for inputs in sub_component_inputs.range_check_9_9 {
+             add_inputs(range_check_9_9_state, &inputs, n_active_rows, 0);
+         }
+diff --git a/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs b/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs
+index 8ca3af0c4..c226dbe0c 100644
+--- a/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs
++++ b/crates/prover/src/witness/components/partial_ec_mul_window_bits_18.rs
+@@ -38,13 +38,7 @@ impl ClaimGenerator {
+         let log_size = packed_size.ilog2() + LOG_N_LANES;
+         packed_inputs.resize(packed_size, *packed_inputs.first().unwrap());
+ 
+-        // Decreasing this value may cause a stack-overflow during witness generation.
+-        // NOTE: This is not autogened, when updating the code, re-add this.
+-        // TODO(Ohad): remove.
+-        const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
+-        let pool =
+-            rayon::ThreadPoolBuilder::new().stack_size(RAYON_THREAD_STACK_SIZE).build().unwrap();
+-        let (trace, lookup_data, sub_component_inputs) = pool.install(|| {
++        let write_trace = || {
+             write_trace_simd(
+                 packed_inputs,
+                 n_active_rows,
+@@ -52,7 +46,16 @@ impl ClaimGenerator {
+                 range_check_9_9_state,
+                 range_check_20_state,
+             )
+-        });
++        };
++        // Workers use the Wasm linker stack instead of spawning native threads.
++        #[cfg(target_family = "wasm")]
++        let (trace, lookup_data, sub_component_inputs) = write_trace();
++        #[cfg(not(target_family = "wasm"))]
++        let (trace, lookup_data, sub_component_inputs) = {
++            let pool = rayon::ThreadPoolBuilder::new()
++                .stack_size(8 * 1024 * 1024).build().unwrap();
++            pool.install(write_trace)
++        };
+         for inputs in sub_component_inputs.pedersen_points_table_window_bits_18 {
+             add_inputs(pedersen_points_table_window_bits_18_state, &inputs, n_active_rows, 0);
+         }
+diff --git a/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs b/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs
+index e35709bcf..56b4ee322 100644
+--- a/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs
++++ b/crates/prover/src/witness/components/partial_ec_mul_window_bits_9.rs
+@@ -38,13 +38,7 @@ impl ClaimGenerator {
+         let log_size = packed_size.ilog2() + LOG_N_LANES;
+         packed_inputs.resize(packed_size, *packed_inputs.first().unwrap());
+ 
+-        // Decreasing this value may cause a stack-overflow during witness generation.
+-        // NOTE: This is not autogened, when updating the code, re-add this.
+-        // TODO(Ohad): remove.
+-        const RAYON_THREAD_STACK_SIZE: usize = 1024 * 1024 * 8;
+-        let pool =
+-            rayon::ThreadPoolBuilder::new().stack_size(RAYON_THREAD_STACK_SIZE).build().unwrap();
+-        let (trace, lookup_data, sub_component_inputs) = pool.install(|| {
++        let write_trace = || {
+             write_trace_simd(
+                 packed_inputs,
+                 n_active_rows,
+@@ -52,7 +46,16 @@ impl ClaimGenerator {
+                 range_check_9_9_state,
+                 range_check_20_state,
+             )
+-        });
++        };
++        // Workers use the Wasm linker stack instead of spawning native threads.
++        #[cfg(target_family = "wasm")]
++        let (trace, lookup_data, sub_component_inputs) = write_trace();
++        #[cfg(not(target_family = "wasm"))]
++        let (trace, lookup_data, sub_component_inputs) = {
++            let pool = rayon::ThreadPoolBuilder::new()
++                .stack_size(8 * 1024 * 1024).build().unwrap();
++            pool.install(write_trace)
++        };
+         for inputs in sub_component_inputs.pedersen_points_table_window_bits_9 {
+             add_inputs(pedersen_points_table_window_bits_9_state, &inputs, n_active_rows, 0);
+         }
+diff --git a/crates/browser-prover/Cargo.toml b/crates/browser-prover/Cargo.toml
+new file mode 100644
+index 000000000..db61eb724
+--- /dev/null
++++ b/crates/browser-prover/Cargo.toml
+@@ -0,0 +1,26 @@
++[package]
++name = "snip36-browser-prover"
++version = "0.1.0"
++edition = "2024"
++publish = false
++
++[lib]
++crate-type = ["cdylib", "rlib"]
++
++
++[dependencies]
++privacy-prove = { path = "../privacy_prove" }
++cairo-vm.workspace = true
++serde_json.workspace = true
++tracing.workspace = true
++
++[target.'cfg(target_arch = "wasm32")'.dependencies]
++wasm-bindgen = "=0.2.118"
++console_error_panic_hook = "0.1.7"
++getrandom_v3 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
++getrandom_v4 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
++
++[target.'cfg(target_arch = "wasm64")'.dependencies]
++getrandom_v2 = { package = "getrandom", version = "0.2", features = ["custom"] }
++getrandom_v3 = { package = "getrandom", version = "0.3" }
++getrandom_v4 = { package = "getrandom", version = "0.4" }
+diff --git a/crates/browser-prover/src/alloc_metrics.rs b/crates/browser-prover/src/alloc_metrics.rs
+new file mode 100644
+index 000000000..305fa3ddf
+--- /dev/null
++++ b/crates/browser-prover/src/alloc_metrics.rs
+@@ -0,0 +1,45 @@
++//! Requested Rust heap bytes; excludes allocator overhead, JS heap, and process RSS.
++use std::alloc::{GlobalAlloc, Layout, System};
++use std::sync::atomic::{AtomicUsize, Ordering};
++
++static LIVE: AtomicUsize = AtomicUsize::new(0);
++static PEAK: AtomicUsize = AtomicUsize::new(0);
++pub struct MeteredAllocator;
++
++fn add(bytes: usize) {
++    let live = LIVE.fetch_add(bytes, Ordering::Relaxed) + bytes;
++    PEAK.fetch_max(live, Ordering::Relaxed);
++}
++
++// SAFETY: Every allocation operation delegates with the unchanged pointer and layout to
++// System. Counters neither dereference allocations nor influence allocation behavior.
++unsafe impl GlobalAlloc for MeteredAllocator {
++    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
++        let ptr = unsafe { System.alloc(layout) };
++        if !ptr.is_null() { add(layout.size()); }
++        ptr
++    }
++    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
++        let ptr = unsafe { System.alloc_zeroed(layout) };
++        if !ptr.is_null() { add(layout.size()); }
++        ptr
++    }
++    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
++        unsafe { System.dealloc(ptr, layout) };
++        LIVE.fetch_sub(layout.size(), Ordering::Relaxed);
++    }
++    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
++        let result = unsafe { System.realloc(ptr, layout, new_size) };
++        if !result.is_null() {
++            if new_size >= layout.size() { add(new_size - layout.size()); }
++            else { LIVE.fetch_sub(layout.size() - new_size, Ordering::Relaxed); }
++        }
++        result
++    }
++}
++
++pub fn snapshot() -> String {
++    let live = LIVE.load(Ordering::Relaxed);
++    let peak = PEAK.load(Ordering::Relaxed);
++    format!("{{\"rust_requested_live_bytes\":{live},\"rust_requested_peak_bytes\":{peak}}}")
++}
+diff --git a/crates/browser-prover/src/lib.rs b/crates/browser-prover/src/lib.rs
+new file mode 100644
+index 000000000..4e033d152
+--- /dev/null
++++ b/crates/browser-prover/src/lib.rs
+@@ -0,0 +1,8 @@
++mod progress;
++mod alloc_metrics;
++#[global_allocator]
++static ALLOCATOR: alloc_metrics::MeteredAllocator = alloc_metrics::MeteredAllocator;
++#[cfg(target_arch = "wasm32")]
++mod wasm32_api;
++#[cfg(target_arch = "wasm64")]
++mod wasm64_api;
+diff --git a/crates/browser-prover/src/progress.rs b/crates/browser-prover/src/progress.rs
+new file mode 100644
+index 000000000..351de899b
+--- /dev/null
++++ b/crates/browser-prover/src/progress.rs
+@@ -0,0 +1,33 @@
++//! Export only the prover's high-level informational stage messages.
++use tracing::{Event, Metadata, Subscriber, span::{Attributes, Id, Record}};
++
++struct StageSubscriber { report: fn(&str) }
++struct Message(String);
++impl tracing::field::Visit for Message {
++    fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
++        if field.name() == "message" { self.0 = format!("{value:?}"); }
++    }
++}
++impl Subscriber for StageSubscriber {
++    fn enabled(&self, metadata: &Metadata<'_>) -> bool {
++        metadata.target() == "privacy_prove" && *metadata.level() <= tracing::Level::INFO
++    }
++    fn new_span(&self, _: &Attributes<'_>) -> Id { Id::from_u64(1) }
++    fn record(&self, _: &Id, _: &Record<'_>) {}
++    fn record_follows_from(&self, _: &Id, _: &Id) {}
++    fn event(&self, event: &Event<'_>) {
++        if !self.enabled(event.metadata()) { return; }
++        let mut message = Message(String::new());
++        event.record(&mut message);
++        if !message.0.is_empty() { (self.report)(&message.0); }
++    }
++    fn enter(&self, _: &Id) {}
++    fn exit(&self, _: &Id) {}
++    fn max_level_hint(&self) -> Option<tracing::level_filters::LevelFilter> {
++        Some(tracing::level_filters::LevelFilter::INFO)
++    }
++}
++
++pub fn install(report: fn(&str)) {
++    let _ = tracing::subscriber::set_global_default(StageSubscriber { report });
++}
+diff --git a/crates/browser-prover/src/wasm32_api.rs b/crates/browser-prover/src/wasm32_api.rs
+new file mode 100644
+index 000000000..04b26420c
+--- /dev/null
++++ b/crates/browser-prover/src/wasm32_api.rs
+@@ -0,0 +1,59 @@
++use std::sync::Arc;
++use cairo_vm::vm::runners::cairo_pie::CairoPie;
++use privacy_prove::{prepare_recursive_prover_precomputes, privacy_recursive_prove, RecursiveProverPrecomputes};
++use wasm_bindgen::prelude::*;
++
++#[wasm_bindgen(inline_js = "export function reportStage(json) { self.postMessage({kind:'stage', ...JSON.parse(json)}); }")]
++extern "C" { #[wasm_bindgen(js_name = reportStage)] fn report_stage(json: &str); }
++fn stage(message: &str) {
++    report_stage(&format!("{{\"message\":{},\"metrics\":{}}}", serde_json::to_string(message).unwrap(), crate::alloc_metrics::snapshot()));
++}
++
++
++
++#[wasm_bindgen]
++pub struct BrowserProver {
++    precomputes: Arc<RecursiveProverPrecomputes>,
++}
++
++#[wasm_bindgen]
++pub struct BrowserProof {
++    proof: Vec<u8>,
++    output_preimage: String,
++}
++
++#[wasm_bindgen]
++impl BrowserProof {
++    pub fn proof_bytes(&self) -> Vec<u8> { self.proof.clone() }
++    pub fn output_preimage_json(&self) -> String { self.output_preimage.clone() }
++}
++
++#[wasm_bindgen]
++impl BrowserProver {
++    #[wasm_bindgen(constructor)]
++    pub fn new() -> Result<BrowserProver, JsValue> {
++        console_error_panic_hook::set_once();
++        crate::progress::install(stage);
++        let precomputes = prepare_recursive_prover_precomputes()
++            .map_err(|e| JsValue::from_str(&e.to_string()))?;
++        Ok(Self { precomputes })
++    }
++
++    pub fn prove(&self, pie_bytes: &[u8]) -> Result<BrowserProof, JsValue> {
++        let pie = CairoPie::from_bytes(pie_bytes)
++            .map_err(|e| JsValue::from_str(&e.to_string()))?;
++        let result = privacy_recursive_prove(pie, self.precomputes.clone())
++            .map_err(|e| JsValue::from_str(&e.to_string()))?;
++        let felts: Vec<String> = result.output_preimage.iter().map(|f| format!("{f:#x}")).collect();
++        Ok(BrowserProof {
++            proof: result.proof,
++            output_preimage: serde_json::to_string(&felts).map_err(|e| JsValue::from_str(&e.to_string()))?,
++        })
++    }
++}
++
++#[wasm_bindgen]
++pub fn linear_memory() -> JsValue { wasm_bindgen::memory() }
++
++#[wasm_bindgen]
++pub fn allocation_metrics() -> String { crate::alloc_metrics::snapshot() }
+diff --git a/crates/browser-prover/src/wasm64_api.rs b/crates/browser-prover/src/wasm64_api.rs
+new file mode 100644
+index 000000000..97e24a9a0
+--- /dev/null
++++ b/crates/browser-prover/src/wasm64_api.rs
+@@ -0,0 +1,99 @@
++//! Small explicit memory64 ABI: JS receives i64 pointers as BigInt and makes bounded views.
++use std::{cell::RefCell, sync::Arc};
++use cairo_vm::vm::runners::cairo_pie::CairoPie;
++use privacy_prove::{prepare_recursive_prover_precomputes, privacy_recursive_prove, RecursiveProverPrecomputes};
++
++#[link(wasm_import_module = "browser")]
++unsafe extern "C" {
++    fn random_fill(ptr: *mut u8, len: usize) -> i32;
++    fn report_progress(ptr: *const u8, len: usize);
++    fn report_panic(ptr: *const u8, len: usize);
++}
++
++fn fill_random(buf: &mut [u8]) -> Result<(), getrandom_v2::Error> {
++    // SAFETY: JS synchronously fills exactly this live, writable slice using Web Crypto.
++    if unsafe { random_fill(buf.as_mut_ptr(), buf.len()) } == 0 { Ok(()) }
++    else { Err(getrandom_v2::Error::UNSUPPORTED) }
++}
++getrandom_v2::register_custom_getrandom!(fill_random);
++
++// Use separate symbols per getrandom version to retain each version's exact Rust ABI.
++#[unsafe(no_mangle)]
++unsafe fn __getrandom_v03_custom(ptr: *mut u8, len: usize) -> Result<(), getrandom_v3::Error> {
++    if unsafe { random_fill(ptr, len) } == 0 { Ok(()) }
++    else { Err(getrandom_v3::Error::UNSUPPORTED) }
++}
++
++#[unsafe(no_mangle)]
++unsafe fn __getrandom_v04_custom(ptr: *mut u8, len: usize) -> Result<(), getrandom_v4::Error> {
++    if unsafe { random_fill(ptr, len) } == 0 { Ok(()) }
++    else { Err(getrandom_v4::Error::UNSUPPORTED) }
++}
++
++thread_local! {
++    static PRE: RefCell<Option<Arc<RecursiveProverPrecomputes>>> = const { RefCell::new(None) };
++    static PROOF: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
++    static OUTPUT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
++    static ERROR: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
++    static METRICS: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
++}
++
++fn status(result: Result<(), String>) -> i32 {
++    match result {
++        Ok(()) => { ERROR.with(|x| x.borrow_mut().clear()); 0 }
++        Err(e) => { ERROR.with(|x| *x.borrow_mut() = e.into_bytes()); 1 }
++    }
++}
++
++fn stage(message: &str) {
++    let json = format!("{{\"message\":{},\"metrics\":{}}}", serde_json::to_string(message).unwrap(), crate::alloc_metrics::snapshot());
++    // SAFETY: JS synchronously copies this live UTF-8 slice before returning.
++    unsafe { report_progress(json.as_ptr(), json.len()) };
++}
++
++#[unsafe(no_mangle)]
++pub extern "C" fn spike_init() -> i32 {
++    crate::progress::install(stage);
++    std::panic::set_hook(Box::new(|info| {
++        let text = info.to_string();
++        unsafe { report_panic(text.as_ptr(), text.len()) };
++    }));
++    status(prepare_recursive_prover_precomputes().map(|pre| PRE.with(|x| *x.borrow_mut() = Some(pre))).map_err(|e| e.to_string()))
++}
++
++/// Caller must pass a live allocation of `len` bytes from spike_alloc.
++#[unsafe(no_mangle)]
++pub unsafe extern "C" fn spike_prove(ptr: *const u8, len: usize) -> i32 {
++    status((|| {
++        let bytes = unsafe { std::slice::from_raw_parts(ptr, len) };
++        let pie = CairoPie::from_bytes(bytes).map_err(|e| e.to_string())?;
++        let pre = PRE.with(|x| x.borrow().clone()).ok_or("prover not initialized")?;
++        let result = privacy_recursive_prove(pie, pre).map_err(|e| e.to_string())?;
++        let felts: Vec<String> = result.output_preimage.iter().map(|f| format!("{f:#x}")).collect();
++        let output = serde_json::to_vec(&felts).map_err(|e| e.to_string())?;
++        PROOF.with(|x| *x.borrow_mut() = result.proof);
++        OUTPUT.with(|x| *x.borrow_mut() = output);
++        Ok(())
++    })())
++}
++
++#[unsafe(no_mangle)]
++pub extern "C" fn spike_alloc(len: usize) -> *mut u8 { Box::into_raw(vec![0u8; len].into_boxed_slice()) as *mut u8 }
++#[unsafe(no_mangle)]
++pub unsafe extern "C" fn spike_dealloc(ptr: *mut u8, len: usize) {
++    unsafe { drop(Box::from_raw(std::ptr::slice_from_raw_parts_mut(ptr, len))) };
++}
++
++macro_rules! accessor {
++    ($ptr:ident, $len:ident, $storage:ident) => {
++        #[unsafe(no_mangle)] pub extern "C" fn $ptr() -> *const u8 { $storage.with(|x| x.borrow().as_ptr()) }
++        #[unsafe(no_mangle)] pub extern "C" fn $len() -> usize { $storage.with(|x| x.borrow().len()) }
++    };
++}
++accessor!(spike_proof_ptr, spike_proof_len, PROOF);
++accessor!(spike_output_ptr, spike_output_len, OUTPUT);
++accessor!(spike_error_ptr, spike_error_len, ERROR);
++accessor!(spike_metrics_ptr, spike_metrics_len, METRICS);
++
++#[unsafe(no_mangle)]
++pub extern "C" fn spike_measure() { METRICS.with(|x| *x.borrow_mut() = crate::alloc_metrics::snapshot().into_bytes()); }

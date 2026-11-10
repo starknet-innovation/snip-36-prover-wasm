@@ -6,6 +6,8 @@ on:
 permissions:
   contents: read
 jobs:
+  wasm:
+    uses: ./.github/workflows/build-wasm.yml
   compiler:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -28,8 +30,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: Test executor manifest consistency guards
-        run: python3 -m unittest discover -s tests -p 'test_executor_manifests.py'
+      - name: Test source provenance and executor manifest guards
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Prepare the pinned executor workspace
         run: python3 scripts/prepare-sources.py executor
       - name: Resolve the mirror and real sources with the reviewed lock
@@ -53,12 +55,17 @@ jobs:
           for f in scripts/*.mjs web/*.mjs; do node --check "$f"; done
           bash -n scripts/build.sh
   browser:
+    needs: wasm
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: browser-wasm-v2
+          path: .
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"

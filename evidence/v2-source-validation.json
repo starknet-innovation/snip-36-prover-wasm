@@ -1,0 +1,142 @@
+{
+  "date": "2026-11-10",
+  "pins": {
+    "backend_release": "v1.4.0",
+    "backend": "cf4bc4d63a3bf0819dd1a04821adc0e8ac7911c2",
+    "deps_release": "deps-v15",
+    "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
+    "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "proof_version": "0x50524f4f4632"
+  },
+  "browser": {
+    "runtime": "browser Worker memory64",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "pie_sha256": "6f729e70e953fc356f2e698b90ebd86e5518abdcf4b03b789e2f53aeba856187",
+    "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+    "proof_bytes": 231440,
+    "init_ms": 4744.440000005066,
+    "prove_ms": 67532.28500000387,
+    "total_ms": 72368.0549999997,
+    "wasm_linear_memory_bytes": 14308737024,
+    "webcrypto_random_calls": 0,
+    "webcrypto_random_bytes": 0,
+    "rust_requested_live_bytes": 10885363163,
+    "rust_requested_peak_bytes": 14146828485,
+    "backend_release": "v1.4.0",
+    "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "scope": "V2 recursive proving in browser; native verification separate"
+  },
+  "output_preimage": [
+    "0x1",
+    "0x7",
+    "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "0x5649525455414c5f534e4f5330",
+    "0xf5d334",
+    "0x31d7e77a1a55236f80df9a3e57b0f6e08e3e6f3a3caf5efbf03cbb1b9006a93",
+    "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+    "0x0"
+  ],
+  "native_verification": {
+    "origin": "verify",
+    "output_matches_fixture": true,
+    "precomputes_ms": 0,
+    "proof_bytes": 231440,
+    "prove_ms": 0,
+    "total_ms": 48,
+    "verified": true,
+    "verify_ms": 48
+  },
+  "native_verifier_upstream_source_unchanged": true,
+  "replays": {
+    "coinflip-heads": {
+      "pie_sha256": "d28cb57723472be6843fe45a96991abd0fe3c8a3ebe402781c91fd16f574a8d2",
+      "capture_sha256": "c21a629e0dc0ca2cfd900b4ce029fc7706bf6d479026dc89bca17aa21e4324c6",
+      "output": [
+        "0x5649525455414c5f534e4f5330",
+        "0xf5de4d",
+        "0x11baf41521fb4643aad32762f95912f2c9c451400e0ca9a89f8ce9573eff79e",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x1",
+        "0x2ee1d0a51cf022c9a1136707aba0ce70dc425895b1671e6cf5489fcca0052cb"
+      ]
+    },
+    "coinflip-tails": {
+      "pie_sha256": "10a0398b07585761024a16d8fd625c1fb2335674d3f7286465a71eeda75be258",
+      "capture_sha256": "0227d59d0428709ec4c8138f95f36e0d36a1fdc2c511654bd533d76d63c90f1c",
+      "output": [
+        "0x5649525455414c5f534e4f5330",
+        "0xf5de4d",
+        "0x11baf41521fb4643aad32762f95912f2c9c451400e0ca9a89f8ce9573eff79e",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x1",
+        "0x3e8a6fc0136a9e961a86bc205f760de1bd46ef64c7cca6d63a4ba570f974378"
+      ]
+    },
+    "captured-execution": {
+      "pie_sha256": "6f729e70e953fc356f2e698b90ebd86e5518abdcf4b03b789e2f53aeba856187",
+      "capture_sha256": "38026f8b9a3190173fb370f5d1d986a5c0793900037d48ed378f810f3b040010",
+      "output": [
+        "0x5649525455414c5f534e4f5330",
+        "0xf5d334",
+        "0x31d7e77a1a55236f80df9a3e57b0f6e08e3e6f3a3caf5efbf03cbb1b9006a93",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x0"
+      ]
+    }
+  },
+  "offline_replay_identical": true,
+  "invalid_signature_rejected": {
+    "rejected": true,
+    "error": "The `validate` entry point panicked with:\nError in contract (contract address: 0x005a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa, class hash: 0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564, selector: 0x0162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775):\n0x4163636f756e743a20696e76616c6964207369676e6174757265 ('Account: invalid signature').\n"
+  },
+  "network_submission": false,
+  "scope": "Local Chromium V2 execution and proving against retained public captures, followed by verification with the unpatched upstream V2 native verifier. No V2 on-chain acceptance or bank deployment is claimed.",
+  "source_assets": {
+    "source_identity": {
+      "pins_sha256": "5c52564390cc0b429a22f607fba72bb05550732d0c698880c015bc6ad08970a4",
+      "executor_patch_sha256": "bf00d21a9618c9b367e936a1a4bd57afe3e7abf197746ce5ef8e6f6ea1751c09",
+      "prover_patch_sha256": "e6d3e3b3e5d97119b83c893fe24f01eee2449c5cff6023d3957d8e7fe7ee957e"
+    },
+    "assets": {
+      "web/auth/browser_virtual_os_bg.wasm": {
+        "path": "web/auth/browser_virtual_os_bg.wasm",
+        "bytes": 36367617,
+        "sha256": "63cf7ef7c4da6118d827c1ed0ed400fb95548d2d44f5cae965646f40210fd455"
+      },
+      "web/auth/browser_virtual_os.js": {
+        "path": "web/auth/browser_virtual_os.js",
+        "bytes": 21706,
+        "sha256": "6c322052e176ffddd7cbe4049e8d96019817891efbbd23dd34552a8c1d07c08f"
+      },
+      "web/sequencer-prover.wasm": {
+        "path": "web/sequencer-prover.wasm",
+        "bytes": 70096780,
+        "sha256": "1489f941bc68fb4e178f00ab0de508448426a86cf93360abd8009a79757477a5"
+      }
+    }
+  },
+  "checks": {
+    "node_tests": 63,
+    "python_tests": 12,
+    "cairo_tests": 8,
+    "executor_manifest_count": 30,
+    "locked_executor_graphs_equal": true,
+    "workflow_lint": true,
+    "source_patch_apply_checks": true,
+    "browser_replay": true,
+    "browser_proof_native_verified": true,
+    "worker_message_boundaries": true,
+    "stubbed_live_ui_scenarios": [
+      "unsupported-wallet",
+      "wrong-network",
+      "pending-transaction",
+      "legacy-bank",
+      "mismatched-bank"
+    ],
+    "legacy_reveal_and_recovery_policy_unit_test": true
+  },
+  "statement_matches_independent_execution": true
+}
