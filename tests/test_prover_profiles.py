@@ -27,6 +27,10 @@ class ProverProfiles(unittest.TestCase):
         (bins / 'cargo').write_text(f'#!{sys.executable}\n' + '''import json, os, sys
 from pathlib import Path
 args = sys.argv[1:]
+if 'install' in args:
+    Path('host-install.json').write_text(json.dumps({'rustflags': os.environ.get('RUSTFLAGS'),
+        'encoded_rustflags': os.environ.get('CARGO_ENCODED_RUSTFLAGS')}))
+    sys.exit(0)
 manifest = args[args.index('--manifest-path') + 1]
 profile = Path(manifest).parts[1]
 root = Path(os.environ['CARGO_TARGET_DIR'])
@@ -81,3 +85,22 @@ Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': s
             self.assertEqual(self.run_build(*args).returncode, 2)
             self.assertFalse((self.root / 'cargo-call.json').exists())
             self.assertEqual(self.installed.read_bytes(), b'released-default')
+
+    def test_executor_installs_native_bindgen_without_wasm_backend_flags(self):
+        (self.root / 'scripts/prepare-compiler.py').write_text('pass\n')
+        (self.root / 'scripts/check-compiler.py').write_text('pass\n')
+        compiler = self.root / 'build/compiler-venv/bin'
+        compiler.mkdir(parents=True)
+        (compiler / 'python').symlink_to(sys.executable)
+        (compiler / 'pip').write_text('#!/bin/sh\nexit 0\n')
+        (compiler / 'pip').chmod(0o755)
+        tool = self.root / 'build/tools/bin/wasm-bindgen'
+        tool.parent.mkdir(parents=True)
+        tool.write_text('#!/bin/sh\nexit 0\n')
+        tool.chmod(0o755)
+        self.env['RUSTFLAGS'] = '--cfg getrandom_backend="wasm_js"'
+        result = self.run_build('executor')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        install = json.loads((self.root / 'host-install.json').read_text())
+        self.assertIsNone(install['rustflags'])
+        self.assertIsNone(install['encoded_rustflags'])
