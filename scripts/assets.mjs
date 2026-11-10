@@ -23,7 +23,7 @@ export function validateManifest(manifest) {
     manifest.repository !== repository ||
     manifest.release !== release ||
     !Array.isArray(manifest.assets) ||
-    manifest.assets.length !== 2
+    manifest.assets.length !== Object.keys(targets).length
   )
     throw Error("Unexpected release manifest");
   const seen = new Set();

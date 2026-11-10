@@ -16,7 +16,18 @@ The CoinFlip computation preserves upstream `play(seed, player, bet)` and its vi
 
 Download the recovery JSON after committing. It includes the reveal secret, not a signing key; keep it private until reveal. Local history is scoped to bank and wallet. Reconnect and select Resume, or restore the file. Proofs are cached in IndexedDB and downloadable. Storage loss can be recovered with the file and a fresh public proof. A revealed round has no settlement expiry in this demo.
 
-A transaction hash is saved immediately when the wallet returns it. Pending submissions disable repeat actions across reloads; Refresh checks the receipt and authoritative game state. If the wallet never returns a hash, inspect its activity before taking further action. The application intentionally leaves ambiguous submissions blocked. An unmatched standalone deposit can be refunded after one hour; normal UI deposits match atomically. Unrevealed matched rounds can be expired permissionlessly through `expire_unrevealed` after the deadline.
+A transaction hash is saved immediately when the wallet returns it. Pending submissions disable repeat actions across reloads; Refresh checks the receipt and authoritative game state. If the wallet never returns a hash, inspect its activity before taking further action. The application intentionally leaves ambiguous submissions blocked, except settlement: if the wallet does not answer a proof-bearing settlement within 5 minutes, the page unblocks and points to the command-line fallback below. A duplicate settlement can only revert, because the round is no longer revealed; it cannot pay twice. An unmatched standalone deposit can be refunded after one hour; normal UI deposits match atomically. Unrevealed matched rounds can be expired permissionlessly through `expire_unrevealed` after the deadline.
+
+### Settling from the command line
+
+Some wallets advertise Wallet API 0.10.3+ but never answer a proof-bearing invocation. Settlement is permissionless and always pays the recorded player, so any funded Sepolia account can submit the proof instead:
+
+```sh
+npm run settle -- coinflip-proof.json coinflip-recovery.json          # dry run: checks state and proof binding
+SNCAST_ACCOUNT=<name> npm run settle -- coinflip-proof.json coinflip-recovery.json --send
+```
+
+It signs locally with the named sncast account (or `STARKNET_ACCOUNT_ADDRESS`/`STARKNET_PRIVATE_KEY`), caps the fee at 25 test STRK, journals the signed intent in `artifacts/settle/` to prevent rebroadcast, and waits for the receipt.
 
 ## Contracts and tests
 

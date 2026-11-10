@@ -12,6 +12,7 @@ import {
   depositCalls,
   revealCalls,
   validateRound,
+  proofMaterial,
 } from "../web/live-core.mjs";
 import {
   unsignedBalanceRequest,
@@ -157,6 +158,15 @@ export async function testWallet(config, dir) {
   }
   return {
     address,
+    // Settlement is permissionless and pays the recorded player, so any account may submit it.
+    async settle(round, proofReceipt) {
+      const g = await readGame(config, round.id);
+      if (g.state !== 3) throw Error("Round is not awaiting settlement");
+      return submit(
+        settleCalls(round, g),
+        proofMaterial(proofReceipt, config, round, g),
+      );
+    },
     async fund() {
       return submit([
         {

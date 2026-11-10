@@ -1,21 +1,28 @@
 import { BACKEND_RELEASE, PROVING_REVISION, assertProofProfile } from "./prover-profile.mjs";
 import { loadMemory64 } from "./sequencer-memory64.mjs";
+import { PROVER_BUILDS, runtimeBuildIdentity } from "./prover-builds.mjs";
 self.onmessage = async (event) => {
   // Dedicated Worker messages have an empty origin and no Window source.
   // Reject window-style and synthetic events before reading their payload.
   if (event.origin !== "" || event.source !== null || !event.isTrusted) return;
   if (!event.data || typeof event.data !== "object") return;
-  const { id, pie } = event.data;
+  const { id, pie, expectedWasm, build = "standard" } = event.data;
   const start = performance.now(),
     send = (data) => self.postMessage({ id, ...data });
   try {
     if (!(pie instanceof ArrayBuffer) || !pie.byteLength)
       throw Error("Missing browser-generated PIE");
+    if (!Object.hasOwn(PROVER_BUILDS, build) || !PROVER_BUILDS[build].available)
+      throw Error("Prover build unavailable for the V2 circuit");
+    const loadStarted = performance.now();
     const api = await loadMemory64(
-      "./sequencer-prover.wasm",
+      PROVER_BUILDS[build].url,
       (message) => send({ kind: "panic", message }),
       (stage) => send({ kind: "stage", ...stage }),
+      // Always hash the module so every receipt records which bytes proved it.
+      expectedWasm ?? await runtimeBuildIdentity(build),
     );
+    const load_ms = performance.now() - loadStarted;
     let t = performance.now();
     api.init();
     const init_ms = performance.now() - t;
@@ -36,10 +43,13 @@ self.onmessage = async (event) => {
       output_preimage: result.output_preimage,
       report: {
         runtime: "browser Worker memory64",
+        prover_build: build,
+        ...api.identity,
         userAgent: navigator.userAgent,
         pie_sha256: await sha(pie),
         proof_sha256: await sha(result.proof),
         proof_bytes: result.proof.length,
+        load_ms,
         init_ms,
         prove_ms,
         total_ms: performance.now() - start,

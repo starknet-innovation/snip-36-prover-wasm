@@ -1,0 +1,124 @@
+diff --git a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
+index 2922fd3..4bfd60d 100644
+--- a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
++++ b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
+@@ -32,6 +32,10 @@ const N_FELTS_IN_BLAKE_MESSAGE: usize = 16;
+ const N_FELTS_IN_BLAKE_STATE: usize = 8;
+ const N_BYTES_IN_BLAKE_MESSAGE: u64 = N_FELTS_IN_BLAKE_MESSAGE as u64 * N_BYTES_FELT as u64;
+ const LOG_N_HASHES_PER_SIMD_STATE: u32 = 4;
++/// Number of lowest Merkle layers (the leaves and the inner layers above them) that
++/// [`MerkleOpsLifted::build_layers_sparse`] leaves empty: each query then rehashes a block of
++/// `2^OMITTED_LAYERS` leaves at decommitment, and retained hashes shrink by about that factor.
++const OMITTED_LAYERS: u32 = 5;
+ 
+ impl<const IS_M31_OUTPUT: bool> MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M31_OUTPUT>>
+     for SimdBackend
+@@ -222,6 +226,28 @@ impl<const IS_M31_OUTPUT: bool> MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M3
+         res
+     }
+ 
++    /// Keeps only the layers from [`OMITTED_LAYERS`] up: the leaves and the lowest inner layers
++    /// are each dropped once the next layer is built, so at most two of them are resident.
++    /// `MerkleProverLifted::decommit_from` recomputes the few hashes of those layers it reads.
++    fn build_layers_sparse(
++        columns: &[&Col<Self, BaseField>],
++        lifting_log_size: u32,
++    ) -> Vec<Col<Self, Blake2sHash>> {
++        if columns.is_empty() || lifting_log_size < OMITTED_LAYERS {
++            return <Self as MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M31_OUTPUT>>>::build_layers(columns, lifting_log_size);
++        }
++        let mut layer = <Self as MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M31_OUTPUT>>>::build_leaves(columns, lifting_log_size);
++        for _ in 0..OMITTED_LAYERS {
++            layer = <Self as MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M31_OUTPUT>>>::build_next_layer(&layer);
++        }
++        let mut layers: Vec<Vec<Blake2sHash>> = (0..OMITTED_LAYERS).map(|_| Vec::new()).collect();
++        layers.push(layer);
++        for _ in OMITTED_LAYERS..lifting_log_size {
++            layers.push(<Self as MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M31_OUTPUT>>>::build_next_layer(layers.last().unwrap()));
++        }
++        layers
++    }
++
+     #[allow(clippy::uninit_vec)]
+     fn build_next_layer(prev_layer: &Vec<Blake2sHash>) -> Vec<Blake2sHash> {
+         // The log size of the current layer that needs to be built.
+@@ -448,4 +474,26 @@ mod tests {
+             );
+         }
+     }
++
++    #[test]
++    fn test_sparse_layers_keep_root_and_decommitment() {
++        // Lifted columns of three sizes; queries include siblings, duplicates and both ends.
++        const LOG_N_ROWS: u32 = 10;
++        let cols: Vec<Vec<BaseField>> = [LOG_N_ROWS, LOG_N_ROWS - 3, LOG_N_ROWS]
++            .iter()
++            .enumerate()
++            .map(|(c, &log)| (0..1u32 << log).map(|i| M31::from_u32_unchecked(i * 7 + c as u32)).collect())
++            .collect();
++        let simd_cols: Vec<BaseColumn> = cols.iter().map(|c| BaseColumn::from_cpu(c)).collect();
++        let queries = [0, 1, 5, 5, 300, 301, 777, 1023];
++        let cpu = MerkleProverLifted::<CpuBackend, Blake2sMerkleHasher>::commit(cols.iter().collect(), LOG_N_ROWS, 0);
++        let simd = MerkleProverLifted::<SimdBackend, Blake2sMerkleHasher>::commit(simd_cols.iter().collect(), LOG_N_ROWS, 0);
++        assert!(simd.layers.iter().rev().take(5).all(|layer| layer.is_empty()));
++        assert!(!simd.layers[LOG_N_ROWS as usize - 5].is_empty());
++        assert_eq!(cpu.root(), simd.root());
++        let (cpu_values, cpu_decommitment) = cpu.decommit(&queries, cols.iter().collect());
++        let (simd_values, simd_decommitment) = simd.decommit(&queries, simd_cols.iter().collect());
++        assert_eq!(cpu_values, simd_values);
++        assert_eq!(cpu_decommitment.decommitment.hash_witness, simd_decommitment.decommitment.hash_witness);
++    }
+ }
+diff --git a/crates/stwo/src/prover/fri.rs b/crates/stwo/src/prover/fri.rs
+index ae022ee..bc020dc 100644
+--- a/crates/stwo/src/prover/fri.rs
++++ b/crates/stwo/src/prover/fri.rs
+@@ -14,7 +14,7 @@ use crate::core::poly::line::LinePoly;
+ use crate::core::queries::{draw_queries, Queries};
+ use crate::core::vcs_lifted::merkle_hasher::MerkleHasherLifted;
+ use crate::core::vcs_lifted::verifier::LOG_PACKED_LEAF_SIZE;
+-use crate::prover::backend::{Col, ColumnOps};
++use crate::prover::backend::ColumnOps;
+ use crate::prover::line::LineEvaluation;
+ use crate::prover::poly::circle::{PolyOps, SecureEvaluation};
+ use crate::prover::poly::twiddles::TwiddleTree;
+@@ -314,12 +314,14 @@ impl<'a, B: FriOps + MerkleOpsLifted<H>, H: MerkleHasherLifted> FriFirstLayerPro
+         } else {
+             decommitment_positions
+         };
+-        // We can pass an empty vector to the merkle decommit because we don't use its returned
+-        // opened values.
+-        // TODO(Leo): consider adding a method to merkle prover to decommit only the auth paths.
+-        let (_, decommitment) = self
+-            .merkle_tree
+-            .decommit(&decommitment_positions, Vec::<&Col<B, BaseField>>::new());
++        // The opened values are not used, but the columns are needed: a sparse tree (see
++        // `MerkleOpsLifted::build_layers_sparse`) rehashes the leaves around each query from them.
++        let columns = self.column.values.columns.iter().collect_vec();
++        let (_, decommitment) = if self.pack_leaves {
++            self.merkle_tree.decommit_packed(&decommitment_positions, columns)
++        } else {
++            self.merkle_tree.decommit(&decommitment_positions, columns)
++        };
+         let commitment = self.merkle_tree.root();
+ 
+         ExtendedFriLayerProof {
+@@ -385,11 +387,13 @@ impl<B: FriOps + MerkleOpsLifted<H>, H: MerkleHasherLifted> FriInnerLayerProver<
+         } else {
+             decommitment_positions
+         };
+-        // We can pass an empty vector to the merkle decommit because we don't use its returned
+-        // opened values.
+-        let (_, decommitment) = self
+-            .merkle_tree
+-            .decommit(&decommitment_positions, Vec::<&Col<B, BaseField>>::new());
++        // The opened values are not used, but a sparse tree rehashes leaves from the columns.
++        let columns = self.evaluation.values.columns.iter().collect_vec();
++        let (_, decommitment) = if self.pack_leaves {
++            self.merkle_tree.decommit_packed(&decommitment_positions, columns)
++        } else {
++            self.merkle_tree.decommit(&decommitment_positions, columns)
++        };
+         let commitment = self.merkle_tree.root();
+ 
+         ExtendedFriLayerProof {

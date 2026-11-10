@@ -1,0 +1,58 @@
+{
+  "status": "locally_validated",
+  "unchanged_native_verifier_sha256": "2b9878070536597b636d257d12577a5d528c3a7fb2bc0ab048df7864c16aa6b2",
+  "workloads": [
+    {
+      "workload": "balance",
+      "cases": 535,
+      "canonical_negative_cases": 530,
+      "encoding_negative_cases": 4,
+      "order_negative_cases": 24,
+      "positive_controls": 1,
+      "negative_rejections": 534,
+      "failed": 0,
+      "panics": 0,
+      "signals": 0
+    },
+    {
+      "workload": "coinflip-heads",
+      "cases": 535,
+      "canonical_negative_cases": 530,
+      "encoding_negative_cases": 4,
+      "order_negative_cases": 24,
+      "positive_controls": 1,
+      "negative_rejections": 534,
+      "failed": 0,
+      "panics": 0,
+      "signals": 0
+    },
+    {
+      "workload": "coinflip-tails",
+      "cases": 535,
+      "canonical_negative_cases": 530,
+      "encoding_negative_cases": 4,
+      "order_negative_cases": 24,
+      "positive_controls": 1,
+      "negative_rejections": 534,
+      "failed": 0,
+      "panics": 0,
+      "signals": 0
+    }
+  ],
+  "proof_sha256": {
+    "balance": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+    "coinflip-heads": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+    "coinflip-tails": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463"
+  },
+  "expected_sha256": {
+    "balance": "7e0f84b01b57b137405c48f160df4aa718512b0e179392a988bac067b8b1d089",
+    "coinflip-heads": "b54d17cf82c118748a0c0b726b203d207caf1f9983fa43c46529d6c0a8b2dc56",
+    "coinflip-tails": "8c21f39112bd5ce613ad6bf74a3129a7a2b563e93edd33307a7726c4d3fca77d"
+  },
+  "raw_artifacts": "artifacts/port/boundaries",
+  "limitations": [
+    "Not formal security proof or adversarial fuzzing",
+    "Native verifier parses but does not validate version value",
+    "Only unchanged native verifier executed; no CI or human review claimed"
+  ]
+}

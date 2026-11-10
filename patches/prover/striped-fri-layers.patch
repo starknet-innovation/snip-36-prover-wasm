@@ -1,0 +1,92 @@
+diff --git a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
+index 4bfd60d..193c4fa 100644
+--- a/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
++++ b/crates/stwo/src/prover/backend/simd/blake2s_lifted.rs
+@@ -248,6 +248,47 @@ impl<const IS_M31_OUTPUT: bool> MerkleOpsLifted<Blake2sMerkleHasherGeneric<IS_M3
+         layers
+     }
+ 
++    /// [`MerkleOpsLifted::build_layers_sparse`] of the packed leaves, built a stripe of
++    /// `2^LOG_STRIPE_LEAVES` leaves at a time: each stripe's rows are packed and hashed up to
++    /// layer [`OMITTED_LAYERS`], so neither the packed copy of the columns nor the leaves are
++    /// ever whole. A leaf hashes only its own rows and the stripes are aligned subtrees, so the
++    /// layers are the ones the whole-column build produces.
++    fn build_packed_layers(
++        columns: &[&Col<Self, BaseField>; SECURE_EXTENSION_DEGREE],
++        lifting_log_size: u32,
++    ) -> Vec<Col<Self, Blake2sHash>> {
++        const LOG_STRIPE_LEAVES: u32 = 14;
++        type Ops<const M: bool> = Blake2sMerkleHasherGeneric<M>;
++        if lifting_log_size < LOG_STRIPE_LEAVES {
++            let packed = <Self as PackLeavesOps>::pack_leaves_input(columns);
++            return <Self as MerkleOpsLifted<Ops<IS_M31_OUTPUT>>>::build_layers_sparse(&packed.iter().collect_vec(), lifting_log_size);
++        }
++        assert!(columns.iter().all(|c| c.len() == PACKED_LEAF_SIZE << lifting_log_size));
++        let stripe_packed_len = (PACKED_LEAF_SIZE << LOG_STRIPE_LEAVES) / N_LANES;
++        let mut kept = Vec::with_capacity(1 << (lifting_log_size - OMITTED_LAYERS));
++        for stripe in 0..1 << (lifting_log_size - LOG_STRIPE_LEAVES) {
++            let rows = stripe * stripe_packed_len..(stripe + 1) * stripe_packed_len;
++            let parts: [BaseColumn; SECURE_EXTENSION_DEGREE] = array::from_fn(|coord| BaseColumn {
++                data: columns[coord].data[rows.clone()].to_vec(),
++                length: PACKED_LEAF_SIZE << LOG_STRIPE_LEAVES,
++            });
++            let packed = <Self as PackLeavesOps>::pack_leaves_input(&parts.each_ref());
++            drop(parts);
++            let mut layer = <Self as MerkleOpsLifted<Ops<IS_M31_OUTPUT>>>::build_leaves(&packed.iter().collect_vec(), LOG_STRIPE_LEAVES);
++            drop(packed);
++            for _ in 0..OMITTED_LAYERS {
++                layer = <Self as MerkleOpsLifted<Ops<IS_M31_OUTPUT>>>::build_next_layer(&layer);
++            }
++            kept.extend(layer);
++        }
++        let mut layers: Vec<Vec<Blake2sHash>> = (0..OMITTED_LAYERS).map(|_| Vec::new()).collect();
++        layers.push(kept);
++        for _ in OMITTED_LAYERS..lifting_log_size {
++            layers.push(<Self as MerkleOpsLifted<Ops<IS_M31_OUTPUT>>>::build_next_layer(layers.last().unwrap()));
++        }
++        layers
++    }
++
+     #[allow(clippy::uninit_vec)]
+     fn build_next_layer(prev_layer: &Vec<Blake2sHash>) -> Vec<Blake2sHash> {
+         // The log size of the current layer that needs to be built.
+@@ -394,7 +435,7 @@ mod tests {
+     use crate::prover::backend::simd::column::BaseColumn;
+     use crate::prover::backend::simd::SimdBackend;
+     use crate::prover::backend::{Column, CpuBackend};
+-    use crate::prover::vcs_lifted::ops::MerkleOpsLifted;
++    use crate::prover::vcs_lifted::ops::{MerkleOpsLifted, PackLeavesOps};
+     use crate::prover::vcs_lifted::prover::MerkleProverLifted;
+ 
+     #[test]
+@@ -496,4 +537,30 @@ mod tests {
+         assert_eq!(cpu_values, simd_values);
+         assert_eq!(cpu_decommitment.decommitment.hash_witness, simd_decommitment.decommitment.hash_witness);
+     }
++
++    #[test]
++    fn test_striped_packed_layers_match_whole_build() {
++        // Below, at and above one stripe of 2^14 leaves; both hasher outputs.
++        fn check<const M: bool>(lifting_log_size: u32) {
++            let len = 4usize << lifting_log_size;
++            let cols: [BaseColumn; 4] = std::array::from_fn(|c| {
++                (0..len).map(|i| M31::from_u32_unchecked((i as u32).wrapping_mul(2654435761).wrapping_add(c as u32 * 97) % 2147483647)).collect()
++            });
++            let refs = cols.each_ref();
++            let packed = <SimdBackend as PackLeavesOps>::pack_leaves_input(&refs);
++            let whole = <SimdBackend as MerkleOpsLifted<Blake2sMerkleHasherGeneric<M>>>::build_layers(&packed.iter().collect_vec(), lifting_log_size);
++            let striped = <SimdBackend as MerkleOpsLifted<Blake2sMerkleHasherGeneric<M>>>::build_packed_layers(&refs, lifting_log_size);
++            assert_eq!(striped.len(), whole.len());
++            for (s, w) in striped.iter().zip(&whole) {
++                assert!(s.is_empty() || s == w);
++            }
++            assert!(striped[5..].iter().zip(&whole[5..]).all(|(s, w)| s == w));
++            let fri = MerkleProverLifted::<SimdBackend, Blake2sMerkleHasherGeneric<M>>::commit(refs.to_vec(), lifting_log_size, 2);
++            assert_eq!(fri.root(), *whole.last().unwrap().first().unwrap());
++        }
++        for log in [12, 14, 15, 16] {
++            check::<false>(log);
++            check::<true>(log);
++        }
++    }
+ }

@@ -1,0 +1,93 @@
+{
+  "status": "locally_validated",
+  "starting_sha": "a30d8b1026bf4672c9a3933288f4a77af63086d7",
+  "additional_fix": "Offline native tamper controls reject verifier panics/crashes/timeouts rather than counting them as ordinary errors.",
+  "javascript_tests": 67,
+  "python_prover_tests": 7,
+  "native_controls": [
+    {
+      "name": "balance",
+      "case": "positive",
+      "passed": true,
+      "stdout": "{\"origin\":\"verify\",\"output_matches_fixture\":true,\"precomputes_ms\":0,\"proof_bytes\":231962,\"prove_ms\":0,\"total_ms\":58,\"verified\":true,\"verify_ms\":58}\n",
+      "stderr": "2026-10-13T11:18:49.639021Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.640104Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.640672Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\n"
+    },
+    {
+      "name": "balance",
+      "case": "proof",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2026-10-13T11:18:49.707108Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.707329Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.707346Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+    },
+    {
+      "name": "balance",
+      "case": "statement",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2026-10-13T11:18:49.759715Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.759936Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.759954Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+    },
+    {
+      "name": "coinflip-heads",
+      "case": "positive",
+      "passed": true,
+      "stdout": "{\"origin\":\"verify\",\"output_matches_fixture\":true,\"precomputes_ms\":0,\"proof_bytes\":235339,\"prove_ms\":0,\"total_ms\":53,\"verified\":true,\"verify_ms\":53}\n",
+      "stderr": "2026-10-13T11:18:49.813725Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.813953Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.813969Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\n"
+    },
+    {
+      "name": "coinflip-heads",
+      "case": "proof",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2026-10-13T11:18:49.877630Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.877842Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.877858Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+    },
+    {
+      "name": "coinflip-heads",
+      "case": "statement",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2026-10-13T11:18:49.930813Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.931030Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.931046Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+    },
+    {
+      "name": "coinflip-tails",
+      "case": "positive",
+      "passed": true,
+      "stdout": "{\"origin\":\"verify\",\"output_matches_fixture\":true,\"precomputes_ms\":0,\"proof_bytes\":229484,\"prove_ms\":0,\"total_ms\":55,\"verified\":true,\"verify_ms\":54}\n",
+      "stderr": "2026-10-13T11:18:49.984341Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:49.984575Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:49.984594Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\n"
+    },
+    {
+      "name": "coinflip-tails",
+      "case": "proof",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2026-10-13T11:18:50.051397Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:50.051617Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:50.051635Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+    },
+    {
+      "name": "coinflip-tails",
+      "case": "statement",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2026-10-13T11:18:50.103479Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-10-13T11:18:50.103712Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output values\n2026-10-13T11:18:50.103731Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+    }
+  ],
+  "artifact_checks": {
+    "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/evidence-2026-10/review-fixes.tar.gz": {
+      "files": 3279,
+      "all_member_sizes_and_hashes_match": true
+    },
+    "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/evidence-2026-10/raw-evidence.tar.gz": {
+      "files": 4040,
+      "all_member_sizes_and_hashes_match": true
+    },
+    "module_verifier_and_proof_identities": "all unchanged; all three proofs byte-identical to baseline"
+  },
+  "candidate_wasm_unchanged": "a72eb0f4d2a055e6345dae8bfabf4e586ca998037c0d16a37ad4d96dd93a6595",
+  "production_protocol_unchanged": true,
+  "browser_proof_evidence": "Previous exact-byte browser validation remains applicable: only native error classification changed; fresh native controls above re-exercise it.",
+  "performance_scope": "No new performance measurement or acceptance claim."
+}

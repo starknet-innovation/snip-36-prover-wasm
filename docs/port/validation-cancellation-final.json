@@ -1,0 +1,113 @@
+{
+  "cancelled_at": {
+    "message": "Prove the cairo-circuit verifier",
+    "metrics": {
+      "rust_requested_live_bytes": 1381260183,
+      "rust_requested_peak_bytes": 3873011992
+    },
+    "wasm_linear_memory_bytes": 4287430656
+  },
+  "stale_messages": 0,
+  "replacement_identity": {
+    "wasm_bytes": 95070016,
+    "wasm_sha256": "41a6f536d5d24ba7bb8ccb416d937e87f2a90abb88b43a644c67a4d65ad39db6"
+  },
+  "stages": [
+    {
+      "message": "Prepare the twiddles",
+      "metrics": {
+        "rust_requested_live_bytes": 297346,
+        "rust_requested_peak_bytes": 2950539
+      },
+      "wasm_linear_memory_bytes": 37879808
+    },
+    {
+      "message": "Prepare the cairo prover preprocessed trace and tree",
+      "metrics": {
+        "rust_requested_live_bytes": 33858434,
+        "rust_requested_peak_bytes": 50635470
+      },
+      "wasm_linear_memory_bytes": 88408064
+    },
+    {
+      "message": "Run privacy bootloader and get the prover input and output preimage",
+      "metrics": {
+        "rust_requested_live_bytes": 639128131,
+        "rust_requested_peak_bytes": 1159482492
+      },
+      "wasm_linear_memory_bytes": 1257570304
+    },
+    {
+      "message": "Running the program",
+      "metrics": {
+        "rust_requested_live_bytes": 641326595,
+        "rust_requested_peak_bytes": 1159482492
+      },
+      "wasm_linear_memory_bytes": 1257570304
+    },
+    {
+      "message": "Reading the bootloader output preimage",
+      "metrics": {
+        "rust_requested_live_bytes": 677917681,
+        "rust_requested_peak_bytes": 1159482492
+      },
+      "wasm_linear_memory_bytes": 1257570304
+    },
+    {
+      "message": "Adapting the runner output for the prover",
+      "metrics": {
+        "rust_requested_live_bytes": 677917684,
+        "rust_requested_peak_bytes": 1159482492
+      },
+      "wasm_linear_memory_bytes": 1257570304
+    },
+    {
+      "message": "Generate the cairo proof",
+      "metrics": {
+        "rust_requested_live_bytes": 633707564,
+        "rust_requested_peak_bytes": 1159482492
+      },
+      "wasm_linear_memory_bytes": 1257570304
+    },
+    {
+      "message": "Prepare the cairo proof for the cairo-circuit verifier",
+      "metrics": {
+        "rust_requested_live_bytes": 625507334,
+        "rust_requested_peak_bytes": 3873011992
+      },
+      "wasm_linear_memory_bytes": 4287430656
+    },
+    {
+      "message": "Prepare circuit-only preprocessing after the Cairo proof",
+      "metrics": {
+        "rust_requested_live_bytes": 626106804,
+        "rust_requested_peak_bytes": 3873011992
+      },
+      "wasm_linear_memory_bytes": 4287430656
+    },
+    {
+      "message": "Build the cairo-circuit verifier context",
+      "metrics": {
+        "rust_requested_live_bytes": 711701935,
+        "rust_requested_peak_bytes": 3873011992
+      },
+      "wasm_linear_memory_bytes": 4287430656
+    },
+    {
+      "message": "Prepare the circuit prover preprocessed trace and tree",
+      "metrics": {
+        "rust_requested_live_bytes": 844365693,
+        "rust_requested_peak_bytes": 3873011992
+      },
+      "wasm_linear_memory_bytes": 4287430656
+    },
+    {
+      "message": "Prove the cairo-circuit verifier",
+      "metrics": {
+        "rust_requested_live_bytes": 1381260183,
+        "rust_requested_peak_bytes": 3873011992
+      },
+      "wasm_linear_memory_bytes": 4287430656
+    }
+  ]
+}

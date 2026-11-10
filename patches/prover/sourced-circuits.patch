@@ -1,0 +1,102 @@
+diff --git a/crates/circuit_common/src/preprocessed.rs b/crates/circuit_common/src/preprocessed.rs
+--- a/crates/circuit_common/src/preprocessed.rs
++++ b/crates/circuit_common/src/preprocessed.rs
+@@ -541,6 +541,63 @@
+     }
+ }
+ 
++/// The `index`-th column of a [`PreProcessedTrace`], as the trace values a committed column
++/// reproduces on demand instead of keeping a stripe of its extension: the same values, in the same
++/// order, as that column of [`PreProcessedTrace::get_trace`].
++#[cfg(feature = "prover")]
++pub struct PreprocessedColumnSource {
++    trace: Arc<PreProcessedTrace>,
++    index: usize,
++}
++
++#[cfg(feature = "prover")]
++impl PreprocessedColumnSource {
++    /// A source for every column of `trace`, in the order of [`PreProcessedTrace::get_trace`].
++    pub fn all(trace: &Arc<PreProcessedTrace>) -> Vec<stwo::prover::SharedTraceSource> {
++        (0..trace.n_columns())
++            .map(|index| {
++                Arc::new(Self { trace: trace.clone(), index }) as stwo::prover::SharedTraceSource
++            })
++            .collect()
++    }
++
++    fn column(&self) -> &CompactColumn {
++        self.trace.columns.get_index(self.index).expect("the column exists").1
++    }
++}
++
++#[cfg(feature = "prover")]
++impl stwo::prover::TraceSource for PreprocessedColumnSource {
++    fn log_size(&self) -> u32 {
++        self.column().len().ilog2()
++    }
++
++    fn write_values(&self, dst: &mut [BaseField]) {
++        // The same `BaseField::from(usize)` conversion as `CompactColumn::to_field_column`.
++        let column = self.column();
++        assert_eq!(dst.len(), column.len());
++        match column {
++            CompactColumn::Narrow(values) => {
++                for (value, &narrow) in dst.iter_mut().zip(values) {
++                    *value = BaseField::from(
++                        usize::try_from(narrow).expect("value originally fit usize"),
++                    );
++                }
++            }
++            CompactColumn::Wide(values) => {
++                for (value, &wide) in dst.iter_mut().zip(values) {
++                    *value = BaseField::from(wide);
++                }
++            }
++            _ => {
++                for (row, value) in dst.iter_mut().enumerate() {
++                    *value = BaseField::from(column.at(row));
++                }
++            }
++        }
++    }
++}
++
+ /// A finalized circuit ready for proving: its fixed preprocessed trace together with the
+ /// parameters derived from the circuit's structure.
+ #[derive(Debug, PartialEq)]
+@@ -658,3 +715,21 @@
+         }
+     }
+ }
++
++#[cfg(all(test, feature = "prover"))]
++mod sourced_preprocessing_tests {
++    use super::*;
++    use stwo::prover::TraceSource;
++    use stwo::prover::backend::simd::SimdBackend;
++    #[test]
++    fn sources_match_original_generated_columns_in_commitment_order() {
++        let mut context = circuits::context::Context::<stwo::core::fields::qm31::QM31>::default().finalize(false);
++        let preprocessed = PreprocessedCircuit::preprocess_circuit(&mut context);
++        let expected = preprocessed.preprocessed_trace.get_trace::<SimdBackend>();
++        for (source, expected) in PreprocessedColumnSource::all(&preprocessed.preprocessed_trace).iter().zip(expected) {
++            let mut values = vec![BaseField::default(); 1 << source.log_size()];
++            source.write_values(&mut values);
++            assert_eq!(values, expected.values.to_cpu());
++        }
++    }
++}
+diff --git a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -67,3 +67,9 @@
+ opt-level = 3
+ [profile.test.package.stwo]
+ opt-level = 3
++
++[patch."https://github.com/starkware-libs/stwo"]
++stwo = { path = "../stwo/crates/stwo" }
++stwo-constraint-framework = { path = "../stwo/crates/constraint-framework" }
++stwo-air-utils = { path = "../stwo/crates/air-utils" }
++stwo-air-utils-derive = { path = "../stwo/crates/air-utils-derive" }

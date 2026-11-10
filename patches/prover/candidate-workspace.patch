@@ -1,0 +1,16 @@
+diff --git a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -104,3 +104,12 @@
+ stwo-air-utils-derive = { path = "../stwo/crates/air-utils-derive" }
+ stwo-constraint-framework = { path = "../stwo/crates/constraint-framework" }
+ stwo = { path = "../stwo/crates/stwo" }
++
++[patch."https://github.com/starkware-libs/stwo-circuits"]
++circuit-cairo-verifier = { path = "../stwo-circuits/crates/cairo_verifier" }
++circuit-common = { path = "../stwo-circuits/crates/circuit_common" }
++circuit-prover = { path = "../stwo-circuits/crates/circuit_prover" }
++circuit-serialize = { path = "../stwo-circuits/crates/circuit_serialize" }
++circuit-verifier = { path = "../stwo-circuits/crates/circuit_verifier" }
++circuits = { path = "../stwo-circuits/crates/circuits" }
++circuits-stark-verifier = { path = "../stwo-circuits/crates/stark_verifier" }

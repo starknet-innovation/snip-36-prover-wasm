@@ -8,6 +8,7 @@ import subprocess
 import tarfile
 
 from executor_manifests import check_manifests, patch_fingerprint
+from prover_sources import check_receipt, write_receipt, require_pristine
 
 ROOT = Path(__file__).resolve().parents[1]
 PINS = json.loads((ROOT / "pins.json").read_text())
@@ -36,10 +37,9 @@ def clone(build, name, url, revision):
 def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name):
     marker = source / ".wasm-patches-complete"
     fingerprint = patch_fingerprint(patch_dir)
-    if marker.exists():
-        if marker.read_text() != fingerprint:
-            raise ValueError(f"Browser patch set changed; use a fresh {source}")
-    else:
+    trees = {source.name: source}
+    if not check_receipt(marker, fingerprint, trees):
+        require_pristine(trees)
         # The archives contain dependency sources and retain their upstream licenses.
         with tarfile.open(patch_dir / archive_name) as archive:
             archive.extractall(source, filter="data")
@@ -51,7 +51,7 @@ def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name):
                             source / "browser-vendor/num-prime-0.4.4", dirs_exist_ok=True)
             check_manifests(source)
         (source / "Cargo.lock").write_bytes((patch_dir / lock_name).read_bytes())
-        marker.write_text(fingerprint)
+        write_receipt(marker, fingerprint, trees)
     if (source / "Cargo.lock").read_bytes() != (patch_dir / lock_name).read_bytes():
         raise ValueError(f"Prepared browser lock differs in {source}")
     if patch_name == "v2.patch":
@@ -61,10 +61,14 @@ def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=["prover", "native", "executor"])
+    parser.add_argument("mode", choices=["prover", "prover-baseline", "native", "executor"])
     parser.add_argument("--build-dir", type=Path, default=ROOT / "build")
     args = parser.parse_args()
     build = args.build_dir.resolve()
+    if not build.is_relative_to(ROOT / "build"):
+        raise ValueError("Preparation directory must be under build/")
+    if args.mode == "prover-baseline":
+        args.mode = "prover"
     if args.mode == "executor":
         source = clone(build, "sequencer", "https://github.com/starkware-libs/sequencer.git", PINS["sequencer"])
         hashes = json.loads((source / "crates/apollo_starknet_os_program/src/program_hash.json").read_text())
@@ -77,7 +81,12 @@ def main():
         if args.mode == "prover":
             prepare_browser(source, ROOT / "patches/prover", "proving.patch", "browser.Cargo.lock", "portable-vendor.tar.gz")
         else:
-            # The native verifier uses upstream source and dependencies without portability patches.
+            # Only the committed lock and the diagnostic examples may differ from upstream.
+            status = subprocess.check_output(["git", "-C", str(source), "status", "--porcelain", "--untracked-files=all"], text=True).splitlines()
+            examples_allowed = {"?? crates/privacy_prove/examples/" + f.name for f in (ROOT / "native").glob("*.rs")}
+            unexpected = [line for line in status if line != " M Cargo.lock" and line not in examples_allowed]
+            if unexpected:
+                raise ValueError("Native verifier source is not pristine: " + ", ".join(unexpected))
             (source / "Cargo.lock").write_bytes((ROOT / "patches/prover/native.Cargo.lock").read_bytes())
             examples = source / "crates/privacy_prove/examples"
             examples.mkdir(exist_ok=True)

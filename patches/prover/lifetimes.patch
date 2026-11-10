@@ -1,0 +1,163 @@
+diff --git a/crates/privacy_prove/src/lib.rs b/crates/privacy_prove/src/lib.rs
+--- a/crates/privacy_prove/src/lib.rs
++++ b/crates/privacy_prove/src/lib.rs
+@@ -18,9 +18,8 @@
+ use circuit_cairo_verifier::verify::build_fixed_cairo_circuit;
+ use circuit_cairo_verifier::verify::prepare_cairo_proof_for_circuit_verifier;
+ use circuit_common::finalize::{add_zk_blinding, finalize_context};
+-use circuit_common::preprocessed::PreprocessedCircuit;
+ use circuit_prover::prover::{
+-    prepare_circuit_proof_for_circuit_verifier, prove_circuit_with_precompute,
++    prepare_circuit_proof_for_circuit_verifier, prove_circuit_with_owned_values,
+ };
+ use circuit_serialize::serialize::CircuitSerialize;
+ use circuit_verifier::verify::CircuitConfig;
+@@ -58,8 +57,6 @@
+     pub cairo_preprocessed_trace: Arc<PreProcessedTrace>,
+     pub cairo_preprocessed_tree: CommitmentTreeProver<SimdBackend, Blake2sM31MerkleChannel>,
+     pub cairo_verifier_config: CairoVerifierConfig,
+-    pub circuit_preprocessed_tree: CommitmentTreeProver<SimdBackend, Blake2sM31MerkleChannel>,
+-    pub preprocessed_circuit: PreprocessedCircuit,
+     pub circuit_config: CircuitConfig,
+     pub proof_config: ProofConfig,
+ }
+@@ -120,7 +117,6 @@
+     let _span = span!(Level::INFO, "prepare_privacy_recursiveprover_precomputes").entered();
+ 
+     let cairo_verifier_config = get_cairo_verifier_config()?;
+-    let preprocessed_circuit = get_cairo_preprocessed_circuit(&cairo_verifier_config);
+     let circuit_config = get_recursive_circuit_config();
+     let proof_config = get_proof_config();
+ 
+@@ -159,30 +155,12 @@
+         &base_column_pool,
+     );
+ 
+-    info!("Prepare the circuit prover preprocessed trace and tree");
+-    let circuit_preprocessed_trace = preprocessed_circuit
+-        .preprocessed_trace
+-        .get_trace::<SimdBackend>();
+-    let circuit_preprocessed_trace_polys =
+-        SimdBackend::interpolate_columns(circuit_preprocessed_trace, &twiddles);
+-    let circuit_preprocessed_tree =
+-        CommitmentTreeProver::<SimdBackend, Blake2sM31MerkleChannel>::new(
+-            circuit_preprocessed_trace_polys,
+-            CIRCUIT_FRI_CONFIG.log_blowup_factor,
+-            &twiddles,
+-            CIRCUIT_STORE_POLYNOMIALS_COEFFICIENTS,
+-            circuit_config.config.lifting_log_size,
+-            &base_column_pool,
+-        );
+-
+     Ok(Arc::new(RecursiveProverPrecomputes {
+         base_column_pool,
+         twiddles,
+         cairo_preprocessed_trace,
+         cairo_preprocessed_tree,
+         cairo_verifier_config,
+-        circuit_preprocessed_tree,
+-        preprocessed_circuit,
+         circuit_config,
+         proof_config,
+     }))
+@@ -222,6 +200,11 @@
+         &component_enable_bits,
+     );
+ 
++    let zk_blinding_seed = cairo_proof.extended_stark_proof.proof.commitments.0[1].0;
++    drop(cairo_proof);
++    info!("Prepare circuit-only preprocessing after the Cairo proof");
++    let preprocessed_circuit = get_cairo_preprocessed_circuit(&precomputes.cairo_verifier_config);
++
+     info!("Build the cairo-circuit verifier context");
+     let (mut public_claim, _outputs, _program) = public_data.pack_into_u32s();
+     public_claim.extend(component_log_sizes);
+@@ -235,24 +218,41 @@
+     if !context.is_circuit_valid() {
+         return Err("Circuit is not valid".into());
+     };
+-    let zk_blinding_seed = cairo_proof.extended_stark_proof.proof.commitments.0[1].0;
+     add_zk_blinding(
+         &mut context,
+         zk_blinding_seed,
+         precomputes.circuit_config.config.fri_config.n_queries,
+     );
+     finalize_context(&mut context);
+-    let context_values = context.values();
++    let context_values = context.into_values();
++
++    info!("Prepare the circuit prover preprocessed trace and tree");
++    let circuit_preprocessed_trace = preprocessed_circuit
++        .preprocessed_trace
++        .get_trace::<SimdBackend>();
++    let circuit_preprocessed_trace_polys =
++        SimdBackend::interpolate_columns(circuit_preprocessed_trace, &precomputes.twiddles);
++    let circuit_preprocessed_tree =
++        CommitmentTreeProver::<SimdBackend, Blake2sM31MerkleChannel>::new(
++            circuit_preprocessed_trace_polys,
++            CIRCUIT_FRI_CONFIG.log_blowup_factor,
++            &precomputes.twiddles,
++            CIRCUIT_STORE_POLYNOMIALS_COEFFICIENTS,
++            precomputes.circuit_config.config.lifting_log_size,
++            &precomputes.base_column_pool,
++        );
+ 
+     info!("Prove the cairo-circuit verifier");
+-    let circuit_proof = prove_circuit_with_precompute(
++    let circuit_proof = prove_circuit_with_owned_values(
+         &precomputes.base_column_pool,
+         &precomputes.twiddles,
+-        &precomputes.preprocessed_circuit,
+-        MaybeOwned::Borrowed(&precomputes.circuit_preprocessed_tree),
++        &preprocessed_circuit,
++        MaybeOwned::Owned(circuit_preprocessed_tree),
+         context_values,
+         precomputes.circuit_config.config,
+     )?;
++
++    drop(preprocessed_circuit);
+ 
+     info!("Prepare the circuit proof for the circuit verifier");
+     let (proof_qm31s, _public_data) =
+diff --git a/crates/browser-prover/src/wasm64_api.rs b/crates/browser-prover/src/wasm64_api.rs
+--- a/crates/browser-prover/src/wasm64_api.rs
++++ b/crates/browser-prover/src/wasm64_api.rs
+@@ -40,7 +40,7 @@
+ 
+ fn status(result: Result<(), String>) -> i32 {
+     match result {
+-        Ok(()) => { ERROR.with(|x| x.borrow_mut().clear()); 0 }
++        Ok(()) => { ERROR.with(|x| *x.borrow_mut() = Vec::new()); 0 }
+         Err(e) => { ERROR.with(|x| *x.borrow_mut() = e.into_bytes()); 1 }
+     }
+ }
+@@ -53,6 +53,7 @@
+ 
+ #[unsafe(no_mangle)]
+ pub extern "C" fn spike_init() -> i32 {
++    if PRE.with(|x| x.borrow().is_some()) { return status(Ok(())); }
+     crate::progress::install(stage);
+     std::panic::set_hook(Box::new(|info| {
+         let text = info.to_string();
+@@ -64,6 +65,8 @@
+ /// Caller must pass a live allocation of `len` bytes from spike_alloc.
+ #[unsafe(no_mangle)]
+ pub unsafe extern "C" fn spike_prove(ptr: *const u8, len: usize) -> i32 {
++    PROOF.with(|x| *x.borrow_mut() = Vec::new());
++    OUTPUT.with(|x| *x.borrow_mut() = Vec::new());
+     status((|| {
+         let bytes = unsafe { std::slice::from_raw_parts(ptr, len) };
+         let pie = CairoPie::from_bytes(bytes).map_err(|e| e.to_string())?;
+diff --git a/crates/browser-prover/src/progress.rs b/crates/browser-prover/src/progress.rs
+--- a/crates/browser-prover/src/progress.rs
++++ b/crates/browser-prover/src/progress.rs
+@@ -29,5 +29,8 @@
+ }
+ 
+ pub fn install(report: fn(&str)) {
+-    let _ = tracing::subscriber::set_global_default(StageSubscriber { report });
++    static INSTALL: std::sync::Once = std::sync::Once::new();
++    INSTALL.call_once(|| {
++        let _ = tracing::subscriber::set_global_default(StageSubscriber { report });
++    });
+ }

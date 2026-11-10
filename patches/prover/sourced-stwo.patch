@@ -1,0 +1,593 @@
+diff --git a/crates/stwo/src/prover/air/component_prover.rs b/crates/stwo/src/prover/air/component_prover.rs
+index 6e5d982..1748fb3 100644
+--- a/crates/stwo/src/prover/air/component_prover.rs
++++ b/crates/stwo/src/prover/air/component_prover.rs
+@@ -6,7 +6,7 @@ use crate::core::air::{Component, Components};
+ use crate::core::fields::m31::BaseField;
+ use crate::core::fields::qm31::SecureField;
+ use crate::core::pcs::TreeVec;
+-use crate::core::poly::circle::CircleDomain;
++use crate::core::poly::circle::{CanonicCoset, CircleDomain};
+ use crate::core::ColumnVec;
+ use crate::prover::air::accumulation::{DomainEvaluationAccumulator, EvaluationMode};
+ use crate::prover::backend::{Backend, Col, Column};
+@@ -40,9 +40,26 @@ pub struct Trace<'a, B: Backend> {
+ /// A struct for representing a polynomial corresponding to a trace column.
+ /// A polynomial is defined by it's evaluations on a circle domain of size at least it's degree,
+ /// and optionally its coefficients in the FFT basis.
++pub trait TraceSource: Send + Sync {
++    /// The log size of the trace domain.
++    fn log_size(&self) -> u32;
++    /// Writes the column's values on its trace domain, in bit-reversed order, into `dst`, of
++    /// length `2^log_size`.
++    fn write_values(&self, dst: &mut [BaseField]);
++}
++
++/// A shared [`TraceSource`].
++pub type SharedTraceSource = std::sync::Arc<dyn TraceSource>;
++
++/// The values of `source` on its trace domain, in bit-reversed order, as a column.
++pub fn source_column<B: Backend>(source: &dyn TraceSource) -> Col<B, BaseField> {
++    Col::<B, BaseField>::from_fill(1 << source.log_size(), &|dst| source.write_values(dst))
++}
++
+ pub struct Poly<B: Backend> {
+     pub coeffs: Option<CircleCoefficients<B>>,
+     pub evals: CircleEvaluation<B, BaseField, BitReversedOrder>,
++    pub source: Option<SharedTraceSource>,
+ }
+ 
+ impl<B: Backend> Poly<B> {
+@@ -50,9 +67,40 @@ impl<B: Backend> Poly<B> {
+         coeffs: Option<CircleCoefficients<B>>,
+         evals: CircleEvaluation<B, BaseField, BitReversedOrder>,
+     ) -> Self {
+-        Self { coeffs, evals }
++        Self { coeffs, evals, source: None }
+     }
+ 
++    pub fn from_source(domain: CircleDomain, source: SharedTraceSource) -> Self {
++        // The evaluation keeps only the domain; it is built on a placeholder of matching size.
++        let mut evals = CircleEvaluation::new(
++            CanonicCoset::new(1).circle_domain(),
++            Col::<B, BaseField>::zeros(2),
++        );
++        evals.values = Col::<B, BaseField>::zeros(0);
++        evals.domain = domain;
++        Self { coeffs: None, evals, source: Some(source) }
++    }
++    pub fn is_sourced(&self) -> bool {
++        self.coeffs.is_none() && self.source.is_some() && self.evals.values.is_empty()
++    }
++    pub fn stripe0(
++        &self,
++        twiddles: &TwiddleTree<B>,
++    ) -> std::borrow::Cow<'_, CircleEvaluation<B, BaseField, BitReversedOrder>> {
++        if !self.evals.values.is_empty() {
++            return std::borrow::Cow::Borrowed(&self.evals);
++        }
++        let regrown;
++        let coeffs = if let Some(coeffs) = &self.coeffs { coeffs } else { regrown = self.regrown_coefficients(); &regrown };
++        let mut values = Col::<B, BaseField>::zeros(1 << coeffs.log_size());
++        B::evaluate_stripe_into(&coeffs, self.evals.domain, twiddles, 0, &mut values);
++        let mut evals = CircleEvaluation::new(
++            CanonicCoset::new(coeffs.log_size()).circle_domain(),
++            values,
++        );
++        evals.domain = self.evals.domain;
++        std::borrow::Cow::Owned(evals)
++    }
+     pub fn eval_at_point(
+         &self,
+         point: CirclePoint<SecureField>,
+@@ -77,6 +125,18 @@ impl<B: Backend> Poly<B> {
+     /// The coefficients of a striped column that holds only stripe 0 (its evaluation on the
+     /// first subdomain of the coefficients' size), interpolated from it.
+     pub fn regrown_coefficients(&self) -> CircleCoefficients<B> {
++        if self.is_sourced() {
++            // The trace values interpolate to the same polynomial as stripe 0 does.
++            let source = self.source.as_ref().unwrap();
++            let domain = CanonicCoset::new(source.log_size()).circle_domain();
++            let twiddles = B::subdomain_twiddles(domain.half_coset);
++            return CircleEvaluation::<B, BaseField, BitReversedOrder>::new(
++                domain,
++                source_column::<B>(source.as_ref()),
++            )
++            .interpolate_with_twiddles(&twiddles);
++        }
++
+         let log_blowup_factor = self.evals.domain.log_size() - self.evals.values.len().ilog2();
+         let subdomain = self.evals.domain.split(log_blowup_factor).0;
+         let sub_twiddles = B::subdomain_twiddles(subdomain.half_coset);
+@@ -87,6 +147,7 @@ impl<B: Backend> Poly<B> {
+     /// [`Self::regrown_coefficients`], interpolating stripe 0 in its own buffer, which the column
+     /// gives up.
+     pub fn take_regrown_coefficients(&mut self) -> CircleCoefficients<B> {
++        if self.is_sourced() { return self.regrown_coefficients(); }
+         let log_blowup_factor = self.evals.domain.log_size() - self.evals.values.len().ilog2();
+         let subdomain = self.evals.domain.split(log_blowup_factor).0;
+         let sub_twiddles = B::subdomain_twiddles(subdomain.half_coset);
+diff --git a/crates/stwo/src/prover/backend/mod.rs b/crates/stwo/src/prover/backend/mod.rs
+index e11a0be..0b722e4 100644
+--- a/crates/stwo/src/prover/backend/mod.rs
++++ b/crates/stwo/src/prover/backend/mod.rs
+@@ -51,6 +51,9 @@ pub trait Column<T>: Clone + Debug + FromIterator<T> + Send + Sync {
+     unsafe fn uninitialized(len: usize) -> Self;
+     /// Returns a cpu vector of the column.
+     fn to_cpu(&self) -> Vec<T>;
++    fn from_fill(len: usize, fill: &dyn Fn(&mut [T])) -> Self where T: Copy + Default {
++        let mut values = vec![T::default(); len]; fill(&mut values); values.into_iter().collect()
++    }
+     /// Returns the length of the column.
+     fn len(&self) -> usize;
+     /// Returns true if the column is empty.
+diff --git a/crates/stwo/src/prover/backend/simd/column.rs b/crates/stwo/src/prover/backend/simd/column.rs
+index cf5d826..3f2d32c 100644
+--- a/crates/stwo/src/prover/backend/simd/column.rs
++++ b/crates/stwo/src/prover/backend/simd/column.rs
+@@ -80,6 +80,10 @@ unsafe impl Send for BaseColumn {}
+ unsafe impl Sync for BaseColumn {}
+ 
+ impl Column<BaseField> for BaseColumn {
++    fn from_fill(len: usize, fill: &dyn Fn(&mut [BaseField])) -> Self {
++        let mut column = Self::zeros(len); fill(column.as_mut_slice()); column
++    }
++
+     fn truncate(&mut self, len: usize) -> bool {
+         if len > self.length { return false; }
+         self.data.truncate(len.div_ceil(N_LANES)); self.length = len; true
+diff --git a/crates/stwo/src/prover/mod.rs b/crates/stwo/src/prover/mod.rs
+index d5cdad6..a5177cb 100644
+--- a/crates/stwo/src/prover/mod.rs
++++ b/crates/stwo/src/prover/mod.rs
+@@ -149,3 +149,5 @@ pub enum ProvingError {
+     #[error("Constraints not satisfied.")]
+     ConstraintsNotSatisfied,
+ }
++
++pub use air::component_prover::{SharedTraceSource, TraceSource};
+diff --git a/crates/stwo/src/prover/pcs/mod.rs b/crates/stwo/src/prover/pcs/mod.rs
+index d02af56..848e5c5 100644
+--- a/crates/stwo/src/prover/pcs/mod.rs
++++ b/crates/stwo/src/prover/pcs/mod.rs
+@@ -19,11 +19,11 @@ use crate::core::poly::circle::{CanonicCoset, CircleDomain};
+ use crate::core::utils::MaybeOwned;
+ use crate::core::vcs_lifted::merkle_hasher::MerkleHasherLifted;
+ use crate::core::vcs_lifted::verifier::ExtendedMerkleDecommitmentLifted;
+-use crate::prover::air::component_prover::{Poly, Trace, WeightsHashMap};
++use crate::prover::air::component_prover::{Poly, Trace, WeightsHashMap, SharedTraceSource};
+ use crate::prover::backend::{BackendForChannel, Col, Column};
+ use crate::prover::fri::{FriDecommitResult, FriProver};
+ use crate::prover::mempool::BaseColumnPool;
+-use crate::prover::pcs::quotient_ops::compute_fri_quotients;
++use crate::prover::pcs::quotient_ops::compute_fri_quotients_with_regrowth;
+ use crate::prover::poly::BitReversedOrder;
+ use crate::prover::poly::circle::{CircleCoefficients, CircleEvaluation, PolyOps};
+ use crate::prover::poly::twiddles::TwiddleTree;
+@@ -137,7 +137,7 @@ impl<'a, B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentSchemeProver<'a,
+         for tree in &mut self.trees.0 {
+             if let MaybeOwned::Owned(tree) = tree {
+                 let to_coefficients = |poly: &mut Poly<B>| {
+-                    if poly.coeffs.is_none() && poly.evals.values.len() < poly.evals.domain.size() {
++                    if !poly.is_sourced() && poly.coeffs.is_none() && poly.evals.values.len() < poly.evals.domain.size() {
+                         poly.coeffs = Some(poly.take_regrown_coefficients());
+                     }
+                 };
+@@ -160,7 +160,7 @@ impl<'a, B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentSchemeProver<'a,
+         for tree in &mut self.trees.0 {
+             if let MaybeOwned::Owned(tree) = tree {
+                 let to_stripe = |poly: &mut Poly<B>| {
+-                    if poly.evals.values.len() == 0 {
++                    if !poly.is_sourced() && poly.evals.values.len() == 0 {
+                         let coeffs = poly.coeffs.take().unwrap();
+                         let mut stripe = pool.take_or_alloc(coeffs.log_size());
+                         B::evaluate_stripe_into(&coeffs, poly.evals.domain, twiddles, 0, &mut stripe);
+@@ -248,8 +248,11 @@ impl<'a, B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentSchemeProver<'a,
+         let columns = self.evaluations();
+         print_column_size_histogram::<B, MC>(&columns);
+         // Compute oods quotients for boundary constraints on the sampled points.
+-        let quotients = compute_fri_quotients(
++        let polynomials = self.polynomials();
++        let regrow = |tree: usize, column: usize| polynomials[tree][column].stripe0(self.twiddles).into_owned();
++        let quotients = compute_fri_quotients_with_regrowth(
+             &columns,
++            Some(&regrow),
+             &samples,
+             channel.draw_secure_felt(),
+             lifting_log_size,
+@@ -314,6 +317,8 @@ impl<'a, B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentSchemeProver<'a,
+         for tree in &mut self.trees.0 {
+             if let MaybeOwned::Owned(tree) = tree {
+                 for poly in tree.polynomials.drain(..) {
++                    // Sourced columns hold no evaluation allocation to return.
++                    if poly.evals.values.is_empty() { continue; }
+                     // A striped column holds only a prefix of its domain.
+                     let log_size = poly.evals.values.len().ilog2();
+                     self.base_column_pool.give_back(log_size, poly.evals.values);
+@@ -410,6 +415,28 @@ impl<B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentTreeProver<B, MC> {
+     /// [`Self::new`]; with `keep_coefficients`, a striped tree's prefix columns keep their
+     /// coefficients instead of stripe 0 (for a tree the scheme owns, which turns them back into
+     /// stripe 0 before the quotients).
++    /// Sources replace only a striped column's retained representation, after committing
++    /// exactly the same leaves. Quotients and openings regrow them in bounded batches.
++    pub fn new_with_sources(
++        polynomials: ColumnVec<CircleCoefficients<B>>, log_blowup_factor: u32,
++        twiddles: &TwiddleTree<B>, store_polynomials_coefficients: bool,
++        lifting_log_size: Option<u32>, base_column_pool: &BaseColumnPool<B>,
++        sources: Vec<Option<SharedTraceSource>>,
++    ) -> Self {
++        assert_eq!(polynomials.len(), sources.len());
++        let mut tree = Self::new(polynomials, log_blowup_factor, twiddles,
++            store_polynomials_coefficients, lifting_log_size, base_column_pool);
++        for (poly, source) in tree.polynomials.iter_mut().zip(sources) {
++            if let Some(source) = source {
++                if poly.evals.values.len() < poly.evals.domain.size() {
++                    assert_eq!(source.log_size() + log_blowup_factor, poly.evals.domain.log_size());
++                    *poly = Poly::from_source(poly.evals.domain, source);
++                }
++            }
++        }
++        tree
++    }
++
+     fn new_ex(
+         polynomials: ColumnVec<CircleCoefficients<B>>,
+         log_blowup_factor: u32,
+@@ -683,7 +710,7 @@ impl<B: BackendForChannel<MC>, MC: MerkleChannel> CommitmentTreeProver<B, MC> {
+         // stripe 0 (TILE, with the Q722 weighted-sum tail), without regrowing its coefficients.
+         // The rows of `positions` in one column, read from its stripes as the tree lifts them.
+         let read_rows = |poly: &Poly<B>| -> Vec<BaseField> {
+-            if poly.coeffs.is_none() && poly.evals.values.len() < poly.evals.domain.size() {
++            if !poly.is_sourced() && poly.coeffs.is_none() && poly.evals.values.len() < poly.evals.domain.size() {
+                 let log_size = poly.evals.domain.log_size() - log_blowup_factor;
+                 let resident = poly.evals.values.len() >> log_size;
+                 let targets = stripes
+@@ -866,3 +893,121 @@ mod striped_port_tests {
+         }
+     }
+ }
++
++#[cfg(test)]
++mod sourced_port_tests {
++    use super::*;
++    use crate::prover::TraceSource;
++    use crate::prover::backend::simd::SimdBackend;
++    use crate::core::vcs_lifted::blake2_merkle::Blake2sM31MerkleChannel;
++    use crate::core::vcs_lifted::verifier::MerkleVerifierLifted;
++    struct Values { log_size: u32, values: Vec<BaseField> }
++    impl TraceSource for Values {
++        fn log_size(&self) -> u32 { self.log_size }
++        fn write_values(&self, dst: &mut [BaseField]) { dst.copy_from_slice(&self.values); }
++    }
++    #[test]
++    fn sourced_columns_preserve_samples_quotients_roots_and_openings() {
++        type MC = Blake2sM31MerkleChannel;
++        let blowup = 2; let lifting = 14;
++        let twiddles = SimdBackend::precompute_twiddles(CanonicCoset::new(lifting).circle_domain().half_coset);
++        let pool = BaseColumnPool::<SimdBackend>::new();
++        let coefficients: Vec<_> = [4, 10, 12].into_iter().map(|log| CircleCoefficients::<SimdBackend>::new((0..1 << log).map(|row| BaseField::from(row * 17 + 1)).collect())).collect();
++        let sources: Vec<Option<SharedTraceSource>> = coefficients.iter().map(|poly| {
++            let domain = CanonicCoset::new(poly.log_size()).circle_domain();
++            Some(std::sync::Arc::new(Values { log_size: poly.log_size(), values: poly.evaluate_with_twiddles(domain, &twiddles).values.to_cpu() }) as SharedTraceSource)
++        }).collect();
++        let full_polys = SimdBackend::evaluate_polynomials(coefficients.clone(), blowup, &twiddles, true, &pool);
++        let full = CommitmentTreeProver::<SimdBackend, MC> { commitment: MerkleProverLifted::commit(full_polys.iter().map(|p| &p.evals.values).collect(), lifting, 0), polynomials: full_polys };
++        let sourced = CommitmentTreeProver::<SimdBackend, MC>::new_with_sources(coefficients, blowup, &twiddles, true, Some(lifting), &pool, sources);
++        assert_eq!(sourced.commitment.root(), full.commitment.root());
++        assert!(sourced.polynomials[1].is_sourced()); assert!(sourced.polynomials[2].is_sourced());
++        let point = CirclePoint::<SecureField>::get_point(21903);
++        for (actual, expected) in sourced.polynomials.iter().zip(&full.polynomials) {
++            assert_eq!(actual.eval_at_point(point, None), expected.eval_at_point(point, None));
++            assert_eq!(actual.get_evaluation_on_domain(expected.evals.domain, &twiddles).values.to_cpu(), expected.evals.values.to_cpu());
++        }
++        let queries = [0, 1, 1023, 1024, (1 << lifting) - 1];
++        let (expected, path) = full.decommit(&queries, &twiddles, &pool, blowup);
++        let (actual, source_path) = sourced.decommit(&queries, &twiddles, &pool, blowup);
++        assert_eq!(actual, expected); assert_eq!(source_path.decommitment.hash_witness, path.decommitment.hash_witness);
++        let verifier = MerkleVerifierLifted::new(full.commitment.root(), full.polynomials.iter().map(|p| p.evals.domain.log_size()).collect(), Some(lifting));
++        assert!(verifier.verify(&queries, actual.clone(), source_path.decommitment.clone()).is_ok());
++        let mut tampered = actual; tampered[0][0] += BaseField::from(1);
++        assert!(verifier.verify(&queries, tampered, source_path.decommitment).is_err());
++        let samples = TreeVec(vec![full.polynomials.iter().map(|p| vec![PointSample { point, value: p.eval_at_point(point, None) }]).collect()]);
++        let columns = TreeVec(vec![full.polynomials.iter().map(|p| &p.evals).collect()]);
++        let stored = crate::prover::pcs::quotient_ops::compute_fri_quotients::<SimdBackend>(&columns, &samples, SecureField::from(7), lifting, &twiddles, blowup);
++        let columns = TreeVec(vec![sourced.polynomials.iter().map(|p| &p.evals).collect()]);
++        let regrow = |_: usize, column: usize| sourced.polynomials[column].stripe0(&twiddles).into_owned();
++        let regrown = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&regrow), &samples, SecureField::from(7), lifting, &twiddles, blowup);
++        assert_eq!(stored.values.to_cpu().columns, regrown.values.to_cpu().columns);
++        let mut config = PcsConfig::default(); config.fri_config.log_blowup_factor = blowup;
++        let mut scheme = CommitmentSchemeProver::<SimdBackend, MC>::with_memory_pool(config, &twiddles, &pool);
++        scheme.trees.0.push(MaybeOwned::Owned(sourced));
++        for _ in 0..2 {
++            scheme.striped_to_coefficients();
++            assert!(scheme.trees[0].polynomials[1].is_sourced());
++            scheme.coefficients_to_striped();
++            assert!(scheme.trees[0].polynomials[1].is_sourced());
++        }
++        let points = TreeVec(vec![vec![vec![point]; 3]]);
++        let proof = scheme.prove_values(points, &mut crate::core::channel::Blake2sM31Channel::default());
++        assert_eq!(proof.proof.queried_values.len(), 1);
++    }
++    #[test]
++    fn source_regrowth_preserves_batch_tree_and_sample_identities_and_rejects_wrong_source() {
++        type MC = Blake2sM31MerkleChannel;
++        let blowup = 2; let lifting = 13;
++        let twiddles = SimdBackend::precompute_twiddles(CanonicCoset::new(lifting).circle_domain().half_coset);
++        let pool = BaseColumnPool::<SimdBackend>::new();
++        let mut full = vec![]; let mut sourced = vec![];
++        for tree in 0..2 {
++            let coefficients: Vec<_> = (0..21).map(|column| {
++                let log = if column % 3 == 0 { 11 } else { 10 };
++                CircleCoefficients::<SimdBackend>::new((0..1 << log).map(|row| BaseField::from((row * (17 + column) + 37 * tree + column + 1) % 8191)).collect())
++            }).collect();
++            let sources: Vec<Option<SharedTraceSource>> = coefficients.iter().enumerate().map(|(column, poly)| {
++                // Eighteen sourced columns per tree cross REGROWN_BATCH=16 while interspersed
++                // stored columns and different log sizes expose mistaken batch/tree indices.
++                if column % 7 == 0 { return None; }
++                let domain = CanonicCoset::new(poly.log_size()).circle_domain();
++                Some(std::sync::Arc::new(Values { log_size: poly.log_size(), values: poly.evaluate_with_twiddles(domain, &twiddles).values.to_cpu() }) as SharedTraceSource)
++            }).collect();
++            let polys = SimdBackend::evaluate_polynomials(coefficients.clone(), blowup, &twiddles, true, &pool);
++            full.push(CommitmentTreeProver::<SimdBackend, MC> { commitment: MerkleProverLifted::commit(polys.iter().map(|p| &p.evals.values).collect(), lifting, 0), polynomials: polys });
++            sourced.push(CommitmentTreeProver::<SimdBackend, MC>::new_with_sources(coefficients, blowup, &twiddles, true, Some(lifting), &pool, sources));
++            assert_eq!(sourced[tree].polynomials.iter().filter(|poly| poly.is_sourced()).count(), 18);
++            assert_eq!(sourced[tree].commitment.root(), full[tree].commitment.root());
++        }
++        let points = [CirclePoint::<SecureField>::get_point(21903), CirclePoint::<SecureField>::get_point(71291), CirclePoint::<SecureField>::get_point(21903)];
++        let samples = TreeVec(full.iter().map(|tree| tree.polynomials.iter().map(|poly| points.iter().map(|&point| PointSample { point, value: poly.eval_at_point(point, None) }).collect()).collect()).collect());
++        for (tree, expected) in sourced.iter().zip(&full) {
++            for (actual, expected) in tree.polynomials.iter().zip(&expected.polynomials) {
++                for point in points { assert_eq!(actual.eval_at_point(point, None), expected.eval_at_point(point, None)); }
++            }
++            let queries = [0, 1, 1023, 1024, 4095, 4096, 8191, 1024];
++            let (actual_values, actual_path) = tree.decommit(&queries, &twiddles, &pool, blowup);
++            let (expected_values, expected_path) = expected.decommit(&queries, &twiddles, &pool, blowup);
++            assert_eq!(actual_values, expected_values);
++            assert_eq!(actual_path.decommitment.hash_witness, expected_path.decommitment.hash_witness);
++        }
++        let columns = TreeVec(full.iter().map(|tree| tree.polynomials.iter().map(|p| &p.evals).collect()).collect());
++        let expected = crate::prover::pcs::quotient_ops::compute_fri_quotients::<SimdBackend>(&columns, &samples, SecureField::from(7), lifting, &twiddles, blowup);
++        let columns = TreeVec(sourced.iter().map(|tree| tree.polynomials.iter().map(|p| &p.evals).collect()).collect());
++        let regrow = |tree: usize, column: usize| sourced[tree].polynomials[column].stripe0(&twiddles).into_owned();
++        let actual = compute_fri_quotients_with_regrowth::<SimdBackend>(&columns, Some(&regrow), &samples, SecureField::from(7), lifting, &twiddles, blowup);
++        assert_eq!(actual.values.to_cpu().columns, expected.values.to_cpu().columns);
++
++        // The source is a caller obligation, not a new trust boundary: substituting a different
++        // trace leaves the already committed root unchanged, but its regenerated opening fails.
++        let poly = CircleCoefficients::<SimdBackend>::new((0..1 << 10).map(|row| BaseField::from(row + 1)).collect());
++        let wrong: SharedTraceSource = std::sync::Arc::new(Values { log_size: 10, values: vec![BaseField::from(9); 1 << 10] });
++        let wrong_tree = CommitmentTreeProver::<SimdBackend, MC>::new_with_sources(vec![poly], blowup, &twiddles, true, Some(lifting), &pool, vec![Some(wrong)]);
++        let queries = [0, 1, 4095, 8191];
++        let (values, path) = wrong_tree.decommit(&queries, &twiddles, &pool, blowup);
++        let verifier = MerkleVerifierLifted::new(wrong_tree.commitment.root(), vec![12], Some(lifting));
++        assert!(verifier.verify(&queries, values, path.decommitment).is_err());
++    }
++
++}
+diff --git a/crates/stwo/src/prover/pcs/quotient_ops.rs b/crates/stwo/src/prover/pcs/quotient_ops.rs
+index 5ff7b1c..0f0ea75 100644
+--- a/crates/stwo/src/prover/pcs/quotient_ops.rs
++++ b/crates/stwo/src/prover/pcs/quotient_ops.rs
+@@ -1,21 +1,23 @@
+ use std::iter::zip;
+ 
+ use itertools::Itertools;
+-use tracing::{span, Level};
++#[cfg(feature = "parallel")]
++use rayon::prelude::*;
++use tracing::{Level, span};
+ 
+ use crate::core::circle::CirclePoint;
+ use crate::core::fields::m31::BaseField;
+ use crate::core::fields::qm31::SecureField;
++use crate::core::pcs::TreeVec;
+ use crate::core::pcs::quotients::{
+-    build_samples_with_randomness_and_periodicity, ColumnSampleBatch, PointSample,
++    ColumnSampleBatch, PointSample, build_samples_with_randomness_and_periodicity,
+ };
+-use crate::core::pcs::TreeVec;
+-use crate::prover::backend::ColumnOps;
++use crate::prover::AccumulationOps;
++use crate::prover::backend::{Column, ColumnOps};
++use crate::prover::poly::BitReversedOrder;
+ use crate::prover::poly::circle::{CircleEvaluation, PolyOps, SecureEvaluation};
+ use crate::prover::poly::twiddles::TwiddleTree;
+-use crate::prover::poly::BitReversedOrder;
+ use crate::prover::secure_column::SecureColumnByCoords;
+-use crate::prover::AccumulationOps;
+ 
+ pub trait QuotientOps: PolyOps {
+     /// Receives a non-empty set of columns of the *same* size, and populates the vector
+@@ -90,16 +92,45 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+     lifting_log_size: u32,
+     twiddles: &TwiddleTree<B>,
+     log_blowup_factor: u32,
++) -> SecureEvaluation<B, BitReversedOrder> {
++    compute_fri_quotients_with_regrowth(
++        columns,
++        None,
++        samples,
++        random_coeff,
++        lifting_log_size,
++        twiddles,
++        log_blowup_factor,
++    )
++}
++
++/// Regrows the stripe-0 evaluation of the column `(tree, column)` that stores no values.
++pub type RegrowStripe<'a, B> =
++    dyn Fn(usize, usize) -> CircleEvaluation<B, BaseField, BitReversedOrder> + Sync + 'a;
++
++/// The most stored-nothing columns whose stripe 0 is regrown at once in
++/// [`compute_fri_quotients_with_regrowth`]: the regrown stripes are its only extra memory.
++const REGROWN_BATCH: usize = 16;
++
++/// [`compute_fri_quotients`] where some columns store no values (an empty evaluation on their
++/// domain) and `regrow` reproduces their stripe 0. Their numerators are accumulated
++/// [`REGROWN_BATCH`] columns at a time and added to those of the stored columns of the same size
++/// and sample point. Field addition is exact, so the accumulations, and the quotients, are those
++/// of a single pass over every column.
++pub fn compute_fri_quotients_with_regrowth<B: QuotientOps + AccumulationOps>(
++    columns: &TreeVec<Vec<&CircleEvaluation<B, BaseField, BitReversedOrder>>>,
++    regrow: Option<&RegrowStripe<'_, B>>,
++    samples: &TreeVec<Vec<Vec<PointSample>>>,
++    random_coeff: SecureField,
++    lifting_log_size: u32,
++    twiddles: &TwiddleTree<B>,
++    log_blowup_factor: u32,
+ ) -> SecureEvaluation<B, BitReversedOrder> {
+     let _span = span!(Level::INFO, "Compute FRI quotients", class = "FRIQuotients").entered();
+     let mut accumulated_numerators_vec: Vec<AccumulatedNumerators<B>> = vec![];
+     let samples_with_randomness = build_samples_with_randomness_and_periodicity(
+         samples,
+-        columns
+-            .0
+-            .iter()
+-            .map(|x| x.iter().map(|c| c.domain.log_size()))
+-            .collect(),
++        columns.0.iter().map(|x| x.iter().map(|c| c.domain.log_size())).collect(),
+         lifting_log_size,
+         random_coeff,
+     );
+@@ -109,24 +140,85 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+     //
+     //   ∑_k (# of distinct sample points per log size k).
+     //
+-    zip(
+-        columns.iter().flatten(),
+-        samples_with_randomness.iter().flatten(),
++    // Every (log_size, sample_point) accumulation has its own buffer, so they are computed
++    // concurrently: the small log sizes do not split into enough row chunks to occupy the
++    // threads on their own. The order of the vector is the sequential one.
++    let positions = columns
++        .iter()
++        .enumerate()
++        .flat_map(|(tree, columns)| (0..columns.len()).map(move |column| (tree, column)))
++        .collect_vec();
++    let is_regrown = |column: &CircleEvaluation<B, BaseField, BitReversedOrder>| {
++        regrow.is_some() && column.values.len() == 0
++    };
++    let mut regrown_groups = vec![];
++    let groups: Vec<(Vec<_>, Vec<ColumnSampleBatch>)> = zip(
++        zip(columns.iter().flatten(), samples_with_randomness.iter().flatten()),
++        &positions,
+     )
+-    .sorted_by_key(|(c, _)| c.domain.log_size())
+-    .group_by(|(c, _)| c.domain.log_size())
++    .sorted_by_key(|((c, _), _)| c.domain.log_size())
++    .group_by(|((c, _), _)| c.domain.log_size())
+     .into_iter()
+-    .for_each(|(_, tuples)| {
+-        let (columns, samples_with_randomness): (Vec<_>, Vec<_>) = tuples.unzip();
++    .filter_map(|(_, tuples)| {
++        let (stored, regrown): (Vec<_>, Vec<_>) = tuples.partition(|((c, _), _)| !is_regrown(c));
++        if !regrown.is_empty() {
++            regrown_groups.push(regrown);
++        }
++        if stored.is_empty() {
++            return None;
++        }
++        let (columns, samples_with_randomness): (Vec<_>, Vec<_>) =
++            stored.into_iter().map(|(tuple, _)| tuple).unzip();
+         // TODO: slice.
+         let sample_batches = ColumnSampleBatch::new_vec(&samples_with_randomness);
+-        B::accumulate_numerators(
+-            &columns,
+-            &sample_batches,
+-            &mut accumulated_numerators_vec,
+-            log_blowup_factor,
+-        )
+-    });
++        Some((columns, sample_batches))
++    })
++    .collect();
++    let accumulate_batch = |columns: &[&CircleEvaluation<B, BaseField, BitReversedOrder>],
++                            batch: &ColumnSampleBatch|
++     -> Vec<AccumulatedNumerators<B>> {
++        let mut acc = vec![];
++        B::accumulate_numerators(columns, std::slice::from_ref(batch), &mut acc, log_blowup_factor);
++        acc
++    };
++    #[cfg(feature = "parallel")]
++    let accumulations: Vec<Vec<AccumulatedNumerators<B>>> = groups
++        .par_iter()
++        .flat_map(|(columns, batches)| {
++            batches.par_iter().map(|batch| accumulate_batch(columns, batch))
++        })
++        .collect();
++    #[cfg(not(feature = "parallel"))]
++    let accumulations: Vec<Vec<AccumulatedNumerators<B>>> = groups
++        .iter()
++        .flat_map(|(columns, batches)| batches.iter().map(|batch| accumulate_batch(columns, batch)))
++        .collect();
++    accumulated_numerators_vec.extend(accumulations.into_iter().flatten());
++
++    // The columns that store no values, a bounded batch of regrown stripes at a time.
++    for group in regrown_groups {
++        let regrow = regrow.unwrap();
++        for batch in group.chunks(REGROWN_BATCH) {
++            #[cfg(feature = "parallel")]
++            let stripes: Vec<_> =
++                batch.par_iter().map(|&(_, &(tree, column))| regrow(tree, column)).collect();
++            #[cfg(not(feature = "parallel"))]
++            let stripes: Vec<_> =
++                batch.iter().map(|&(_, &(tree, column))| regrow(tree, column)).collect();
++            let stripes = stripes.iter().collect_vec();
++            let samples_with_randomness = batch.iter().map(|((_, s), _)| *s).collect_vec();
++            let sample_batches = ColumnSampleBatch::new_vec(&samples_with_randomness);
++            #[cfg(feature = "parallel")]
++            let accumulations: Vec<Vec<AccumulatedNumerators<B>>> =
++                sample_batches.par_iter().map(|batch| accumulate_batch(&stripes, batch)).collect();
++            #[cfg(not(feature = "parallel"))]
++            let accumulations: Vec<Vec<AccumulatedNumerators<B>>> =
++                sample_batches.iter().map(|batch| accumulate_batch(&stripes, batch)).collect();
++            for accumulation in accumulations.into_iter().flatten() {
++                add_accumulation(&mut accumulated_numerators_vec, accumulation);
++            }
++        }
++    }
+ 
+     // Group and accumulate the numerators per sample point: the accumulations (of different
+     // lengths) get lifted and accumulated to a single vector. After this step, there is a single
+@@ -139,10 +231,8 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+         .map(|(sample_point, accumulations_per_log_size)| {
+             let accumulations_per_log_size = accumulations_per_log_size.collect_vec();
+             // Accumulate the `a` coefficients.
+-            let first_linear_term_acc: SecureField = accumulations_per_log_size
+-                .iter()
+-                .map(|x| x.first_linear_term_acc)
+-                .sum();
++            let first_linear_term_acc: SecureField =
++                accumulations_per_log_size.iter().map(|x| x.first_linear_term_acc).sum();
+             // Lift and accumulate the partial numerators vectors.
+             // `partial_numerators_acc` is already sorted increasingly by size as required by
+             // `B::lift_and_accumulate`.
+@@ -168,6 +258,28 @@ pub fn compute_fri_quotients<B: QuotientOps + AccumulationOps>(
+     )
+ }
+ 
++/// Adds `accumulation` to the accumulation in `accumulations` of the same sample point and size,
++/// or appends it, keeping the vector sorted by size.
++fn add_accumulation<B: AccumulationOps>(
++    accumulations: &mut Vec<AccumulatedNumerators<B>>,
++    accumulation: AccumulatedNumerators<B>,
++) {
++    let len = accumulation.partial_numerators_acc.len();
++    if let Some(existing) = accumulations.iter_mut().find(|existing| {
++        existing.sample_point == accumulation.sample_point
++            && existing.partial_numerators_acc.len() == len
++    }) {
++        B::accumulate(&mut existing.partial_numerators_acc, &accumulation.partial_numerators_acc);
++        existing.first_linear_term_acc += accumulation.first_linear_term_acc;
++        return;
++    }
++    let index = accumulations
++        .iter()
++        .position(|existing| existing.partial_numerators_acc.len() > len)
++        .unwrap_or(accumulations.len());
++    accumulations.insert(index, accumulation);
++}
++
+ #[cfg(test)]
+ mod tests {
+     use itertools::Itertools;

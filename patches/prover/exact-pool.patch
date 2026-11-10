@@ -1,0 +1,65 @@
+diff --git a/crates/stwo/src/prover/mempool.rs b/crates/stwo/src/prover/mempool.rs
+index d60f9ad..1e7709b 100644
+--- a/crates/stwo/src/prover/mempool.rs
++++ b/crates/stwo/src/prover/mempool.rs
+@@ -16,8 +16,8 @@ use crate::prover::backend::{Col, Column, ColumnOps};
+ pub struct BaseColumnPool<B: ColumnOps<BaseField>> {
+     /// Map from log_size -> stack of available buffers.
+     pools: DashMap<u32, Vec<Col<B, BaseField>>>,
+-    /// The largest log size requested so far: fresh buffers of nearly that size are allocated
+-    /// with room to grow to the next size, so that later larger requests can reuse them.
++    /// The largest log size requested so far, which [`Self::release_small_idle`] keeps buffers
++    /// near.
+     largest_log_size: AtomicU32,
+ }
+ 
+@@ -63,7 +63,7 @@ impl<B: ColumnOps<BaseField>> BaseColumnPool<B> {
+     /// prefixes. This is the inherited `Column::uninitialized` write-before-read contract.
+     pub fn take_or_alloc(&self, log_size: u32) -> Col<B, BaseField> {
+         let length = 1usize.checked_shl(log_size).expect("pool length overflow");
+-        let largest = self.largest_log_size.fetch_max(log_size, Ordering::Relaxed).max(log_size);
++        self.largest_log_size.fetch_max(log_size, Ordering::Relaxed);
+         if let Some(buffer) = self.try_take(log_size) {
+             return buffer;
+         }
+@@ -84,8 +84,8 @@ impl<B: ColumnOps<BaseField>> BaseColumnPool<B> {
+                 self.give_back(larger, buffer);
+             }
+         }
+-        // A smaller idle buffer allocated with room to grow (see below), or shortened from a
+-        // larger one, is grown back: its pages are resident or reserved, and nothing is copied.
++        // A smaller idle buffer shortened from a larger one is grown back: its pages are
++        // resident, and nothing is copied.
+         for smaller in (log_size.saturating_sub(3)..log_size).rev() {
+             if let Some(mut pool) = self.pools.get_mut(&smaller) {
+                 for i in 0..pool.len() {
+@@ -95,25 +95,12 @@ impl<B: ColumnOps<BaseField>> BaseColumnPool<B> {
+                 }
+             }
+         }
+-        // Fresh buffers close to the largest size seen are allocated with room for the next
+-        // size: the capacity is only reserved, its pages are not touched before they are used.
+-        let capacity_log_size =
+-            if log_size.saturating_add(3) >= largest { log_size.saturating_add(1).min(largest) } else { log_size };
+-        let capacity = 1usize.checked_shl(capacity_log_size).expect("pool capacity overflow");
++        // A fresh buffer is allocated at exactly the requested size: capacity reserved for a later,
++        // larger request is requested memory (and WASM linear memory) for as long as the buffer
++        // lives, which for stripes and commitment scratch is the rest of the proof.
+         // SAFETY: Column::uninitialized's inherited contract requires the consumer to write
+         // every exposed element before reading it; take_or_alloc does not read the allocation.
+-        // Checked shifts establish representable allocation and logical lengths. Shortening
+-        // exposes only the requested prefix and must not read/drop the uninitialized tail;
+-        // backends returning false use a fresh exact allocation. Backend grow implementations
+-        // initialize newly exposed elements (SIMD Vec::resize uses zero), but callers still must
+-        // overwrite the whole requested column before reading, including its reused prefix.
+-        unsafe {
+-            let mut buffer = Col::<B, BaseField>::uninitialized(capacity);
+-            if capacity_log_size > log_size && !buffer.truncate(length) {
+-                buffer = Col::<B, BaseField>::uninitialized(length);
+-            }
+-            buffer
+-        }
++        unsafe { Col::<B, BaseField>::uninitialized(length) }
+     }
+ 
+     /// Drops the idle buffers that are more than two log sizes below the largest size requested

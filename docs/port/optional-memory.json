@@ -1,0 +1,63 @@
+{
+  "starting_sha": "1253b1cd2948a5ae3c368c1711916f0e36b84a09",
+  "status": "locally_validated",
+  "default_mode": "prover",
+  "optional_mode": "prover-memory",
+  "optional_install": "./scripts/build.sh prover-memory --install",
+  "default_source_root": "build/baseline",
+  "memory_source_root": "build/memory",
+  "local_released_module_sha256": "1f76da1636c1e0e5f9952b3b49fc23d5a93493c2b94d3a2ec221965aa802a8aa",
+  "new_default_source_build_sha256": "40d0165709d1f368846292130e2b4d5d8bc9edfc703f97c48ebfdcfb79af60ed",
+  "memory_source_receipt_identical_to_validated_candidate": true,
+  "memory_dependency_resolution": {
+    "candidate_packages_resolve_locally": true,
+    "versions_edges_features_match_baseline": true,
+    "native_verifier_uses_pristine_git_dependencies": true
+  },
+  "python_prover_tests": 11,
+  "javascript_tests": 67,
+  "default_browser_proofs": [
+    {
+      "name": "balance",
+      "status": "passed",
+      "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+      "byte_identical_to_prior_baseline": true,
+      "verified_against_trusted_output": true,
+      "proof_and_statement_tamper_controls": "ordinary rejection; panics/crashes fail"
+    },
+    {
+      "name": "coinflip-heads",
+      "status": "passed",
+      "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+      "byte_identical_to_prior_baseline": true,
+      "verified_against_trusted_output": true,
+      "proof_and_statement_tamper_controls": "ordinary rejection; panics/crashes fail"
+    },
+    {
+      "name": "coinflip-tails",
+      "status": "passed",
+      "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+      "byte_identical_to_prior_baseline": true,
+      "verified_against_trusted_output": true,
+      "proof_and_statement_tamper_controls": "ordinary rejection; panics/crashes fail"
+    }
+  ],
+  "no_new_memory_binary_claim": "New optional memory source preparation and metadata are validated; retained memory module41a6f536 remains validated. This change does not claim a newly compiled memory-profile binary under the new directory.",
+  "release_assets_unchanged": true,
+  "protocol_pins_unchanged": true,
+  "performance_scope": "Profile selection only; no new paired benchmark or performance claim.",
+  "commands": [
+    "python3 -m unittest discover -s tests -p \"test_prover*.py\"",
+    "npm test",
+    "python3 scripts/prepare-sources.py prover",
+    "python3 scripts/prepare-sources.py prover-memory",
+    "WASM_CC=/opt/homebrew/Cellar/llvm@21/21.1.8/bin/clang WASM_AR=/opt/homebrew/Cellar/llvm@21/21.1.8/bin/llvm-ar ./scripts/build.sh prover",
+    "node scripts/offline-proof.mjs prove artifacts/port/corpus-01 build/wasm/40d0165709d1f368846292130e2b4d5d8bc9edfc703f97c48ebfdcfb79af60ed.wasm 40d0165709d1f368846292130e2b4d5d8bc9edfc703f97c48ebfdcfb79af60ed build/target-native/release/examples/spike_native artifacts/port/optional-memory-01/default-proof"
+  ],
+  "raw_evidence": {
+    "archive": "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/evidence-2026-10/optional-memory.tar.gz",
+    "sha256": "554500aad6b529c38aeb201a5f2b2979dd47dfe0f49822e48bcb819fa9d68d33",
+    "files": 31,
+    "all_member_sizes_and_hashes_verified": true
+  }
+}

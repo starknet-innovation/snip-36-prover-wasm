@@ -8,7 +8,19 @@ const config = JSON.parse(await readFile("web/live-config.json"));
 const server = await startServer(0),
   browser = await chromium.launch({ headless: true });
 try {
-  for (const scenario of ["unsupported", "wrong-network", "pending", "legacy-bank", "mismatched-bank"]) {
+  for (const scenario of [
+    "unsupported",
+    "wrong-network",
+    "switch-success",
+    "switch-rejected",
+    "unchecked",
+    "invalid-stake",
+    "wallet-waiting",
+    "wallet-rejected",
+    "pending",
+    "legacy-bank",
+    "mismatched-bank",
+  ]) {
     const page = await browser.newPage();
     let submitted = 0;
     await page.route("**/live-config.json", (route) => route.fulfill({
@@ -41,10 +53,21 @@ try {
     });
     await page.exposeFunction("walletTestCall", () => {
       submitted++;
+      if (scenario === "wallet-waiting") return new Promise(() => {});
+      if (scenario === "wallet-rejected")
+        throw Error("User rejected the wallet request");
       return { transaction_hash: "0x123" };
     });
     await page.addInitScript(
       ({ scenario, CHAIN }) => {
+        let chain = [
+          "wrong-network",
+          "switch-success",
+          "switch-rejected",
+        ].includes(scenario)
+          ? "0x534e5f4d41494e"
+          : CHAIN;
+        window.switchRequests = 0;
         window.starknet_test = {
           id: "test",
           name: "Test wallet",
@@ -53,12 +76,32 @@ try {
           on() {},
           off() {},
           async request(r) {
-            if (r.type === "wallet_getPermissions") return ["accounts"];
-            if (r.type === "wallet_requestAccounts") return ["0x6"];
-            if (r.type === "wallet_requestChainId")
-              return scenario === "wrong-network" ? "0x1" : CHAIN;
+            // Strict wallet bridges validate the object before JSON serialization.
+            if (
+              r.params &&
+              Object.values(r.params).some((v) => v === undefined)
+            )
+              throw Error("The request payload is invalid");
+            if (r.type === "wallet_getPermissions")
+              return scenario === "switch-success" ? [] : ["accounts"];
+            if (r.type === "wallet_requestAccounts")
+              return [chain === CHAIN ? "0x6" : "0x5"];
+            if (r.type === "wallet_requestChainId") return chain;
+            if (r.type === "wallet_switchStarknetChain") {
+              window.switchRequests++;
+              if (r.params.chainId !== CHAIN) throw Error("Wrong target chain");
+              if (scenario === "switch-rejected") throw Error("User rejected");
+              if (scenario === "switch-success") chain = CHAIN;
+              return true;
+            }
             if (r.type === "wallet_supportedWalletApi")
-              return scenario === "unsupported" ? ["0.10.2"] : ["0.10.3"];
+              return scenario === "unsupported" ? ["0.10.2"] : ["0.10.4-rc.0"];
+            if (
+              r.type === "wallet_addInvokeTransaction" &&
+              "api_version" in r.params
+            )
+              // An rc-only wallet must get no api_version (spec pattern has no suffix).
+              throw Error("Pre-release Wallet API version was sent");
             return window.walletTestCall();
           },
         };
@@ -69,18 +112,85 @@ try {
     await page.waitForFunction(() =>
       document.querySelector("#wallets").textContent.includes("Test wallet"),
     );
+    if (!(await page.locator('input[name="prover-build"][value="standard"]').isChecked()) ||
+        !(await page.locator('input[name="prover-build"][value="memory"]').isDisabled()))
+      throw Error("Wallet UI selected an incompatible V1 circuit");
     await page.click("#connect");
-    if (scenario === "wrong-network") {
+    if (["wrong-network", "switch-rejected"].includes(scenario)) {
       await page.waitForFunction(() =>
         document
           .querySelector("#live-status")
-          .textContent.includes("Switch your wallet"),
+          .textContent.match(/Switch your wallet|could not switch/),
       );
     } else {
       await page.waitForFunction(() =>
         document.querySelector("#wallet-status").textContent.includes("0x6"),
       );
-      await page.check("#ready");
+      await page.waitForFunction(() => !window.coinflipLive.state.busy);
+      if (!["unchecked", "switch-success"].includes(scenario))
+        await page.check("#ready");
+    }
+    const expectedSwitches = [
+      "wrong-network",
+      "switch-success",
+      "switch-rejected",
+    ].includes(scenario)
+      ? 1
+      : 0;
+    if ((await page.evaluate(() => window.switchRequests)) !== expectedSwitches)
+      throw Error("Unexpected network switch request count");
+    if (expectedSwitches && submitted)
+      throw Error("Switch submitted a transaction");
+    if (scenario === "invalid-stake") {
+      await page.fill("#stake", "1");
+      if (
+        !(await page.locator("#next").isDisabled()) ||
+        !(await page
+          .locator("#stake-error")
+          .textContent()
+          .then((t) => t.includes("at most 0.01")))
+      )
+        throw Error("Over-limit stake not blocked visibly");
+      await page.fill("#stake", "0.001");
+      if (await page.locator("#next").isDisabled())
+        throw Error("Corrected stake remains blocked");
+      if (submitted) throw Error("Validation submitted a transaction");
+      await page.fill("#stake", "1");
+    }
+    if (scenario === "unchecked") {
+      if (
+        !(await page
+          .locator("#action-hint")
+          .textContent()
+          .then((t) => t.includes("I can finish this round")))
+      )
+        throw Error("Missing acknowledgement guidance");
+      if (submitted !== 0) throw Error("Submitted without acknowledgement");
+    }
+    if (["wallet-waiting", "wallet-rejected"].includes(scenario)) {
+      await page.click("#next");
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#action-status")
+            .textContent.includes("Confirm deposit in your wallet") ||
+          document
+            .querySelector("#action-status")
+            .textContent.includes("User rejected"),
+      );
+      if (scenario === "wallet-rejected") {
+        await page.waitForFunction(() => !window.coinflipLive.state.busy);
+        if (
+          !(await page
+            .locator("#action-status")
+            .textContent()
+            .then((t) => t.includes("User rejected")))
+        )
+          throw Error("Wallet error not shown beside button");
+        if (await page.locator("#next").isDisabled())
+          throw Error("Explicit rejection prevents retry");
+      }
+      if (submitted !== 1) throw Error("Unexpected wallet submission count");
     }
     if (scenario === "pending") {
       await page.click("#next");
@@ -100,7 +210,10 @@ try {
       );
       if (submitted !== 1) throw Error("Pending submission was repeated");
     }
-    if (!(await page.locator("#next").isDisabled()))
+    if (
+      scenario !== "wallet-rejected" &&
+      !(await page.locator("#next").isDisabled())
+    )
       throw Error("Unsafe action enabled: " + scenario);
     if (["legacy-bank", "mismatched-bank"].includes(scenario) && submitted !== 0)
       throw Error("Legacy bank accepted a new deposit");

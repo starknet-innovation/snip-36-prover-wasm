@@ -1,0 +1,126 @@
+{
+  "scope": "preregistered paired campaign",
+  "interrupted": false,
+  "declared_attempts": 36,
+  "completed_attempts": 36,
+  "all_accepted": false,
+  "workloads": [
+    {
+      "name": "balance",
+      "roles": {
+        "baseline": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.016761357748420917,
+          "medians": {
+            "load_ms": 88.12000000476837,
+            "init_ms": 3983.9599999934435,
+            "prove_ms": 52553.685000002384,
+            "fresh_worker_ms": 56696.17499999702,
+            "rust_requested_peak_bytes": 13828577682,
+            "wasm_linear_memory_bytes": 14100398080,
+            "browser_process_peak_bytes": 12773670912
+          }
+        },
+        "candidate": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.004496353390271374,
+          "medians": {
+            "load_ms": 91.40999999642372,
+            "init_ms": 1589.1050000041723,
+            "prove_ms": 76441.33499999344,
+            "fresh_worker_ms": 78151.32999999821,
+            "rust_requested_peak_bytes": 2311561615,
+            "wasm_linear_memory_bytes": 3249471488,
+            "browser_process_peak_bytes": 3873144832
+          }
+        }
+      },
+      "stable": true,
+      "median_paired_ratios": {
+        "load_ms": 1.0394871795279348,
+        "init_ms": 0.3994502580314507,
+        "prove_ms": 1.4579393433591739,
+        "fresh_worker_ms": 1.3815430229641124,
+        "rust_requested_peak_bytes": 0.16715830565921827,
+        "wasm_linear_memory_bytes": 0.23045246450233553,
+        "browser_process_peak_bytes": 0.3030861560996507
+      },
+      "accepted": false
+    },
+    {
+      "name": "coinflip-heads",
+      "roles": {
+        "baseline": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.014179217208897742,
+          "medians": {
+            "load_ms": 90.54000000655651,
+            "init_ms": 4045.4099999964237,
+            "prove_ms": 55100.20000000298,
+            "fresh_worker_ms": 59400.590000003576,
+            "rust_requested_peak_bytes": 13826136697,
+            "wasm_linear_memory_bytes": 14366539776,
+            "browser_process_peak_bytes": 12918964224
+          }
+        },
+        "candidate": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.005590308192622572,
+          "medians": {
+            "load_ms": 92.2800000011921,
+            "init_ms": 1593.8849999904633,
+            "prove_ms": 78701.57999999821,
+            "fresh_worker_ms": 80414.79500000179,
+            "rust_requested_peak_bytes": 2311203058,
+            "wasm_linear_memory_bytes": 3307667456,
+            "browser_process_peak_bytes": 3904749568
+          }
+        }
+      },
+      "stable": true,
+      "median_paired_ratios": {
+        "load_ms": 1.0312923632620676,
+        "init_ms": 0.39767370561506943,
+        "prove_ms": 1.4283356503242086,
+        "fresh_worker_ms": 1.3537709810625946,
+        "rust_requested_peak_bytes": 0.1671618839484992,
+        "wasm_linear_memory_bytes": 0.2302341069994891,
+        "browser_process_peak_bytes": 0.30213402222670327
+      },
+      "accepted": false
+    },
+    {
+      "name": "coinflip-tails",
+      "roles": {
+        "baseline": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.17501561633659427,
+          "medians": {
+            "load_ms": 94.82500000298023,
+            "init_ms": 4189.554999992251,
+            "prove_ms": 67230.36499999464,
+            "fresh_worker_ms": 71772.24500000477,
+            "rust_requested_peak_bytes": 13826140461,
+            "wasm_linear_memory_bytes": 14366539776,
+            "browser_process_peak_bytes": 12418760704
+          }
+        },
+        "candidate": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.1772178935079511,
+          "medians": {
+            "load_ms": 95.98000000417233,
+            "init_ms": 1596.6950000077486,
+            "prove_ms": 89904.62000000477,
+            "fresh_worker_ms": 91606.06000000238,
+            "rust_requested_peak_bytes": 2311202726,
+            "wasm_linear_memory_bytes": 3358851072,
+            "browser_process_peak_bytes": 3913531392
+          }
+        }
+      },
+      "stable": false,
+      "accepted": false
+    }
+  ]
+}

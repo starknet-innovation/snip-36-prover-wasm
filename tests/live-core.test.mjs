@@ -15,6 +15,8 @@ import {
   PROGRAM,
   CONFIG,
   requiresProverProfile,
+  withTimeout,
+  apiVersionParam,
 } from "../web/live-core.mjs";
 const config = { bank: "0x9", coinflip: "0x8", executor: "0x7" };
 const round = () => newRound("0x6", config.bank, 0, "0.001");
@@ -121,5 +123,27 @@ test("proof attachment must bind the exact round and message", () => {
 test("proof API gate rejects unsupported and malformed versions", () => {
   assert.equal(proofApiVersion(["0.9.0", "0.10.2"]), null);
   assert.equal(proofApiVersion(["0.10.3", "0.10.4"]), "0.10.4");
-  assert.equal(proofApiVersion(["0.10.3-rc.0", "junk"]), null);
+  assert.equal(proofApiVersion(["0.10.3-rc.0", "0.10.4-rc.1", "junk"]), null);
+  assert.equal(proofApiVersion(["0.10.4-rc.0"]), "0.10.4-rc.0");
+  assert.equal(proofApiVersion(["0.10.4-rc.0", "0.10.4"]), "0.10.4");
+  assert.equal(proofApiVersion(["0.10.3", "0.10.4-rc.0"]), "0.10.4-rc.0");
+});
+
+test("wallet timeout rejects a request that never answers, and passes answers through", async () => {
+  await assert.rejects(
+    withTimeout(new Promise(() => {}), 10, "no answer"),
+    (e) => e.timeout === true && e.message === "no answer",
+  );
+  assert.equal(await withTimeout(Promise.resolve(7), 1000, "late"), 7);
+  await assert.rejects(
+    withTimeout(Promise.reject(Error("denied")), 1000, "late"),
+    (e) => !e.timeout && e.message === "denied",
+  );
+});
+
+test("api_version is sent only in the spec's suffix-free form", () => {
+  assert.deepEqual(apiVersionParam("0.10.4"), { api_version: "0.10.4" });
+  assert.deepEqual(apiVersionParam("0.10"), { api_version: "0.10" });
+  assert.deepEqual(apiVersionParam("0.10.4-rc.0"), {});
+  assert.deepEqual(apiVersionParam(null), {});
 });

@@ -1,0 +1,76 @@
+{
+  "status": "locally passed",
+  "raw_artifacts": "artifacts/port/lifecycle-sourced-03",
+  "failed_attempts_retained": [
+    "artifacts/port/lifecycle-sourced-01",
+    "artifacts/port/lifecycle-sourced-02"
+  ],
+  "result": {
+    "kind": "done",
+    "identity": {
+      "wasm_bytes": 95043045,
+      "wasm_sha256": "784ad8069b9f47086cbc0898cf1a45388069187a136de7b4932bc621a2ca04fe"
+    },
+    "initial": {
+      "wasm_linear_memory_bytes": 1257570304,
+      "webcrypto_random_calls": 0,
+      "webcrypto_random_bytes": 0,
+      "rust_requested_live_bytes": 622607534,
+      "rust_requested_peak_bytes": 1159482492
+    },
+    "reinitialized": {
+      "wasm_linear_memory_bytes": 1257570304,
+      "webcrypto_random_calls": 0,
+      "webcrypto_random_bytes": 0,
+      "rust_requested_live_bytes": 622607534,
+      "rust_requested_peak_bytes": 1159482492
+    },
+    "after_first": {
+      "wasm_linear_memory_bytes": 5930876928,
+      "webcrypto_random_calls": 0,
+      "webcrypto_random_bytes": 0,
+      "rust_requested_live_bytes": 623072064,
+      "rust_requested_peak_bytes": 4912030237
+    },
+    "after_error": {
+      "wasm_linear_memory_bytes": 5930876928,
+      "webcrypto_random_calls": 0,
+      "webcrypto_random_bytes": 0,
+      "rust_requested_live_bytes": 622839632,
+      "rust_requested_peak_bytes": 4912030237
+    },
+    "after_second": {
+      "wasm_linear_memory_bytes": 5998051328,
+      "webcrypto_random_calls": 0,
+      "webcrypto_random_bytes": 0,
+      "rust_requested_live_bytes": 623072064,
+      "rust_requested_peak_bytes": 4912035357
+    },
+    "error": "Error: invalid Zip archive: Invalid zip header",
+    "first": {
+      "output_preimage": [
+        "0x1",
+        "0x7",
+        "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+        "0x5649525455414c5f534e4f5330",
+        "0xf5d334",
+        "0x31d7e77a1a55236f80df9a3e57b0f6e08e3e6f3a3caf5efbf03cbb1b9006a93",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x0"
+      ]
+    },
+    "second": {
+      "output_preimage": [
+        "0x1",
+        "0x7",
+        "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+        "0x5649525455414c5f534e4f5330",
+        "0xf5d334",
+        "0x31d7e77a1a55236f80df9a3e57b0f6e08e3e6f3a3caf5efbf03cbb1b9006a93",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x0"
+      ]
+    }
+  },
+  "limitation": "Two successful proofs around a malformed PIE, one instance. Requested live bytes return to the same value; linear memory grows by 67,174,400 bytes on the second proof. This does not establish long-run linear-memory stability."
+}

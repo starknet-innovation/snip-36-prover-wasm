@@ -29,6 +29,9 @@ try {
     result.sha !== fixture.report.pie_sha256
   )
     throw Error(JSON.stringify(result));
+  if (!(await page.locator('input[name="prover-build"][value="standard"]').isChecked()) ||
+      !(await page.locator('input[name="prover-build"][value="memory"]').isDisabled()))
+    throw Error("Incompatible V1 build became selectable after execution");
   if ((await page.locator("#downloads a").count()) !== 2)
     throw Error("Missing downloads");
   const firstResult = await page.locator("#coin-result").textContent();
@@ -52,6 +55,31 @@ try {
     throw Error("Tails execution failed: " + JSON.stringify(tails));
   if (firstResult === (await page.locator("#coin-result").textContent()))
     throw Error("Choice did not change the matching result");
+  // Saved execution receipts replay offline and are compared with their PIE.
+  const savedRound = JSON.stringify({
+    kind: "execution",
+    request: tailsFixture.request,
+    capture: tailsFixture.capture,
+    report: { pie_sha256: tailsFixture.report.pie_sha256 },
+  });
+  await page.setInputFiles("#load-round", {
+    name: "execution.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(savedRound),
+  });
+  await page.waitForFunction(() =>
+    /matches the saved round/.test(
+      document.querySelector("#status").textContent,
+    ),
+  );
+  await page.setInputFiles("#load-round", {
+    name: "proof.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"kind":"proof"}'),
+  });
+  await page.waitForFunction(
+    () => document.querySelector("#state").textContent === "ERROR",
+  );
   await page.getByRole("button", { name: "Check receipt on Sepolia" }).click();
   await page.waitForFunction(
     () => !document.querySelector("#check-chain").disabled,

@@ -1,0 +1,102 @@
+{
+  "variant": "striped-block",
+  "status": "passed",
+  "candidate_sha256": "b645c4f0d19bffd9183e8e8ba25ab34688f699c9968ee365655789e965842c93",
+  "raw_artifacts": "artifacts/port/striped-proof-01",
+  "workloads": [
+    {
+      "name": "balance",
+      "report": {
+        "runtime": "browser Worker memory64",
+        "wasm_bytes": 94957102,
+        "wasm_sha256": "b645c4f0d19bffd9183e8e8ba25ab34688f699c9968ee365655789e965842c93",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+        "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+        "proof_bytes": 231962,
+        "load_ms": 93.78999999910593,
+        "init_ms": 1737.0450000017881,
+        "prove_ms": 75693.61999999732,
+        "total_ms": 77528.0700000003,
+        "wasm_linear_memory_bytes": 6241189888,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 623070738,
+        "rust_requested_peak_bytes": 5114066147,
+        "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+        "fresh_worker_ms": 77553.44999999925,
+        "harness_call_ms": 79486.95641700001,
+        "browser_process_peak_bytes": null
+      },
+      "byte_identical_to_baseline": true,
+      "native_verified": true,
+      "proof_and_statement_tamper_rejected": true
+    },
+    {
+      "name": "coinflip-heads",
+      "report": {
+        "runtime": "browser Worker memory64",
+        "wasm_bytes": 94957102,
+        "wasm_sha256": "b645c4f0d19bffd9183e8e8ba25ab34688f699c9968ee365655789e965842c93",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+        "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+        "proof_bytes": 235339,
+        "load_ms": 101.51500000059605,
+        "init_ms": 1758.344999998808,
+        "prove_ms": 77939.83999999985,
+        "total_ms": 79802.55000000075,
+        "wasm_linear_memory_bytes": 6140067840,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 623067459,
+        "rust_requested_peak_bytes": 5113707590,
+        "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+        "fresh_worker_ms": 79820.4450000003,
+        "harness_call_ms": 81301.317041,
+        "browser_process_peak_bytes": null
+      },
+      "byte_identical_to_baseline": true,
+      "native_verified": true,
+      "proof_and_statement_tamper_rejected": true
+    },
+    {
+      "name": "coinflip-tails",
+      "report": {
+        "runtime": "browser Worker memory64",
+        "wasm_bytes": 94957102,
+        "wasm_sha256": "b645c4f0d19bffd9183e8e8ba25ab34688f699c9968ee365655789e965842c93",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13",
+        "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+        "proof_bytes": 229484,
+        "load_ms": 96.93000000342727,
+        "init_ms": 1769.0249999985099,
+        "prove_ms": 87175.69999999925,
+        "total_ms": 89044.47000000253,
+        "wasm_linear_memory_bytes": 6275858432,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 623061604,
+        "rust_requested_peak_bytes": 5113707258,
+        "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+        "fresh_worker_ms": 89061.75499999896,
+        "harness_call_ms": 90478.565458,
+        "browser_process_peak_bytes": null
+      },
+      "byte_identical_to_baseline": true,
+      "native_verified": true,
+      "proof_and_statement_tamper_rejected": true
+    }
+  ],
+  "benchmark_campaign_complete": false,
+  "CI_validated": false,
+  "reviewed": false,
+  "released": false,
+  "limitations": [
+    "original FFT and arithmetic kernels retained",
+    "tiled openings currently use coefficient-regrowth fallback",
+    "backend Merkle retention is dense; sparse fallback tested by deliberately omitting layers",
+    "process peak not measured in these smoke runs"
+  ]
+}

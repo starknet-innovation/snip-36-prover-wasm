@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 
 from executor_manifests import patch_fingerprint
+from prover_sources import check_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = ROOT / 'build/source-assets.json'
@@ -53,7 +54,7 @@ def main():
     if revision != pins['sequencer' if args.mode == 'executor' else 'transaction_service_proving']:
         raise ValueError('Source build revision differs from pins.json')
     marker = source / '.wasm-patches-complete'
-    if marker.read_text() != expected[args.mode + '_patch_sha256']:
+    if not check_receipt(marker, expected[args.mode + '_patch_sha256'], {source.name: source}):
         raise ValueError('Source build patches differ from the prepared workspace')
     if receipt.get('source_identity') != expected:
         receipt = {'source_identity': expected, 'assets': {}}

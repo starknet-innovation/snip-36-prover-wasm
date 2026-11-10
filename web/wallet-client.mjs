@@ -1,15 +1,43 @@
 import { getStarknet } from "@starknet-io/get-starknet-core";
-import { CHAIN, hex, proofApiVersion } from "./live-core.mjs";
+import { CHAIN, hex, proofApiVersion, apiVersionParam } from "./live-core.mjs";
 export async function discoverWallets() {
   return getStarknet().getAvailableWallets();
 }
-export async function connectWallet(wallet) {
-  const enabled = await getStarknet().enable(wallet);
-  const accounts = await enabled.request({ type: "wallet_requestAccounts" });
-  if (!accounts.length) throw Error("Wallet returned no account");
-  const chain = await enabled.request({ type: "wallet_requestChainId" });
-  if (hex(chain) !== CHAIN)
-    throw Error("Switch your wallet to Starknet Sepolia, then reconnect");
+export async function connectWallet(wallet, onStatus = () => {}) {
+  // A successful account request is the wallet's connection authorization.
+  // Do not gate it on a redundant wallet_getPermissions response.
+  const enabled = wallet;
+  let accounts = await enabled.request({
+    type: "wallet_requestAccounts",
+    params: { silent_mode: false },
+  });
+  if (!Array.isArray(accounts) || !accounts.length)
+    throw Error("Wallet returned no account");
+  let chain = await enabled.request({ type: "wallet_requestChainId" });
+  if (hex(chain) !== CHAIN) {
+    onStatus("Approve the switch to Starknet Sepolia in your wallet.");
+    try {
+      await enabled.request({
+        type: "wallet_switchStarknetChain",
+        params: { chainId: CHAIN },
+      });
+    } catch (cause) {
+      throw new Error(
+        "The wallet could not switch to Sepolia. Approve the network switch, or switch manually and reconnect.",
+        { cause },
+      );
+    }
+    chain = await enabled.request({ type: "wallet_requestChainId" });
+    if (hex(chain) !== CHAIN)
+      throw Error("Switch your wallet to Starknet Sepolia, then reconnect");
+  }
+  // Network changes can select a different account; read it after switching.
+  accounts = await enabled.request({
+    type: "wallet_requestAccounts",
+    params: { silent_mode: true },
+  });
+  if (!Array.isArray(accounts) || !accounts.length)
+    throw Error("Wallet returned no account");
   let versions = [];
   try {
     versions = await enabled.request({ type: "wallet_supportedWalletApi" });
@@ -43,7 +71,7 @@ export async function invokeWallet(connection, calls, proof) {
     );
   const params = {
     invoke_transaction: calls,
-    api_version: connection.proofVersion,
+    ...apiVersionParam(connection.proofVersion),
   };
   if (proof) params.proof = proof;
   return connection.wallet.request({

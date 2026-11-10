@@ -1,0 +1,135 @@
+{
+  "scope": "preregistered paired campaign",
+  "interrupted": false,
+  "declared_attempts": 36,
+  "completed_attempts": 36,
+  "all_accepted": false,
+  "workloads": [
+    {
+      "name": "balance",
+      "roles": {
+        "baseline": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.005550627435767269,
+          "medians": {
+            "load_ms": 98.23499999940395,
+            "init_ms": 4030.2750000059605,
+            "prove_ms": 51334.439999997616,
+            "fresh_worker_ms": 55492.64500000328,
+            "rust_requested_peak_bytes": 13828577682,
+            "wasm_linear_memory_bytes": 14100398080,
+            "browser_process_peak_bytes": 14525169664
+          }
+        },
+        "candidate": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.0009249286537029766,
+          "medians": {
+            "load_ms": 102.6849999949336,
+            "init_ms": 1761.0900000035763,
+            "prove_ms": 76840.52999999374,
+            "fresh_worker_ms": 78736.7650000006,
+            "rust_requested_peak_bytes": 4912030119,
+            "wasm_linear_memory_bytes": 5947785216,
+            "browser_process_peak_bytes": 6352666624
+          }
+        }
+      },
+      "stable": true,
+      "median_paired_ratios": {
+        "load_ms": 1.0512516246132662,
+        "init_ms": 0.43821230546483203,
+        "prove_ms": 1.4956639386831485,
+        "fresh_worker_ms": 1.4188684824808036,
+        "rust_requested_peak_bytes": 0.35520862896794914,
+        "wasm_linear_memory_bytes": 0.4218168297274058,
+        "browser_process_peak_bytes": 0.43724521908620645
+      },
+      "accepted": false
+    },
+    {
+      "name": "coinflip-heads",
+      "roles": {
+        "baseline": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.005169027359094475,
+          "medians": {
+            "load_ms": 94.05000000447035,
+            "init_ms": 4027.695000000298,
+            "prove_ms": 54127.410000003874,
+            "fresh_worker_ms": 58290.189999997616,
+            "rust_requested_peak_bytes": 13826136697,
+            "wasm_linear_memory_bytes": 14366539776,
+            "browser_process_peak_bytes": 14619574272
+          }
+        },
+        "candidate": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.0009789227146890277,
+          "medians": {
+            "load_ms": 101.6550000011921,
+            "init_ms": 1763.9899999946356,
+            "prove_ms": 79243.9450000003,
+            "fresh_worker_ms": 81132.43499999493,
+            "rust_requested_peak_bytes": 4911671562,
+            "wasm_linear_memory_bytes": 5938806784,
+            "browser_process_peak_bytes": 6353453056
+          }
+        }
+      },
+      "stable": true,
+      "median_paired_ratios": {
+        "load_ms": 1.0411075933834517,
+        "init_ms": 0.4387173749084054,
+        "prove_ms": 1.466780232048696,
+        "fresh_worker_ms": 1.394562875845905,
+        "rust_requested_peak_bytes": 0.3552454072774889,
+        "wasm_linear_memory_bytes": 0.41337767316254287,
+        "browser_process_peak_bytes": 0.4348364017805511
+      },
+      "accepted": false
+    },
+    {
+      "name": "coinflip-tails",
+      "roles": {
+        "baseline": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.005412877951777144,
+          "medians": {
+            "load_ms": 88.50499999523163,
+            "init_ms": 3976.7050000056624,
+            "prove_ms": 63475.885000005364,
+            "fresh_worker_ms": 67567.1099999994,
+            "rust_requested_peak_bytes": 13826140461,
+            "wasm_linear_memory_bytes": 14366539776,
+            "browser_process_peak_bytes": 14493876224
+          }
+        },
+        "candidate": {
+          "successful_measured_attempts": 5,
+          "prove_time_cv": 0.0010303927812418021,
+          "medians": {
+            "load_ms": 91.54500000178814,
+            "init_ms": 1737.8699999973178,
+            "prove_ms": 88635.47999999672,
+            "fresh_worker_ms": 90507.3900000006,
+            "rust_requested_peak_bytes": 4911671230,
+            "wasm_linear_memory_bytes": 5943853056,
+            "browser_process_peak_bytes": 6355894272
+          }
+        }
+      },
+      "stable": true,
+      "median_paired_ratios": {
+        "load_ms": 1.0343483419775188,
+        "init_ms": 0.43668892894791217,
+        "prove_ms": 1.3960431587521471,
+        "fresh_worker_ms": 1.3388423006400454,
+        "rust_requested_peak_bytes": 0.3552452865537253,
+        "wasm_linear_memory_bytes": 0.413728924895993,
+        "browser_process_peak_bytes": 0.4385984744007705
+      },
+      "accepted": false
+    }
+  ]
+}

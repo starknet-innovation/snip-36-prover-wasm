@@ -40,3 +40,13 @@ The native example also supports `prove PIE OUTPUT_PREIMAGE_JSON OUTPUT_DIR`. Si
 The existing Sepolia CoinFlip bank requires the historical V1 statement. The updated contract source requires PROOF2 and the new virtual-OS hash, and exposes `get_proof_profile`. Deploy and configure a compatible bank before enabling deposits. Publishing assets or deploying contracts is separate from a local source build. Historical V1 receipts remain in `evidence/`.
 
 V2 blinding is unchanged: upstream derives the recursive circuit blinding seed from the Cairo proof trace root. The retained Web Crypto host ABI was not invoked in the recorded V2 run (see its zero random-call counter); no alternative seed or blinding rule was introduced.
+
+## Integration with the current UI and V1 research
+
+The latest wallet connection/network-switch behavior, stake validation, saved-round loading, settlement waits/timeouts, receipt module hashes, live memory stages, and cache-versioned frontend remain enabled. The build picker retains both cards; its V1 memory card is disabled because that module cannot prove the V2 circuit. Device RAM never selects the incompatible module. V2 measurements label the supported standard card; old memory-card measurements remain explicitly V1 history.
+
+Source builds preserve path remapping and content-addressed modules under `build/wasm/`. `prover-baseline` builds the supported V2 control without installing it; `--install` explicitly installs it. V1 memory/tradeoff/kernel modes fail before compilation or installation. Their patches, research notes and results remain historical artifacts. Porting those optimisations to V2 requires separate validation.
+
+Preparation receipts check the complete prepared source trees as well as patch identities. Native preparation rejects implementation edits outside the committed diagnostic example. CI checks that both browser and native cryptographic packages resolve from the exact V2 monorepo revision with matching package versions.
+
+`demo:build` generates a runtime module manifest from the verified source-build receipt. Every browser proof hashes the loaded bytes against that manifest, allowing platform-specific source builds while retaining module provenance. A legacy or mismatched runtime profile fails closed.

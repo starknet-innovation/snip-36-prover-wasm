@@ -1,0 +1,29 @@
+diff --git a/crates/privacy_prove/src/lib.rs b/crates/privacy_prove/src/lib.rs
+--- a/crates/privacy_prove/src/lib.rs
++++ b/crates/privacy_prove/src/lib.rs
+@@ -18,6 +18,7 @@
+ use circuit_cairo_verifier::verify::build_fixed_cairo_circuit;
+ use circuit_cairo_verifier::verify::prepare_cairo_proof_for_circuit_verifier;
+ use circuit_common::finalize::{add_zk_blinding, finalize_context};
++use circuit_common::preprocessed::PreprocessedColumnSource;
+ use circuit_prover::prover::{
+     prepare_circuit_proof_for_circuit_verifier, prove_circuit_with_owned_values,
+ };
+@@ -232,14 +233,16 @@
+         .get_trace::<SimdBackend>();
+     let circuit_preprocessed_trace_polys =
+         SimdBackend::interpolate_columns(circuit_preprocessed_trace, &precomputes.twiddles);
++    let sources = PreprocessedColumnSource::all(&preprocessed_circuit.preprocessed_trace).into_iter().map(Some).collect();
+     let circuit_preprocessed_tree =
+-        CommitmentTreeProver::<SimdBackend, Blake2sM31MerkleChannel>::new(
++        CommitmentTreeProver::<SimdBackend, Blake2sM31MerkleChannel>::new_with_sources(
+             circuit_preprocessed_trace_polys,
+             CIRCUIT_FRI_CONFIG.log_blowup_factor,
+             &precomputes.twiddles,
+             CIRCUIT_STORE_POLYNOMIALS_COEFFICIENTS,
+             precomputes.circuit_config.config.lifting_log_size,
+             &precomputes.base_column_pool,
++            sources,
+         );
+ 
+     info!("Prove the cairo-circuit verifier");

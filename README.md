@@ -1,6 +1,6 @@
 # SNIP-36 browser prover
 
-The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. Build both Wasm modules from source while the `v0.2.0` browser assets await publication. The configured Sepolia bank is a V1 deployment: new deposits, reveal and V2 settlement stay disabled until a compatible bank is deployed and configured. Its profile is checked on-chain. Existing refund/expiry actions remain available.
+The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Build both Wasm modules from source while the `v0.2.0` browser assets await publication. The configured Sepolia bank is a V1 deployment: new deposits, reveal and V2 settlement stay disabled until a compatible bank is deployed and configured. Its profile is checked on-chain. Existing refund/expiry actions remain available.
 
 The hosted demo and historical on-chain receipts document V1. They do not establish V2 network acceptance.
 

@@ -1,0 +1,206 @@
+{
+  "starting_sha": "739b084d1f533e60cd38cf9a0a6391de7965aafd",
+  "branch": "port/memory-candidate-validation",
+  "status": "locally validated candidate control; no optimization performance claim",
+  "native_verifier_sha256": "2b9878070536597b636d257d12577a5d528c3a7fb2bc0ab048df7864c16aa6b2",
+  "records": [
+    {
+      "variant": "baseline",
+      "status": "passed",
+      "raw_artifacts": "artifacts/port/baseline-proof-01",
+      "workloads": [
+        {
+          "name": "balance",
+          "report": {
+            "runtime": "browser Worker memory64",
+            "wasm_bytes": 91383453,
+            "wasm_sha256": "dc87c868e66f4ba4aa331a010076f6cd6fe9ab8e02a13354d9eda7a208b4b184",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+            "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+            "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+            "proof_bytes": 231962,
+            "load_ms": 124.03999999910593,
+            "init_ms": 4330.519999999553,
+            "prove_ms": 54042.03500000015,
+            "total_ms": 58505.25499999896,
+            "wasm_linear_memory_bytes": 14100398080,
+            "webcrypto_random_calls": 0,
+            "webcrypto_random_bytes": 0,
+            "rust_requested_live_bytes": 10486907993,
+            "rust_requested_peak_bytes": 13828577682,
+            "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+            "fresh_worker_ms": 60869.146958,
+            "browser_process_peak_bytes": null
+          },
+          "verified": true,
+          "proof_tamper_rejected": true,
+          "statement_tamper_rejected": true
+        },
+        {
+          "name": "coinflip-heads",
+          "report": {
+            "runtime": "browser Worker memory64",
+            "wasm_bytes": 91383453,
+            "wasm_sha256": "dc87c868e66f4ba4aa331a010076f6cd6fe9ab8e02a13354d9eda7a208b4b184",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+            "pie_sha256": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+            "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+            "proof_bytes": 235339,
+            "load_ms": 104.62000000104308,
+            "init_ms": 4000.745000001043,
+            "prove_ms": 55140.074999999255,
+            "total_ms": 59249.72000000253,
+            "wasm_linear_memory_bytes": 14366539776,
+            "webcrypto_random_calls": 0,
+            "webcrypto_random_bytes": 0,
+            "rust_requested_live_bytes": 10484822286,
+            "rust_requested_peak_bytes": 13826136697,
+            "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+            "fresh_worker_ms": 60768.429833,
+            "browser_process_peak_bytes": null
+          },
+          "verified": true,
+          "proof_tamper_rejected": true,
+          "statement_tamper_rejected": true
+        },
+        {
+          "name": "coinflip-tails",
+          "report": {
+            "runtime": "browser Worker memory64",
+            "wasm_bytes": 91383453,
+            "wasm_sha256": "dc87c868e66f4ba4aa331a010076f6cd6fe9ab8e02a13354d9eda7a208b4b184",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+            "pie_sha256": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13",
+            "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+            "proof_bytes": 229484,
+            "load_ms": 102.30499999970198,
+            "init_ms": 3996.625,
+            "prove_ms": 64368.53000000119,
+            "total_ms": 68471.03000000119,
+            "wasm_linear_memory_bytes": 14366539776,
+            "webcrypto_random_calls": 0,
+            "webcrypto_random_bytes": 0,
+            "rust_requested_live_bytes": 10484816431,
+            "rust_requested_peak_bytes": 13826140461,
+            "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+            "fresh_worker_ms": 69985.988875,
+            "browser_process_peak_bytes": null
+          },
+          "verified": true,
+          "proof_tamper_rejected": true,
+          "statement_tamper_rejected": true
+        }
+      ]
+    },
+    {
+      "variant": "candidate-control",
+      "status": "passed",
+      "raw_artifacts": "artifacts/port/candidate-control-proof-01",
+      "workloads": [
+        {
+          "name": "balance",
+          "report": {
+            "runtime": "browser Worker memory64",
+            "wasm_bytes": 91377012,
+            "wasm_sha256": "e47e9a372116c8461acd27c80bbe35c204bec8d6ed346026bfbbd10b8b79fafa",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+            "pie_sha256": "0c3b935b17949503ef1f8a083c2c3fcf8844d4acd4c8bfa5172b94dfee031a94",
+            "proof_sha256": "7c0f56a44dae2efbaef78f647a37e22d127aedb5bacdd2567b201dd386881219",
+            "proof_bytes": 231962,
+            "load_ms": 91.07999999821186,
+            "init_ms": 3977.870000001043,
+            "prove_ms": 53386.435000002384,
+            "total_ms": 57459.09500000253,
+            "wasm_linear_memory_bytes": 14100398080,
+            "webcrypto_random_calls": 0,
+            "webcrypto_random_bytes": 0,
+            "rust_requested_live_bytes": 10486907993,
+            "rust_requested_peak_bytes": 13828577682,
+            "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+            "fresh_worker_ms": 57481.78000000119,
+            "harness_call_ms": 59559.613334,
+            "browser_process_peak_bytes": null
+          },
+          "verified": true,
+          "proof_tamper_rejected": true,
+          "statement_tamper_rejected": true
+        },
+        {
+          "name": "coinflip-heads",
+          "report": {
+            "runtime": "browser Worker memory64",
+            "wasm_bytes": 91377012,
+            "wasm_sha256": "e47e9a372116c8461acd27c80bbe35c204bec8d6ed346026bfbbd10b8b79fafa",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+            "pie_sha256": "c73e751ac2c43186e868bf167ccf84f1439dbb789ed007fb2352b0706b505ff2",
+            "proof_sha256": "69272e28b79795705e154345036613c2b2893aaeb510d851553d6dac15287588",
+            "proof_bytes": 235339,
+            "load_ms": 100.95000000298023,
+            "init_ms": 3974.719999998808,
+            "prove_ms": 53987.38500000164,
+            "total_ms": 58066.859999999404,
+            "wasm_linear_memory_bytes": 14366539776,
+            "webcrypto_random_calls": 0,
+            "webcrypto_random_bytes": 0,
+            "rust_requested_live_bytes": 10484822286,
+            "rust_requested_peak_bytes": 13826136697,
+            "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+            "fresh_worker_ms": 58085.015000000596,
+            "harness_call_ms": 59691.807666,
+            "browser_process_peak_bytes": null
+          },
+          "verified": true,
+          "proof_tamper_rejected": true,
+          "statement_tamper_rejected": true
+        },
+        {
+          "name": "coinflip-tails",
+          "report": {
+            "runtime": "browser Worker memory64",
+            "wasm_bytes": 91377012,
+            "wasm_sha256": "e47e9a372116c8461acd27c80bbe35c204bec8d6ed346026bfbbd10b8b79fafa",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+            "pie_sha256": "88037b2f5259204ac46a2948f5a514c4adedd3f1921dd46ccc41712f694c7e13",
+            "proof_sha256": "3d805b48c0fd2f718222af73132e899466aedbb54b4b0f1c243b7e1162f68463",
+            "proof_bytes": 229484,
+            "load_ms": 102.03500000014901,
+            "init_ms": 3954.710000000894,
+            "prove_ms": 63930.17499999702,
+            "total_ms": 67989.9600000009,
+            "wasm_linear_memory_bytes": 14366539776,
+            "webcrypto_random_calls": 0,
+            "webcrypto_random_bytes": 0,
+            "rust_requested_live_bytes": 10484816431,
+            "rust_requested_peak_bytes": 13826140461,
+            "scope": "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+            "fresh_worker_ms": 68007.57499999925,
+            "harness_call_ms": 69592.488125,
+            "browser_process_peak_bytes": null
+          },
+          "verified": true,
+          "proof_tamper_rejected": true,
+          "statement_tamper_rejected": true
+        }
+      ]
+    }
+  ],
+  "byte_identical": true,
+  "checks": {
+    "npm_ci_ignore_scripts": "passed with workspace npm cache",
+    "npm_test": "64 passed",
+    "executor_manifest_tests": "8 passed",
+    "prover_preparation_and_resolution_guard_tests": "2 passed",
+    "worker_security": "passed including wrong module identity",
+    "demo_test": "passed",
+    "demo_test_live": "passed"
+  },
+  "CI_validated": false,
+  "reviewed": false,
+  "released": false,
+  "performance_demonstrated": false,
+  "failures_retained": [
+    "artifacts/port/native/build.log",
+    "artifacts/port/candidate-control/build.log"
+  ],
+  "raw_process_memory": null
+}
