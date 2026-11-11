@@ -30,6 +30,7 @@ import {
 import { PublicRunController } from "./public-run-controller.mjs";
 import { buildPicker, measuredSummary, gb } from "./prover-builds.mjs";
 const $ = (s) => document.querySelector(s);
+const legacyBank = new URL(location.href).searchParams.get("bank") === "v1";
 const builds = buildPicker(
   $("#builds"),
   (_, b) =>
@@ -169,7 +170,7 @@ function render() {
     enabled = false;
   }
   if (requiresProverProfile(currentGame) && !profileReady()) {
-    label = "Bank upgrade pending";
+    label = legacyBank ? "Legacy V1 recovery" : "Bank upgrade pending";
     enabled = false;
   }
   if (!connection) label = "Connect a compatible wallet";
@@ -201,7 +202,9 @@ function render() {
     hint =
       "Working. Follow the status below; the wallet may ask you to confirm.";
   else if (requiresProverProfile(currentGame) && !profileReady())
-    hint = "The bank is awaiting a V2 upgrade. Existing refund and expiry actions remain available.";
+    hint = legacyBank
+      ? "V1 settlement requires compatible V1 proof tools. Refund and expiry actions remain available; use the V2 bank for new rounds."
+      : "The bank is awaiting a V2 upgrade. Existing refund and expiry actions remain available.";
   else if (stakeError) {
     hint = stakeError;
     label = "Enter a valid stake";
@@ -654,9 +657,14 @@ $("#connect").onclick = () =>
   });
 async function init() {
   try {
-    const response = await fetch("./live-config.json");
+    const response = await fetch(legacyBank ? "./legacy-live-config.json" : "./live-config.json", { cache: "no-store" });
     if (!response.ok) throw Error("Live contracts are not configured");
     config = await response.json();
+    if (legacyBank) {
+      $(".eyebrow").textContent = "LEGACY · V1 RECOVERY";
+      $("h1").textContent = "Recover an earlier round.";
+      $(".intro").textContent = "Reconnect your wallet or restore your recovery file. V1 rounds remain on their original bank and require V1 proof tools for settlement; refunds and expiry remain available.";
+    }
     if (
       config.chain_id !== CHAIN ||
       hex(await rpc("starknet_chainId", [])) !== CHAIN

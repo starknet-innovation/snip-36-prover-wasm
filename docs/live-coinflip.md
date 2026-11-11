@@ -31,7 +31,7 @@ It signs locally with the named sncast account (or `STARKNET_ACCOUNT_ADDRESS`/`S
 
 ## Contracts and tests
 
-Public addresses and class hashes: `web/live-config.json`. Deployment receipts: `evidence/live-deployment.json`. The bank uses Cairo/Scarb 2.18 for Sierra 1.8's proof-facts syscall. The public executor uses Scarb 2.15.2 / Cairo 2.15.0 for compatibility with the pinned browser compiler. The original recorded CoinFlip contract remains deployed unchanged.
+Public addresses and class hashes: `web/live-config.json`. V2 deployment and accepted settlement: `evidence/v2-bank-deployment.json`. Historical V1 receipts: `evidence/live-deployment.json`. The bank uses Cairo/Scarb 2.18 for Sierra 1.8's proof-facts syscall. The public executor uses Scarb 2.15.2 / Cairo 2.15.0 for compatibility with the pinned browser compiler. The original recorded CoinFlip contract remains deployed unchanged.
 
 `npm test` checks statement binding, recovery and amount boundaries. `npm run demo:test:live` runs browser checks for unsupported wallets, wrong networks and pending-transaction recovery, without submitting transactions.
 
@@ -39,8 +39,36 @@ Public addresses and class hashes: `web/live-config.json`. Deployment receipts: 
 
 The daily workflow runs the live game after the existing balance-query test, at 06:00 UTC. Artifacts include round recovery, signed intents, browser proof and closed-block settlement receipt. Test funding is finite; exhaustion fails the test and requires manual replenishment. No automatic bank top-up or deployment occurs.
 
-## V2 migration
+## V2 deployment
 
-The source targets backend v1.4.0. The checked-in deployment metadata identifies the existing V1 bank, so new deposits, reveal and V2 settlement are disabled. Refund/expiry recovery remains available. Deploy the updated bank source, set its addresses/class hash and `proof_version` / `program_hash` in `web/live-config.json`, and verify its `get_proof_profile` result before enabling V2 play. The daily workflow skips CoinFlip until that configuration is compatible. Historical installed-wallet and V1 evidence does not validate the V2 deployment.
+The default configuration uses the V2 bank at
+[`0xa7326f4400c58184b197ff34a66a5b6d5acce50123d7133d85a88da482db9e`](https://sepolia.voyager.online/contract/0xa7326f4400c58184b197ff34a66a5b6d5acce50123d7133d85a88da482db9e).
+It was declared/deployed with Scarb 2.18 from release commit `ca98c373`, funded
+with 1 test STRK, and checked for its owner, fixed CoinFlip contract, token,
+class hash and V2 proof profile. The original CoinFlip computation and public
+executor remain deployed unchanged.
 
-Before replacing the hosted V1 frontend, resolve outstanding revealed V1 rounds through a compatible V1 proving/settlement path. They cannot use the V2 statement. This change does not migrate existing bank state. The updated UI blocks legacy reveals while allowing refund/expiry actions, so it does not create new revealed rounds without a compatible settlement path.
+A funded 0.001-test-STRK round completed deposit/match, reveal, browser proving,
+unchanged native verification and proof-bearing settlement in closed Sepolia
+block **17,969,259**. A proofless settlement was rejected. The proved result was
+a loss, so both stakes replenished the pool; this run does not exercise a winning
+payout. [Public deployment, receipts and validation](../evidence/v2-bank-deployment.json).
+The daily CoinFlip check is enabled by this compatible configuration.
+
+## Legacy V1 rounds
+
+[Recover an earlier V1 round](https://starknet-innovation.github.io/snip-36-prover-wasm/play.html?bank=v1)
+loads `web/legacy-live-config.json` and the original bank's wallet-scoped saved
+history. Restore files are still checked against that bank. New V1 deposits,
+reveals and V2 proving/settlement are disabled there; refund and expiry actions
+remain available where the on-chain state permits them. Return to the normal
+page for new V2 games.
+
+The pre-cutover scan at block **17,968,904** checked 38 deposited rounds and found
+three revealed, unsettled V1 rounds (0.001 test STRK per stake; 0.006 test STRK in
+combined escrow). They remain on the original bank without a settlement expiry;
+no escrow or game state was migrated. Their public IDs and states are retained
+in the V2 deployment evidence. Preserve recovery files and use compatible V1
+proving/settlement tooling for these rounds; the current V2 prover cannot settle
+them. The historical V1 source is retained at commit `397985e` and the V1 binary
+release is `v0.1.0`. V1 network admission was not retested by this V2 deployment.

@@ -1,8 +1,8 @@
 # SNIP-36 browser prover
 
-The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) supplies both V2 Wasm modules; `npm run assets` downloads and verifies them. The configured Sepolia bank is a V1 deployment: new deposits, reveal and V2 settlement stay disabled until a compatible bank is deployed and configured. Its profile is checked on-chain. Existing refund/expiry actions remain available.
+The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) supplies both V2 Wasm modules; `npm run assets` downloads and verifies them. The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
 
-The hosted demo and historical on-chain receipts document V1. They do not establish V2 network acceptance.
+The [V2 deployment and accepted browser-proof settlement](evidence/v2-bank-deployment.json) are recorded separately from the historical V1 receipts.
 
 **[Play CoinFlip on Sepolia](https://starknet-innovation.github.io/snip-36-prover-wasm/play.html)** · [Recorded replay lab](https://starknet-innovation.github.io/snip-36-prover-wasm/)
 
@@ -21,7 +21,7 @@ This is a desktop-browser prototype. The historical V1 recursive prover used abo
 
 ## V2 local validation
 
-A V2 proof generated in a real Chromium Worker passed the unpatched upstream native verifier: **231,440 proof bytes**, **72.4 seconds** including initialization, and **13.3 GiB Wasm linear memory** (13.2 GiB peak requested Rust allocations). Both recorded CoinFlip rounds and the balance query replayed successfully, offline replay was identical, and an invalid account signature was rejected. These are local measurements for the retained captures. [Evidence](evidence/v2-source-validation.json). V2 network submission and bank deployment remain untested here.
+A V2 proof generated in a real Chromium Worker passed the unpatched upstream native verifier: **231,440 proof bytes**, **72.4 seconds** including initialization, and **13.3 GiB Wasm linear memory** (13.2 GiB peak requested Rust allocations). Both recorded CoinFlip rounds and the balance query replayed successfully, offline replay was identical, and an invalid account signature was rejected. These are local measurements for the retained captures. [Evidence](evidence/v2-source-validation.json). A fresh V2 CoinFlip round subsequently passed browser generation, unchanged native verification, and Sepolia settlement at [block 17,969,259](https://sepolia.voyager.online/tx/0x4fbeb541f02b30208f1d64278b563f6e8f1dc866aef87d0bdc4cf578f6e27e4). Proofless settlement was rejected. This was a losing round, so the pool retained both stakes. [Deployment and live evidence](evidence/v2-bank-deployment.json).
 
 ## Historical V1 verification on Sepolia
 
@@ -61,7 +61,7 @@ GitHub Actions runs every day at **06:00 UTC** and supports manual dispatch from
 5. Checks the statement/program/capture linkage, signs the proof-bearing transaction, and persists its intended hash before broadcast.
 6. Submits once to the sequencer gateway and requires `SUCCEEDED` plus closed-block L2/L1 acceptance. Receipts, proofs and captures are retained as workflow artifacts.
 
-The balance-query test has a hard maximum fee budget of **25 testnet STRK**. Once a matching V2 bank is configured, a following live CoinFlip test deposits **0.001 test STRK**, reveals, proves in Chromium and settles through the test Wallet API adapter. It caps each transaction at 25 test STRK, uses the existing prefunded bank, and never deploys or automatically tops up contracts. No mainnet mode exists. Until then, the CoinFlip step explicitly skips the legacy bank. PR CI builds the pinned Wasm modules and runs offline tests without signing credentials. Scheduled runs require the `sepolia` environment setup described in the runbook.
+The balance-query test has a hard maximum fee budget of **25 testnet STRK**. A following live CoinFlip test uses the configured V2 bank, deposits **0.001 test STRK**, reveals, proves in Chromium and settles through the test Wallet API adapter. It caps each transaction at 25 test STRK, uses the existing prefunded bank, and never deploys or automatically tops up contracts. No mainnet mode exists. The CoinFlip step explicitly skips any incompatible configuration. PR CI builds the pinned Wasm modules and runs offline tests without signing credentials. Scheduled runs require the `sepolia` environment setup described in the runbook.
 
 ## Scope
 

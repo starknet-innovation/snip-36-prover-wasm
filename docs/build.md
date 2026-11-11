@@ -38,7 +38,7 @@ build/target-native/release/examples/spike_native verify proof.bin output_preima
 
 The native example also supports `prove PIE OUTPUT_PREIMAGE_JSON OUTPUT_DIR`. Signing credentials are unnecessary for these builds; `build.sh` rejects `STARKNET_PRIVATE_KEY`.
 
-The existing Sepolia CoinFlip bank requires the historical V1 statement. The updated contract source requires PROOF2 and the new virtual-OS hash, and exposes `get_proof_profile`. Deploy and configure a compatible bank before enabling deposits. Publishing assets or deploying contracts is separate from a local source build. Historical V1 receipts remain in `evidence/`.
+The default Sepolia CoinFlip configuration points to the deployed V2 bank. It requires PROOF2 and the new virtual-OS hash and exposes `get_proof_profile`; the frontend verifies that profile on-chain. The original V1 bank remains in `web/legacy-live-config.json` and the `play.html?bank=v1` recovery view. Publishing assets does not migrate bank state. Deployment and accepted V2 settlement evidence are in `evidence/v2-bank-deployment.json`; historical V1 receipts remain separate.
 
 V2 blinding is unchanged: upstream derives the recursive circuit blinding seed from the Cairo proof trace root. The retained Web Crypto host ABI was not invoked in the recorded V2 run (see its zero random-call counter); no alternative seed or blinding rule was introduced.
 
