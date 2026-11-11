@@ -8,7 +8,7 @@ Apache-2.0 license.
 
 This directory exposes the complete supported browser workspace and local
 dependency paths to Dependabot. Unused upstream node, Python-binding, networking
-and cloud targets are removed by the workspace scope in `v2.patch`. The 30 manifests
+and cloud targets are removed by the workspace scope in `v2.patch`. The 31 manifests
 include normal/build, optional and development dependencies.
 
 `browser-vendor/num-prime-0.4.4` contains the upstream crate under its included
@@ -41,3 +41,14 @@ reviewed lock. Dependency updates still need the build and browser/native
 validation appropriate to the affected targets before release promotion.
 
 The V2 portability patch is consolidated in `v2.patch`. `v2-portable-vendor.tar.gz` contains Cairo 2.19.6 with the wasm32 wire-encoding fix and the Wasm-compatible zstd C sources, each with its upstream license. The resolver mirror stores their manifests; source preparation extracts their implementations.
+
+`cairo-vm-3.2.0.crate` is the original Apache-2.0 crate archive (SHA256
+`38fb2559063ab5f35c1596b6b79a8a18809306a419a3cbd141c2149639386da9`).
+Preparation extracts it under `browser-vendor/` and applies the reviewable
+`cairo-vm-zip.patch`: its ZIP dependency and the writer's options type change.
+An `unused_parens` lint allowance permits the existing upstream expressions to
+compile as a path dependency on the pinned nightly (registry dependencies have
+Cargo's lint cap). The VM execution code is unchanged. Both this crate and the browser adapter use
+ZIP 9.0.5 with default features disabled and the flate2 DEFLATE backend; AES and
+filesystem extraction are not used. The separately pinned prover/native graphs
+are outside this executor update and remain unchanged.

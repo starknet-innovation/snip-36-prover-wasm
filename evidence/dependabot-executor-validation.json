@@ -1,0 +1,486 @@
+{
+  "date": "2026-11-11",
+  "scope": "35 open executor Dependabot alerts; independent prover/native graphs unchanged",
+  "base_commit": "50e74aef82151e9c2d6cb3c7514b379636b2c14a",
+  "pins": {
+    "backend_release": "v1.4.0",
+    "backend": "cf4bc4d63a3bf0819dd1a04821adc0e8ac7911c2",
+    "deps_release": "deps-v15",
+    "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
+    "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "proof_version": "0x50524f4f4632"
+  },
+  "executor_lock_sha256": "8e9707841e23dd2bc13ef4752954412ed27787f25bd615f441013470bdfec218",
+  "source_identity": {
+    "pins_sha256": "5c52564390cc0b429a22f607fba72bb05550732d0c698880c015bc6ad08970a4",
+    "executor_patch_sha256": "043a965d089ab187a3debd12ba01e99c4a152acffc707c6ea0ac2e1fba95e019",
+    "prover_patch_sha256": "d51666fcd849c026aa3087b4158d8ddbd111da9c6ee78c1771b13c4a66f56023"
+  },
+  "modules": {
+    "web/auth/browser_virtual_os_bg.wasm": {
+      "path": "web/auth/browser_virtual_os_bg.wasm",
+      "bytes": 36326834,
+      "sha256": "5627488ac26749946315aacdce0ae8c126c37dda93d8fadd3082e27d6ceea757"
+    },
+    "web/sequencer-prover.wasm": {
+      "path": "web/sequencer-prover.wasm",
+      "bytes": 70082288,
+      "sha256": "c484387b6f22730a72f1990ce4d4ad64474edcb2142e603f2d64b174094e6f46"
+    }
+  },
+  "alert_validation": [
+    {
+      "number": 58,
+      "package": "zip",
+      "advisory": "GHSA-8hxf-qr8p-62x4",
+      "affected_range": ">= 0.6.0, < 9.0.0",
+      "resolved_versions": [
+        "9.0.5"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 57,
+      "package": "zip",
+      "advisory": "GHSA-8hxf-qr8p-62x4",
+      "affected_range": ">= 0.6.0, < 9.0.0",
+      "resolved_versions": [
+        "9.0.5"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 56,
+      "package": "zip",
+      "advisory": "GHSA-m665-v7pm-7grj",
+      "affected_range": "<= 9.0.4",
+      "resolved_versions": [
+        "9.0.5"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 55,
+      "package": "zip",
+      "advisory": "GHSA-m665-v7pm-7grj",
+      "affected_range": "<= 9.0.4",
+      "resolved_versions": [
+        "9.0.5"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 53,
+      "package": "rustls",
+      "advisory": "GHSA-c8m5-c952-6cm4",
+      "affected_range": "< 0.23.46",
+      "resolved_versions": [
+        "0.23.46"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 52,
+      "package": "rustls",
+      "advisory": "GHSA-w44r-93j7-qv28",
+      "affected_range": "< 0.23.46",
+      "resolved_versions": [
+        "0.23.46"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 51,
+      "package": "rustls",
+      "advisory": "GHSA-h2v8-394m-p7vv",
+      "affected_range": "< 0.23.46",
+      "resolved_versions": [
+        "0.23.46"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 41,
+      "package": "rustls",
+      "advisory": "GHSA-2mjx-qc3c-rqvc",
+      "affected_range": ">= 0.23.13, < 0.23.45",
+      "resolved_versions": [
+        "0.23.46"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 39,
+      "package": "xxhash-rust",
+      "advisory": "GHSA-6g2r-675j-hx59",
+      "affected_range": "< 0.8.16",
+      "resolved_versions": [
+        "0.8.16"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 37,
+      "package": "serde_with",
+      "advisory": "GHSA-7gcf-g7xr-8hxj",
+      "affected_range": ">= 2.3.0, < 3.21.0",
+      "resolved_versions": [
+        "3.21.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 36,
+      "package": "quinn-proto",
+      "advisory": "GHSA-4w2j-m93h-cj5j",
+      "affected_range": ">= 0.1.0, < 0.11.15",
+      "resolved_versions": [
+        "0.11.15"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 33,
+      "package": "openssl",
+      "advisory": "GHSA-phqj-4mhp-q6mq",
+      "affected_range": ">= 0.10.50, < 0.10.80",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 31,
+      "package": "openssl",
+      "advisory": "GHSA-xv59-967r-8726",
+      "affected_range": ">= 0.10.0, < 0.10.79",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 28,
+      "package": "openssl",
+      "advisory": "GHSA-xp3w-r5p5-63rr",
+      "affected_range": ">= 0.9.7, < 0.10.79",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 27,
+      "package": "rustls-webpki",
+      "advisory": "GHSA-82j2-j2ch-gfr8",
+      "affected_range": "< 0.103.13",
+      "resolved_versions": [
+        "0.103.16"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 26,
+      "package": "openssl",
+      "advisory": "GHSA-pqf5-4pqq-29f5",
+      "affected_range": ">= 0.9.27, < 0.10.78",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 25,
+      "package": "openssl",
+      "advisory": "GHSA-xmgf-hq76-4vx2",
+      "affected_range": ">= 0.9.0, < 0.10.78",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 24,
+      "package": "openssl",
+      "advisory": "GHSA-8c75-8mhr-p7r9",
+      "affected_range": ">= 0.10.24, < 0.10.78",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 23,
+      "package": "openssl",
+      "advisory": "GHSA-ghm9-cr32-g9qj",
+      "affected_range": ">= 0.10.39, < 0.10.78",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 22,
+      "package": "openssl",
+      "advisory": "GHSA-hppc-g8h3-xhp3",
+      "affected_range": ">= 0.9.24, < 0.10.78",
+      "resolved_versions": [
+        "0.10.80"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 21,
+      "package": "rand",
+      "advisory": "GHSA-cq8v-f236-94qc",
+      "affected_range": ">= 0.7.0, < 0.8.6",
+      "resolved_versions": [
+        "0.8.6",
+        "0.9.5",
+        "0.10.1"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 19,
+      "package": "rustls-webpki",
+      "advisory": "GHSA-xgp8-3hg3-c2mh",
+      "affected_range": ">= 0.101.0, < 0.103.12",
+      "resolved_versions": [
+        "0.103.16"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 18,
+      "package": "rustls-webpki",
+      "advisory": "GHSA-965h-392x-2mh5",
+      "affected_range": ">= 0.101.0, < 0.103.12",
+      "resolved_versions": [
+        "0.103.16"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 17,
+      "package": "thin-vec",
+      "advisory": "GHSA-xphw-cqx3-667j",
+      "affected_range": "< 0.2.16",
+      "resolved_versions": [
+        "0.2.16"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 16,
+      "package": "rustls-webpki",
+      "advisory": "GHSA-pwjx-qhcg-rvj4",
+      "affected_range": ">= 0.102.0-alpha.0, < 0.103.10",
+      "resolved_versions": [
+        "0.103.16"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 15,
+      "package": "aws-lc-sys",
+      "advisory": "GHSA-9f94-5g5w-gf6r",
+      "affected_range": ">= 0.15.0, < 0.39.0",
+      "resolved_versions": [
+        "0.47.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 14,
+      "package": "aws-lc-sys",
+      "advisory": "GHSA-394x-vwmw-crm3",
+      "affected_range": ">= 0.32.0, < 0.39.0",
+      "resolved_versions": [
+        "0.47.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 11,
+      "package": "quinn-proto",
+      "advisory": "GHSA-6xvm-j4wr-6v98",
+      "affected_range": "< 0.11.14",
+      "resolved_versions": [
+        "0.11.15"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 10,
+      "package": "aws-lc-sys",
+      "advisory": "GHSA-hfpc-8r3f-gw53",
+      "affected_range": ">= 0.24.0, < 0.38.0",
+      "resolved_versions": [
+        "0.47.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 9,
+      "package": "aws-lc-sys",
+      "advisory": "GHSA-65p9-r9h6-22vj",
+      "affected_range": ">= 0.14.0, < 0.38.0",
+      "resolved_versions": [
+        "0.47.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 8,
+      "package": "aws-lc-sys",
+      "advisory": "GHSA-vw5v-4f2q-w9xf",
+      "affected_range": ">= 0.24.0, < 0.38.0",
+      "resolved_versions": [
+        "0.47.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 7,
+      "package": "keccak",
+      "advisory": "GHSA-3288-p39f-rqpv",
+      "affected_range": "< 0.1.6",
+      "resolved_versions": [
+        "0.1.6",
+        "0.2.0"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 6,
+      "package": "time",
+      "advisory": "GHSA-r6v5-fh4h-64xc",
+      "affected_range": ">= 0.3.6, < 0.3.47",
+      "resolved_versions": [
+        "0.3.47"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 5,
+      "package": "bytes",
+      "advisory": "GHSA-434x-w66g-qw3r",
+      "affected_range": ">= 1.2.1, < 1.11.1",
+      "resolved_versions": [
+        "1.11.1"
+      ],
+      "outside_affected_range": true
+    },
+    {
+      "number": 2,
+      "package": "ruint",
+      "advisory": "GHSA-9fjq-45qv-pcm7",
+      "affected_range": "<= 1.17.0",
+      "resolved_versions": [
+        "1.17.2"
+      ],
+      "outside_affected_range": true
+    }
+  ],
+  "checks": {
+    "javascript_tests": 79,
+    "python_tests": 28,
+    "resolver_manifests": 31,
+    "locked_mirror_graph_identical": true,
+    "compiler_checks_and_pip_check_passed": true,
+    "npm_advisories": 0,
+    "wallet_ui_scenarios": 11,
+    "worker_boundaries_and_module_substitution_rejection": true,
+    "syntax_and_actionlint_passed": true
+  },
+  "proof_input_provenance": "The final rebuilt executor replayed all three fixtures offline and reproduced the exact ZIP bytes used by the completed browser/native proof corpus. ZIP container bytes differ from the prior V2 fixtures; all uncompressed members and public outputs are identical.",
+  "workloads": [
+    {
+      "name": "balance",
+      "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+      "pie_bytes": 1165578,
+      "all_five_uncompressed_members_unchanged": true,
+      "members_sha256": {
+        "version.json": "d2e13c42dc192f20ebde07842c3a721e5838290dc1ef066482f3fa4b54ec2f6f",
+        "metadata.json": "1450cb1ccbf031764f1b3aaa3e36e843097ea87c6f8ec050fb23e8a3d62188ff",
+        "memory.bin": "90f4da006203878af49b0010a5ac971a9aa2d2e478da6c28199499d88d76e2d0",
+        "additional_data.json": "7ced5b3e7a4b0db27f7aa8ebe6018d45648efaa56858b779408378236c60fe2c",
+        "execution_resources.json": "d760a016d96b24c2aec0bb138e8a34947fd692edb539c97e50bab0c34322c2f8"
+      },
+      "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+      "proof_bytes": 231440,
+      "proof_unchanged_from_prior_v2_validation": true,
+      "native_verified": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      }
+    },
+    {
+      "name": "coinflip-heads",
+      "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+      "pie_bytes": 813304,
+      "all_five_uncompressed_members_unchanged": true,
+      "members_sha256": {
+        "version.json": "d2e13c42dc192f20ebde07842c3a721e5838290dc1ef066482f3fa4b54ec2f6f",
+        "metadata.json": "9bc6741a93309d78d89f0d225ac250f446547dd8a7fd4ed77d5e5412876e9e6f",
+        "memory.bin": "4a18805ef2870c27726e9e801cc6bcaecac7d124d0454ba56c6beef063f10ef2",
+        "additional_data.json": "b8332bbb3c3e8156962de8239abc3b8d1826e4bedcbc2574a3789518f8624cde",
+        "execution_resources.json": "97ab953cd3c42b780c60fd44046455220cdbff5341364b8dba2847695d65d5e6"
+      },
+      "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+      "proof_bytes": 235881,
+      "proof_unchanged_from_prior_v2_validation": true,
+      "native_verified": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      }
+    },
+    {
+      "name": "coinflip-tails",
+      "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+      "pie_bytes": 812980,
+      "all_five_uncompressed_members_unchanged": true,
+      "members_sha256": {
+        "version.json": "d2e13c42dc192f20ebde07842c3a721e5838290dc1ef066482f3fa4b54ec2f6f",
+        "metadata.json": "9bc6741a93309d78d89f0d225ac250f446547dd8a7fd4ed77d5e5412876e9e6f",
+        "memory.bin": "581af3398be0e3231005d34f4658be003f79970d6e947b97696f9ba0a0332901",
+        "additional_data.json": "b8332bbb3c3e8156962de8239abc3b8d1826e4bedcbc2574a3789518f8624cde",
+        "execution_resources.json": "a11fdc29a6f10a865fda9bc2d73f5e75d1b554fcf4fe36181d0c75799898a963"
+      },
+      "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+      "proof_bytes": 231605,
+      "proof_unchanged_from_prior_v2_validation": true,
+      "native_verified": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      }
+    }
+  ],
+  "network_transactions_submitted": false,
+  "release_assets_published": false
+}

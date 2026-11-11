@@ -5,8 +5,8 @@
     {
       "name": "executor.wasm",
       "path": "web/auth/browser_virtual_os_bg.wasm",
-      "bytes": 36353009,
-      "sha256": "deeef3567555cd1e44206331a8d5ce44527402f94b877cbb3c2790973e104ad1"
+      "bytes": 36326834,
+      "sha256": "5627488ac26749946315aacdce0ae8c126c37dda93d8fadd3082e27d6ceea757"
     },
     {
       "name": "prover.wasm",

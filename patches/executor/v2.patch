@@ -426,12 +426,13 @@ index 00bd0e5..7c1ac4d 100644
  zstd = "0.13.1"
  
  # Note: both rust and clippy lints are warning by default and denied on the CI (see run_tests.py).
-@@ -466,3 +179,10 @@ inherits = "dev"
+@@ -466,3 +179,11 @@ inherits = "dev"
  as_conversions = "warn"
  await_holding_lock = "warn"
  await_holding_refcell_ref = "warn"
 +
 +[patch.crates-io]
++cairo-vm = { path = "browser-vendor/cairo-vm-3.2.0" }
 +cairo-lang-starknet-classes = { path = "browser-vendor/cairo-lang-starknet-classes-2.19.6" }
 +
 +num-prime = { path = "browser-vendor/num-prime-0.4.4" }
@@ -988,7 +989,7 @@ index 0000000..aeca87d
 +starknet_os = { workspace = true, features = ["deserialize"] }
 +cairo-vm.workspace = true
 +serde_json.workspace = true
-+zip = { version = "=0.6.6", default-features = false, features = ["deflate"] }
++zip = { version = "=9.0.5", default-features = false, features = ["deflate-flate2"] }
 +wasm-bindgen = "=0.2.105"
 +
 +[target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -1357,7 +1358,7 @@ index 0000000..b9f69dc
 +/// In-memory equivalent of CairoPie::write_zip_file(path, false).
 +pub fn pie_zip(pie: &CairoPie) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
 +    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
-+    let options = zip::write::FileOptions::default()
++    let options = zip::write::SimpleFileOptions::default()
 +        .compression_method(zip::CompressionMethod::Deflated)
 +        .large_file(true);
 +    zip.start_file("version.json", options)?;

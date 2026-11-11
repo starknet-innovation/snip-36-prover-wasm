@@ -1,4 +1,58 @@
-# Security alert assessment (2026-10-05)
+# Security alert assessments
+
+## Executor dependency follow-up (2026-11-11)
+
+The 35 open Dependabot alerts observed on the refreshed V2 dependency graph
+are addressed by these executor updates. Alerts remain open on the default
+branch until merge and GitHub's dependency-graph refresh. Main already includes
+PR #18's certifi 2026.10.18 and aiohttp 3.14.5 updates; those are preserved.
+
+| Package | Previous | Updated | Alerts |
+| --- | --- | --- | --- |
+| aws-lc-sys | 0.33.0 | 0.47.0 | 8, 9, 10, 14, 15 |
+| bytes | 1.10.1 | 1.11.1 | 5 |
+| keccak (0.1 branch) | 0.1.5 | 0.1.6 | 7 |
+| openssl | 0.10.75 | 0.10.80 | 22–26, 28, 31, 33 |
+| quinn-proto | 0.11.13 | 0.11.15 | 11, 36 |
+| rand (0.8 branch) | 0.8.5 | 0.8.6 | 21 |
+| ruint | 1.17.0 | 1.17.2 | 2 |
+| rustls | 0.23.43 | 0.23.46 | 41, 51, 52, 53 |
+| rustls-webpki | 0.103.8 | 0.103.16 | 16, 18, 19, 27 |
+| serde_with | 3.15.1 | 3.21.0 | 37 |
+| thin-vec | 0.2.14 | 0.2.16 | 17 |
+| time | 0.3.44 | 0.3.47 | 6 |
+| xxhash-rust | 0.8.15 | 0.8.16 | 39 |
+| zip | 0.6.6 | 9.0.5 | 55, 56, 57, 58 |
+
+The `ruint` advisory still has no first-patched-version field. Version 1.17.2
+is outside its affected range (`<=1.17.0`), and its upstream source makes
+`reciprocal_mg10` unsafe with a documented input precondition. Companion and
+resolver-required dependencies update with the listed packages.
+
+The ZIP update covers both the adapter's direct dependency and Cairo VM's
+transitive dependency. The original Cairo VM 3.2.0 crate is retained with a
+small patch: its dependency constraint/features, `SimpleFileOptions` writer API,
+and a diagnostic-only allowance for upstream parenthesized expressions when
+compiled as a path dependency. No VM execution algorithms, upstream program hash, circuit or
+proof-system revisions change. The archive checksum, license and maintenance
+procedure are recorded in the [executor resolver notes](../patches/executor/README.md).
+Cargo also updates the AWS-LC and WebPKI dependencies required by rustls.
+
+This change is scoped to the alerted executor graph. Main's Python compiler
+security pins are preserved.
+The independently pinned browser prover/native verifier locks remain unchanged;
+it does not claim that those graphs contain no advisories or update released
+Wasm assets. Source builds and fresh browser/native compatibility checks are
+required before release promotion.
+
+The follow-up validation record is
+[`evidence/dependabot-executor-validation.json`](../evidence/dependabot-executor-validation.json).
+It records the current alert ranges, module identities, identical uncompressed
+PIE members, three native-verified browser proofs and six rejected tamper controls.
+Unit, source-resolution, compiler, browser UI and Worker checks accompany those
+proof checks.
+
+## Earlier assessment (2026-10-05)
 
 This review covers the 40 open [Dependabot alerts](https://github.com/starknet-innovation/snip-36-prover-wasm/security/dependabot) and nine [CodeQL alerts](https://github.com/starknet-innovation/snip-36-prover-wasm/security/code-scanning) observed on 2026-10-05. The later RPC-retry change on `main` moved the request-forgery finding from alert 1 to alert 11; the endpoint fix covers both locations. PR #1 fixed 31 dependency alerts. This follow-up addresses the remaining nine; default-branch alerts update after merge. CodeQL alert 12 was reviewed and dismissed as a false positive on 2026-10-05.
 
