@@ -5,14 +5,14 @@
     {
       "name": "executor.wasm",
       "path": "web/auth/browser_virtual_os_bg.wasm",
-      "bytes": 36330397,
-      "sha256": "58c9087197321da53f14d2996e17b0072efe49587bb0e87be99b18ec53e53961"
+      "bytes": 36330443,
+      "sha256": "f3833e3ac1b78f870831d28a3ddc585cda81d30420cc9da1071bb50fc754aa18"
     },
     {
       "name": "prover.wasm",
       "path": "web/sequencer-prover.wasm",
-      "bytes": 70083599,
-      "sha256": "574f8640f94b6cfa5e3a5e48de44c99af7d9058f946cf7dfb83575e30934113e"
+      "bytes": 70062417,
+      "sha256": "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca"
     }
   ],
   "release_status": "published",
