@@ -1,6 +1,6 @@
 # SNIP-36 browser prover
 
-The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Build both Wasm modules from source while the `v0.2.0` browser assets await publication. The configured Sepolia bank is a V1 deployment: new deposits, reveal and V2 settlement stay disabled until a compatible bank is deployed and configured. Its profile is checked on-chain. Existing refund/expiry actions remain available.
+The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) supplies both V2 Wasm modules; `npm run assets` downloads and verifies them. The configured Sepolia bank is a V1 deployment: new deposits, reveal and V2 settlement stay disabled until a compatible bank is deployed and configured. Its profile is checked on-chain. Existing refund/expiry actions remain available.
 
 The hosted demo and historical on-chain receipts document V1. They do not establish V2 network acceptance.
 
@@ -10,7 +10,7 @@ Based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip
 
 The wallet must support **Wallet API 0.10.3+ proof-bearing invocation**. Unsupported versions are blocked before deposit. Advertising that version is necessary but does not guarantee a wallet implementation accepts arbitrary CoinFlip proofs. E2E automation uses a Wallet API adapter backed by the existing sncast account, not an installed wallet extension. Test tokens only, maximum stake 0.01 test STRK, 24-hour reveal deadline. Block-hash-derived seeds are not certified unbiased randomness. See [architecture, recovery and compatibility](docs/live-coinflip.md).
 
-Build the modules using [the source instructions](docs/build.md), then run `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium. Execution alone is much lighter. CI and Pages build both pinned modules, verify their source-build receipts, and replay the recorded rounds in Chromium. No account keys or signing secrets are included in the website or Pages workflow.
+Run `npm ci --ignore-scripts && npm run demo:build && npm run serve` to use the verified release modules, or rebuild them with [the source instructions](docs/build.md). Full proving requires recent memory64-capable desktop Chromium. Execution alone is much lighter. CI and Pages build both pinned modules, verify their source-build receipts, and replay the recorded rounds in Chromium. No account keys or signing secrets are included in the website or Pages workflow.
 
 [![CI](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml)
 [![Daily Sepolia Browser E2E](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml)
@@ -38,17 +38,15 @@ Requirements: Node.js24+, a recent Chromium with WebAssembly memory64 support, a
 
 ```sh
 npm ci --ignore-scripts
-# Build both modules first; see docs/build.md for the toolchain requirements.
-WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh executor
-WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover
-npm run assets           # Verify source-build provenance, module hashes and bindings.
+npm run assets           # Download v1.0.0 modules and verify exact sizes/SHA256.
 npm test
+npm run demo:build
 npm run serve
 ```
 
 Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
 
-The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the pending V2 release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
+The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the V2 `v1.0.0` release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
 ## Daily testing
 

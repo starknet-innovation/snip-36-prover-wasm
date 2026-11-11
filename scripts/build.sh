@@ -31,6 +31,12 @@ case "$mode" in
  prover|prover-baseline)
   : "${WASM_CC:?Set WASM_CC to a Wasm-capable LLVM clang}"
   : "${WASM_AR:?Set WASM_AR to llvm-ar}"
+  clang_version=$("$WASM_CC" -dumpversion)
+  clang_major=${clang_version%%.*}
+  if [[ ! "$clang_major" =~ ^[0-9]+$ ]] || (( clang_major < 21 )); then
+    echo 'The memory64 prover requires LLVM clang 21 or newer for the indirect-call ABI' >&2
+    exit 2
+  fi
   export CC_wasm64_unknown_unknown="$WASM_CC" AR_wasm64_unknown_unknown="$WASM_AR"
   rustflags --cfg 'getrandom_backend="custom"' -C target-feature=+simd128
   CARGO_TARGET_DIR="$PWD/build/target-prover" cargo +nightly-2026-01-15 rustc --locked --release --manifest-path build/proving/Cargo.toml --target wasm64-unknown-unknown -Z build-std=std,panic_abort -p snip36-browser-prover --no-default-features -- -C link-arg=-zstack-size=8388608 -C link-arg=--max-memory=17179869184
