@@ -27,7 +27,10 @@ def source_digest(directory):
 def check_receipt(marker, patch_digest, trees):
     if not marker.exists():
         return False
-    receipt = json.loads(marker.read_text())
+    try:
+        receipt = json.loads(marker.read_text())
+    except json.JSONDecodeError as error:
+        raise RuntimeError('Unsupported prepared source receipt; use fresh prepared source directories') from error
     if receipt['patches_sha256'] != patch_digest:
         raise RuntimeError('Prover patch set changed; use fresh prepared source directories')
     actual = {name: source_digest(tree) for name, tree in trees.items()}
@@ -50,14 +53,9 @@ def require_pristine(trees):
         if status:
             raise RuntimeError(f'Unreceipted {name} sources are dirty; use fresh prepared source directories')
 
-# Default and baseline control share only the unchanged browser portability patches.
-PROVER_PROFILES = {
-    'prover': 'baseline',
-    'prover-baseline': 'baseline',
-    'prover-memory': 'memory',
-    'prover-tradeoffs': 'tradeoffs',
-    'prover-kernels': 'kernels',
-}
+# V1 memory/tradeoff/kernel layers are retained as historical research artifacts.
+# They cannot be installed into the active V2 runtime.
+PROVER_PROFILES = {'prover': 'proving', 'prover-baseline': 'proving'}
 
 if __name__ == '__main__':
     import argparse

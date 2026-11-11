@@ -6,5 +6,7 @@
   "source_commit": "a192944",
   "owner": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
   "bank_class_hash": "0x43d560e0afa6b19b40201b477fe4d7ab2801803247b5042d2c60902069076ca",
-  "executor_class_hash": "0x82cba4cf730106e720c3c706290b7209491606477427c31ea1a412da1de2b6"
+  "executor_class_hash": "0x82cba4cf730106e720c3c706290b7209491606477427c31ea1a412da1de2b6",
+  "proof_version": "0x50524f4f4631",
+  "program_hash": "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1"
 }

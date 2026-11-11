@@ -1,3 +1,4 @@
+import { supportsProverProfile, PROGRAM, PROOF_VERSION } from "./prover-profile.mjs";
 import {
   discoverWallets,
   connectWallet,
@@ -23,6 +24,7 @@ import {
   revealCalls,
   settleCalls,
   outcome,
+  requiresProverProfile,
   withTimeout,
 } from "./live-core.mjs";
 import { PublicRunController } from "./public-run-controller.mjs";
@@ -32,7 +34,7 @@ const builds = buildPicker(
   $("#builds"),
   (_, b) =>
     ($("#build-note").textContent =
-      `Needs ${b.need} free memory. Both builds produce identical proofs; only memory use and speed differ.`),
+      `Needs ${b.need} free memory. The V1 memory-optimised module is unavailable for V2.`),
 );
 let config,
   connection,
@@ -41,12 +43,14 @@ let config,
   proof,
   choice = 0,
   busy = false,
+  chainProfileMatches = false,
   head = 0,
   refreshTask,
   timer,
   started,
   db;
 const urls = [];
+const profileReady = () => supportsProverProfile(config) && chainProfileMatches;
 const storageKey = () => `snip36-live:${config.bank}:${connection.address}`;
 function saved() {
   return JSON.parse(localStorage.getItem(storageKey()) || "[]");
@@ -164,6 +168,10 @@ function render() {
     label = "Round complete";
     enabled = false;
   }
+  if (requiresProverProfile(currentGame) && !profileReady()) {
+    label = "Bank upgrade pending";
+    enabled = false;
+  }
   if (!connection) label = "Connect a compatible wallet";
   else if (!connection.proofVersion) label = "Wallet proof support required";
   if (round?.pendingWallet) {
@@ -192,6 +200,8 @@ function render() {
   else if (busy)
     hint =
       "Working. Follow the status below; the wallet may ask you to confirm.";
+  else if (requiresProverProfile(currentGame) && !profileReady())
+    hint = "The bank is awaiting a V2 upgrade. Existing refund and expiry actions remain available.";
   else if (stakeError) {
     hint = stakeError;
     label = "Enter a valid stake";
@@ -491,6 +501,8 @@ $("#next").onclick = () =>
       throw Error(
         "A wallet submission is unresolved. Refresh its status before continuing.",
       );
+    if (requiresProverProfile(currentGame) && !profileReady())
+      throw Error("The bank needs an upgrade before deposits, reveal, or settlement");
     if (!round) {
       round = newRound(
         connection.address,
@@ -673,6 +685,22 @@ async function init() {
         ) !== hex(config[key + "_class_hash"])
       )
         throw Error("Contract class mismatch");
+    if (supportsProverProfile(config)) {
+      try {
+        const profile = await rpc("starknet_call", {
+          block_id: "latest",
+          request: {
+            contract_address: config.bank,
+            entry_point_selector: selector("get_proof_profile"),
+            calldata: [],
+          },
+        });
+        chainProfileMatches = profile.length === 2 &&
+          hex(profile[0]) === PROOF_VERSION && hex(profile[1]) === PROGRAM;
+      } catch {
+        chainProfileMatches = false;
+      }
+    }
     for (const [label, key] of [
       ["Bank", "bank"],
       ["CoinFlip", "coinflip"],

@@ -6,7 +6,7 @@ const builds = buildPicker(
   $("#builds"),
   (_, b) =>
     ($("#build-note").textContent =
-      `Needs ${b.need} free memory. Both builds produce identical proofs; only memory use and speed differ.`),
+      `Needs ${b.need} free memory. The V1 memory-optimised module is unavailable for V2.`),
 );
 let timer,
   started,

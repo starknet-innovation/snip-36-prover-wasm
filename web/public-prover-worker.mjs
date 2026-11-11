@@ -1,5 +1,6 @@
+import { BACKEND_RELEASE, PROVING_REVISION, assertProofProfile } from "./prover-profile.mjs";
 import { loadMemory64 } from "./sequencer-memory64.mjs";
-import { PROVER_BUILDS } from "./prover-builds.mjs";
+import { PROVER_BUILDS, runtimeBuildIdentity } from "./prover-builds.mjs";
 self.onmessage = async (event) => {
   // Dedicated Worker messages have an empty origin and no Window source.
   // Reject window-style and synthetic events before reading their payload.
@@ -11,18 +12,15 @@ self.onmessage = async (event) => {
   try {
     if (!(pie instanceof ArrayBuffer) || !pie.byteLength)
       throw Error("Missing browser-generated PIE");
-    if (!Object.hasOwn(PROVER_BUILDS, build))
-      throw Error("Unknown prover build");
+    if (!Object.hasOwn(PROVER_BUILDS, build) || !PROVER_BUILDS[build].available)
+      throw Error("Prover build unavailable for the V2 circuit");
     const loadStarted = performance.now();
     const api = await loadMemory64(
       PROVER_BUILDS[build].url,
       (message) => send({ kind: "panic", message }),
       (stage) => send({ kind: "stage", ...stage }),
       // Always hash the module so every receipt records which bytes proved it.
-      expectedWasm ?? {
-        sha256: PROVER_BUILDS[build].sha256,
-        bytes: PROVER_BUILDS[build].bytes,
-      },
+      expectedWasm ?? await runtimeBuildIdentity(build),
     );
     const load_ms = performance.now() - loadStarted;
     let t = performance.now();
@@ -32,6 +30,7 @@ self.onmessage = async (event) => {
     t = performance.now();
     const result = api.prove(new Uint8Array(pie)),
       prove_ms = performance.now() - t;
+    assertProofProfile(result.proof);
     const sha = async (b) =>
       Array.from(
         new Uint8Array(await crypto.subtle.digest("SHA-256", b)),
@@ -55,8 +54,9 @@ self.onmessage = async (event) => {
         prove_ms,
         total_ms: performance.now() - start,
         ...api.memory(),
-        scope:
-          "Sequencer transaction-service 3035dd recursive proving; native verification separate",
+        backend_release: BACKEND_RELEASE,
+        proving_revision: PROVING_REVISION,
+        scope: "V2 recursive proving in browser; native verification separate",
       },
     });
   } catch (error) {

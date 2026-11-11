@@ -1,4 +1,4 @@
-"""Compare resolved candidate identities, edges and features to the baseline."""
+"""Validate pinned V2 browser/native packages and inspect dependency graphs."""
 import json
 import re
 import sys
@@ -6,19 +6,6 @@ import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED = {
-    'stwo': 'stwo/crates/stwo',
-    'stwo-constraint-framework': 'stwo/crates/constraint-framework',
-    'stwo-air-utils': 'stwo/crates/air-utils',
-    'stwo-air-utils-derive': 'stwo/crates/air-utils-derive',
-    'circuit-cairo-verifier': 'stwo-circuits/crates/cairo_verifier',
-    'circuit-common': 'stwo-circuits/crates/circuit_common',
-    'circuit-prover': 'stwo-circuits/crates/circuit_prover',
-    'circuit-serialize': 'stwo-circuits/crates/circuit_serialize',
-    'circuit-verifier': 'stwo-circuits/crates/circuit_verifier',
-    'circuits': 'stwo-circuits/crates/circuits',
-    'circuits-stark-verifier': 'stwo-circuits/crates/stark_verifier',
-}
 
 def from_repository(source, repository):
     """Cargo Git sources may use ?rev=, #sha only, or a .git suffix."""
@@ -37,28 +24,38 @@ def graph(metadata):
     return sorted(nodes)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('metadata', nargs=3)
-    parser.add_argument('--candidate-root', type=Path, default=ROOT / 'build/memory')
+    import subprocess
+    parser = argparse.ArgumentParser(description="Check browser and pristine native V2 cryptographic package identities")
+    parser.add_argument('metadata', nargs=2)
+    parser.add_argument('--browser-root', type=Path, default=ROOT / 'build/proving')
+    parser.add_argument('--native-root', type=Path, default=ROOT / 'build/native-prover')
     args = parser.parse_args()
-    baseline, candidate, native = [json.loads(Path(p).read_text()) for p in args.metadata]
-    assert graph(baseline) == graph(candidate), 'Candidate changes dependency versions, edges or features'
-    baseline_sources = {(p['name'], p['version']): p['source'] for p in baseline['packages']}
-    for package in candidate['packages']:
-        if package['name'] not in EXPECTED:
-            assert baseline_sources[(package['name'], package['version'])] == package['source'], 'Unexpected source substitution'
-    by_name = {p['name']: p for p in candidate['packages']}
-    for name, folder in EXPECTED.items():
-        package = by_name[name]
-        assert package['source'] is None, f'{name} still resolves from Cargo Git cache'
-        assert Path(package['manifest_path']).resolve() == args.candidate_root.resolve() / folder / 'Cargo.toml', name
     pins = json.loads((ROOT / 'pins.json').read_text())
-    for package in native['packages']:
-        for repository, key in [('stwo', 'stwo'), ('stwo-cairo', 'stwo_cairo'), ('stwo-circuits', 'stwo_circuits')]:
-            source = package['source'] or ''
-            if from_repository(source, repository):
-                assert source.endswith('#' + pins[key]), 'Native verifier pin changed'
-        if package['name'] in EXPECTED:
-            assert package['source'] is not None, 'Native verifier received candidate overrides'
-    print(json.dumps({'candidate_packages_resolve_locally': True, 'versions_edges_features_match_baseline': True,
-                      'native_verifier_uses_pristine_git_dependencies': True}, indent=2))
+    core = {
+        'privacy-prove': 'privacy_prove', 'privacy-circuit-verify': 'privacy_circuit_verify',
+        'privacy_common': 'privacy_common', 'cairo-program-runner-lib': 'cairo-program-runner-lib',
+        'stwo': 'stwo', 'stwo-cairo-prover': 'prover', 'cairo-air': 'cairo-air',
+        'circuit-prover': 'circuit_prover', 'circuit-common': 'circuit_common',
+        'circuit-cairo-verifier': 'cairo_verifier', 'circuit-verifier': 'circuit_verifier',
+        'circuits': 'circuits', 'circuits-stark-verifier': 'stark_verifier',
+    }
+    versions = []
+    for file, root in zip(args.metadata, [args.browser_root, args.native_root]):
+        actual = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+        if actual != pins['transaction_service_proving']:
+            raise SystemExit('V2 source checkout revision differs from pins.json')
+        document = json.loads(Path(file).read_text())
+        found = {}
+        for name, folder in core.items():
+            matches = [p for p in document['packages'] if p['name'] == name]
+            if len(matches) != 1:
+                raise SystemExit('Missing or ambiguous V2 cryptographic package: ' + name)
+            package = matches[0]
+            if package['source'] is not None or Path(package['manifest_path']).resolve() != root.resolve() / 'crates' / folder / 'Cargo.toml':
+                raise SystemExit('V2 package resolved outside the pinned checkout: ' + name)
+            found[name] = package['version']
+        versions.append(found)
+    if versions[0] != versions[1]:
+        raise SystemExit('Browser/native V2 cryptographic package versions differ')
+    print(json.dumps({'pinned_v2_checkouts': True, 'crypto_package_paths_match': True,
+                      'browser_native_crypto_versions_match': True, 'packages': versions[0]}, indent=2))

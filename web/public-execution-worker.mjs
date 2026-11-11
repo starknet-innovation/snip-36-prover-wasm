@@ -10,6 +10,7 @@ import {
   digest,
 } from "./anchored-rpc.mjs";
 import { preparePublicInvocation } from "./public-pipeline.mjs";
+import { BACKEND_RELEASE, SEQUENCER_REVISION } from "./prover-profile.mjs";
 const encode = (v) => new TextEncoder().encode(JSON.stringify(v));
 self.onmessage = async (event) => {
   // Dedicated Worker messages have an empty origin and no Window source.
@@ -74,6 +75,8 @@ self.onmessage = async (event) => {
       pie_sha256: await sha(pie),
       request_sha256: await digest(request),
       capture_sha256: prepared.capture.sha256,
+      backend_release: BACKEND_RELEASE,
+      sequencer_revision: SEQUENCER_REVISION,
       scope:
         "Browser public-state invocation execution and PIE; recursive proof verification and network admission separate",
     };

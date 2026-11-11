@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm, readdir } from "node:fs/promises";
+import { mkdtemp, readFile, rm, readdir, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -32,4 +32,16 @@ test("offline harness refuses key-bearing environments before any artifact write
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Signing credentials forbidden/);
   assert.deepEqual(await readdir(dir), []);
+});
+
+test("settlement fallback rejects a legacy bank before reading proof or credentials", async (t) => {
+  const dir = await mkdtemp(path.join(tmpdir(), "snip-legacy-settlement-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await mkdir(path.join(dir, "web"));
+  await writeFile(path.join(dir, "web/live-config.json"), JSON.stringify({ proof_version: "0x50524f4f4631", program_hash: "0x1" }));
+  const result = spawnSync(process.execPath, [path.resolve("scripts/settle.mjs"), "unused-proof.json", "unused-recovery.json", "--send"],
+    { cwd: dir, env: { PATH: process.env.PATH, HOME: "/nonexistent-account-store" }, encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /compatible V2 bank must be configured/);
+  assert.doesNotMatch(result.stderr, /ENOENT/);
 });

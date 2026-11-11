@@ -4,11 +4,14 @@
 // Dry run by default; pass --send to broadcast.
 import { readFile } from "node:fs/promises";
 import { testWallet } from "./live-wallet-adapter.mjs";
+import { supportsProverProfile, PROGRAM, PROOF_VERSION } from "../web/prover-profile.mjs";
 import {
   readGame,
   proofMaterial,
   settleCalls,
   rpc,
+  selector,
+  hex,
 } from "../web/live-core.mjs";
 
 const [proofFile, recoveryFile] = process.argv
@@ -20,6 +23,18 @@ if (!proofFile || !recoveryFile)
       "Signs with SNCAST_ACCOUNT (or STARKNET_ACCOUNT_ADDRESS/STARKNET_PRIVATE_KEY).",
   );
 const config = JSON.parse(await readFile("web/live-config.json", "utf8"));
+if (!supportsProverProfile(config))
+  throw Error("A compatible V2 bank must be configured before settlement");
+const profile = await rpc("starknet_call", {
+  block_id: "latest",
+  request: {
+    contract_address: config.bank,
+    entry_point_selector: selector("get_proof_profile"),
+    calldata: [],
+  },
+});
+if (profile.length !== 2 || hex(profile[0]) !== PROOF_VERSION || hex(profile[1]) !== PROGRAM)
+  throw Error("On-chain bank does not support this V2 proof profile");
 const proof = JSON.parse(await readFile(proofFile, "utf8"));
 const round = JSON.parse(await readFile(recoveryFile, "utf8"));
 

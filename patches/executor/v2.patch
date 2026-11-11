@@ -1,0 +1,2609 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 00bd0e5..7c1ac4d 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -3,124 +3,7 @@
+ #   https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2
+ resolver = "2"
+ 
+-members = [
+-  "crates/apollo_base_layer_tests",
+-  "crates/apollo_batcher",
+-  "crates/apollo_batcher_config",
+-  "crates/apollo_batcher_types",
+-  "crates/apollo_cairo_utils",
+-  "crates/apollo_central_sync",
+-  "crates/apollo_central_sync_config",
+-  "crates/apollo_class_manager",
+-  "crates/apollo_class_manager_config",
+-  "crates/apollo_class_manager_types",
+-  "crates/apollo_committer",
+-  "crates/apollo_committer_config",
+-  "crates/apollo_committer_types",
+-  "crates/apollo_compilation_utils",
+-  "crates/apollo_compile_to_casm",
+-  "crates/apollo_compile_to_casm_types",
+-  "crates/apollo_compile_to_native",
+-  "crates/apollo_compile_to_native_types",
+-  "crates/apollo_config",
+-  "crates/apollo_config_manager",
+-  "crates/apollo_config_manager_config",
+-  "crates/apollo_config_manager_types",
+-  "crates/apollo_consensus",
+-  "crates/apollo_consensus_config",
+-  "crates/apollo_consensus_manager",
+-  "crates/apollo_consensus_manager_config",
+-  "crates/apollo_consensus_orchestrator",
+-  "crates/apollo_consensus_orchestrator_config",
+-  "crates/apollo_dashboard",
+-  "crates/apollo_deployments",
+-  "crates/apollo_gateway",
+-  "crates/apollo_gateway_config",
+-  "crates/apollo_gateway_types",
+-  "crates/apollo_http_server",
+-  "crates/apollo_http_server_config",
+-  "crates/apollo_infra",
+-  "crates/apollo_infra_utils",
+-  "crates/apollo_integration_tests",
+-  "crates/apollo_l1_events",
+-  "crates/apollo_l1_events_config",
+-  "crates/apollo_l1_events_types",
+-  "crates/apollo_l1_gas_price",
+-  "crates/apollo_l1_gas_price_config",
+-  "crates/apollo_l1_gas_price_types",
+-  "crates/apollo_mempool",
+-  "crates/apollo_mempool_config",
+-  "crates/apollo_mempool_p2p",
+-  "crates/apollo_mempool_p2p_config",
+-  "crates/apollo_mempool_p2p_types",
+-  "crates/apollo_mempool_types",
+-  "crates/apollo_metrics",
+-  "crates/apollo_monitoring_endpoint",
+-  "crates/apollo_monitoring_endpoint_config",
+-  "crates/apollo_network",
+-  "crates/apollo_network_benchmark",
+-  "crates/apollo_network_types",
+-  "crates/apollo_node",
+-  "crates/apollo_node_config",
+-  "crates/apollo_p2p_sync",
+-  "crates/apollo_p2p_sync_config",
+-  "crates/apollo_proc_macros",
+-  "crates/apollo_proc_macros_lib",
+-  "crates/apollo_proc_macros_tests",
+-  "crates/apollo_proof_manager",
+-  "crates/apollo_proof_manager_config",
+-  "crates/apollo_proof_manager_types",
+-  "crates/apollo_propeller",
+-  "crates/apollo_protobuf",
+-  "crates/apollo_reverts",
+-  "crates/apollo_rpc",
+-  "crates/apollo_rpc_execution",
+-  "crates/apollo_rpc_types",
+-  "crates/apollo_sierra_compilation_config",
+-  "crates/apollo_signature_manager",
+-  "crates/apollo_signature_manager_types",
+-  "crates/apollo_sizeof",
+-  "crates/apollo_sizeof_macros",
+-  "crates/apollo_staking",
+-  "crates/apollo_staking_config",
+-  "crates/apollo_starknet_client",
+-  "crates/apollo_starknet_os_program",
+-  "crates/apollo_state_reader",
+-  "crates/apollo_state_sync",
+-  "crates/apollo_state_sync_config",
+-  "crates/apollo_state_sync_metrics",
+-  "crates/apollo_state_sync_types",
+-  "crates/apollo_storage",
+-  "crates/apollo_task_executor",
+-  "crates/apollo_test_utils",
+-  "crates/apollo_time",
+-  "crates/apollo_transaction_converter",
+-  "crates/apollo_versioned_constants",
+-  "crates/bench_tools",
+-  "crates/blockifier",
+-  "crates/blockifier_reexecution",
+-  "crates/blockifier_test_utils",
+-  "crates/central_systest_blobs",
+-  "crates/mempool_test_utils",
+-  "crates/native_blockifier",
+-  "crates/papyrus_base_layer",
+-  "crates/papyrus_common",
+-  "crates/patricia_root_cli",
+-  "crates/shared_execution_objects",
+-  "crates/starknet_api",
+-  "crates/starknet_committer",
+-  "crates/starknet_committer_and_os_cli",
+-  "crates/starknet_committer_cli",
+-  "crates/starknet_os",
+-  "crates/starknet_os_flow_tests",
+-  "crates/starknet_patricia",
+-  "crates/starknet_patricia_storage",
+-  "crates/starknet_proof_verifier",
+-  "crates/starknet_transaction_prover",
+-  "crates/tower_ohttp",
+-  "toml_test_utils",
+-  "workspace_tests",
+-]
++members = ["crates/browser_virtual_os"]
+ 
+ [workspace.package]
+ version = "0.20.0-rc.1"
+@@ -133,100 +16,20 @@ license-file = "LICENSE"
+ # Aerospike minor version bump includes breaking change.
+ aerospike = "=2.0.0-alpha.6"
+ alloy = "1.1.0"
+-alloy-primitives = "1.5"
+ anyhow = "1.0.44"
+-apollo_base_layer_tests.path = "crates/apollo_base_layer_tests"
+-apollo_batcher.path = "crates/apollo_batcher"
+-apollo_batcher_config.path = "crates/apollo_batcher_config"
+-apollo_batcher_types.path = "crates/apollo_batcher_types"
+-apollo_cairo_utils.path = "crates/apollo_cairo_utils"
+-apollo_central_sync.path = "crates/apollo_central_sync"
+-apollo_central_sync_config.path = "crates/apollo_central_sync_config"
+-apollo_class_manager.path = "crates/apollo_class_manager"
+-apollo_class_manager_config.path = "crates/apollo_class_manager_config"
+-apollo_class_manager_types.path = "crates/apollo_class_manager_types"
+-apollo_committer.path = "crates/apollo_committer"
+-apollo_committer_config.path = "crates/apollo_committer_config"
+-apollo_committer_types.path = "crates/apollo_committer_types"
+ apollo_compilation_utils = { path = "crates/apollo_compilation_utils", version = "0.20.0-rc.1" }
+-apollo_compile_to_casm.path = "crates/apollo_compile_to_casm"
+-apollo_compile_to_casm_types.path = "crates/apollo_compile_to_casm_types"
+ apollo_compile_to_native = { path = "crates/apollo_compile_to_native", version = "0.20.0-rc.1" }
+ apollo_compile_to_native_types = { path = "crates/apollo_compile_to_native_types", version = "0.20.0-rc.1" }
+ apollo_config = { path = "crates/apollo_config", version = "0.20.0-rc.1" }
+-apollo_config_manager.path = "crates/apollo_config_manager"
+-apollo_config_manager_config.path = "crates/apollo_config_manager_config"
+-apollo_config_manager_types.path = "crates/apollo_config_manager_types"
+-apollo_consensus.path = "crates/apollo_consensus"
+-apollo_consensus_config.path = "crates/apollo_consensus_config"
+-apollo_consensus_manager.path = "crates/apollo_consensus_manager"
+-apollo_consensus_manager_config.path = "crates/apollo_consensus_manager_config"
+-apollo_consensus_orchestrator.path = "crates/apollo_consensus_orchestrator"
+-apollo_consensus_orchestrator_config.path = "crates/apollo_consensus_orchestrator_config"
+-apollo_dashboard.path = "crates/apollo_dashboard"
+-apollo_deployments.path = "crates/apollo_deployments"
+-apollo_gateway.path = "crates/apollo_gateway"
+-apollo_gateway_config.path = "crates/apollo_gateway_config"
+-apollo_gateway_types.path = "crates/apollo_gateway_types"
+-apollo_http_server.path = "crates/apollo_http_server"
+-apollo_http_server_config.path = "crates/apollo_http_server_config"
+-apollo_infra.path = "crates/apollo_infra"
+ apollo_infra_utils = { path = "crates/apollo_infra_utils", version = "0.20.0-rc.1" }
+-apollo_integration_tests.path = "crates/apollo_integration_tests"
+-apollo_l1_events.path = "crates/apollo_l1_events"
+-apollo_l1_events_config.path = "crates/apollo_l1_events_config"
+-apollo_l1_events_types.path = "crates/apollo_l1_events_types"
+-apollo_l1_gas_price.path = "crates/apollo_l1_gas_price"
+-apollo_l1_gas_price_config.path = "crates/apollo_l1_gas_price_config"
+-apollo_l1_gas_price_types.path = "crates/apollo_l1_gas_price_types"
+-apollo_mempool.path = "crates/apollo_mempool"
+-apollo_mempool_config.path = "crates/apollo_mempool_config"
+-apollo_mempool_p2p.path = "crates/apollo_mempool_p2p"
+-apollo_mempool_p2p_config.path = "crates/apollo_mempool_p2p_config"
+-apollo_mempool_p2p_types.path = "crates/apollo_mempool_p2p_types"
+-apollo_mempool_types.path = "crates/apollo_mempool_types"
+ apollo_metrics = { path = "crates/apollo_metrics", version = "0.20.0-rc.1" }
+-apollo_monitoring_endpoint.path = "crates/apollo_monitoring_endpoint"
+-apollo_monitoring_endpoint_config.path = "crates/apollo_monitoring_endpoint_config"
+-apollo_network.path = "crates/apollo_network"
+-apollo_network_benchmark.path = "crates/apollo_network_benchmark"
+-apollo_network_types.path = "crates/apollo_network_types"
+-apollo_node.path = "crates/apollo_node"
+-apollo_node_config.path = "crates/apollo_node_config"
+-apollo_p2p_sync.path = "crates/apollo_p2p_sync"
+-apollo_p2p_sync_config.path = "crates/apollo_p2p_sync_config"
+ apollo_proc_macros = { path = "crates/apollo_proc_macros", version = "0.20.0-rc.1" }
+ apollo_proc_macros_lib = { path = "crates/apollo_proc_macros_lib", version = "0.20.0-rc.1" }
+-apollo_proc_macros_tests.path = "crates/apollo_proc_macros_tests"
+-apollo_proof_manager.path = "crates/apollo_proof_manager"
+-apollo_proof_manager_config.path = "crates/apollo_proof_manager_config"
+-apollo_proof_manager_types.path = "crates/apollo_proof_manager_types"
+-apollo_propeller.path = "crates/apollo_propeller"
+-apollo_protobuf.path = "crates/apollo_protobuf"
+-apollo_reverts.path = "crates/apollo_reverts"
+-apollo_rpc.path = "crates/apollo_rpc"
+-apollo_rpc_execution.path = "crates/apollo_rpc_execution"
+-apollo_rpc_types.path = "crates/apollo_rpc_types"
+-apollo_sierra_compilation_config.path = "crates/apollo_sierra_compilation_config"
+-apollo_signature_manager.path = "crates/apollo_signature_manager"
+-apollo_signature_manager_types.path = "crates/apollo_signature_manager_types"
+ apollo_sizeof = { path = "crates/apollo_sizeof", version = "0.20.0-rc.1" }
+ apollo_sizeof_macros = { path = "crates/apollo_sizeof_macros", version = "0.20.0-rc.1" }
+-apollo_staking.path = "crates/apollo_staking"
+-apollo_staking_config.path = "crates/apollo_staking_config"
+-apollo_starknet_client.path = "crates/apollo_starknet_client"
+ apollo_starknet_os_program = { path = "crates/apollo_starknet_os_program", version = "0.20.0-rc.1" }
+-apollo_state_reader.path = "crates/apollo_state_reader"
+-apollo_state_sync.path = "crates/apollo_state_sync"
+-apollo_state_sync_config.path = "crates/apollo_state_sync_config"
+-apollo_state_sync_metrics.path = "crates/apollo_state_sync_metrics"
+-apollo_state_sync_types.path = "crates/apollo_state_sync_types"
+-apollo_storage.path = "crates/apollo_storage"
+-apollo_task_executor.path = "crates/apollo_task_executor"
+ apollo_test_utils.path = "crates/apollo_test_utils"
+ apollo_time = { path = "crates/apollo_time", version = "0.20.0-rc.1" }
+-apollo_transaction_converter.path = "crates/apollo_transaction_converter"
+-apollo_versioned_constants.path = "crates/apollo_versioned_constants"
+ ark-bls12-381 = "0.5.0"
+ ark-ec = "0.5.0"
+ ark-ff = "0.5.0"
+@@ -236,195 +39,105 @@ ark-secp256r1 = "0.5.0"
+ assert-json-diff = "2.0.2"
+ assert_matches = "1.5.0"
+ async-recursion = "1.1.0"
+-async-stream = "0.3.3"
+ async-trait = "0.1.79"
+-asynchronous-codec = "0.7.0"
+-axum = "0.8"
+ base64 = "0.13.0"
+-bench_tools.path = "crates/bench_tools"
+-bhttp = "0.7"
+ bincode = "1.3.3"
+ bitvec = "1.0.1"
+ blake2 = "0.10.6"
+ blockifier = { path = "crates/blockifier", version = "0.20.0-rc.1" }
+-blockifier_reexecution.path = "crates/blockifier_reexecution"
+ blockifier_test_utils = { path = "crates/blockifier_test_utils", version = "0.20.0-rc.1" }
+-byteorder = "1.4.3"
+-bytes = "1"
+-bzip2 = { version = "0.5.0", default-features = false }
+-c-kzg = "2.1.5"
+ cached = "0.44.0"
+-cairo-air = "1.1.0"
+-cairo-felt = "0.9.1"
+ cairo-lang-casm = "2.19.6"
+ cairo-lang-runner = "2.19.6"
+ cairo-lang-sierra = "2.19.6"
+-cairo-lang-sierra-to-casm = "2.19.6"
+ cairo-lang-starknet-classes = "2.19.6"
+ cairo-lang-utils = "2.19.6"
+ cairo-native = "0.9.0-rc.8"
+-cairo-program-runner-lib = "1.1.0"
+ cairo-vm = "3.2.0"
+-camelpaste = "0.1.0"
+-central_systest_blobs.path = "crates/central_systest_blobs"
+ chrono = "0.4.26"
+ clap = "4.5.4"
+ colored = "3"
+ const_format = "0.2.30"
+ criterion = "0.5.1"
+-csv = "1.3.1"
+ dashmap = "6.1.0"
+-deadqueue = "0.2.4"
+-defaultmap = "0.5.0"
+ derive_more = "2.1.1"
+ digest = "0.10.7"
+-enum-as-inner = "0.6.1"
+-enum-assoc = "1.1.0"
+-enum-iterator = "2.3.0"
+ ethnum = "1.5.0"
+ expect-test = "1.5.1"
+ flate2 = "1.0.24"
+ futures = "0.3.21"
+-futures-channel = "0.3.21"
+-futures-util = "0.3.21"
+ glob = "0.3.1"
+-google-cloud-storage = "0.22.1"
+ hex = "0.4.3"
+-http = "1.1"
+-http-body = "1"
+-http-body-util = "0.1"
+-human_bytes = "0.4.3"
+-hyper = "1.8"
+-hyper-util = "0.1.19"
+ indexmap = "2.1.0"
+ indoc = "2.0.5"
+-insta = "1.29.0"
+-integer-encoding = "3.0.4"
+ itertools = "0.12.1"
+ json-patch = "4.1.0"
+-jsonrpsee = "0.26.0"
+-jsonrpsee-types = "0.26.0"
+-jsonschema = "0.17.0"
+ keccak = "0.1.3"
+ lazy_static = "1.5.0"
+ libmdbx = "0.6.6"
+-libp2p = "0.56.0"
+-libp2p-swarm-test = "0.6.0"
+ log = "0.4"
+-lru = "0.12.0"
+-memmap2 = "0.8.0"
++lru = "0.16.3"
+ mempool_test_utils.path = "crates/mempool_test_utils"
+ metrics = "0.24.1"
+ metrics-exporter-prometheus = "0.16.1"
+ mockall = "0.12.1"
+-mockito = "1.4.0"
+-native_blockifier.path = "crates/native_blockifier"
+ nix = "0.20.0"
+-notify = "8.2.0"
+ num-bigint = "0.4"
+ num-integer = "0.1.45"
+ num-rational = "0.4"
+ num-traits = "0.2.15"
+ num_enum = "0.7.3"
+-ohttp = { version = "0.7", default-features = false }
+-once_cell = "1.19.0"
+-os_info = "3.6.0"
+ page_size = "0.6.0"
+ papyrus_base_layer.path = "crates/papyrus_base_layer"
+ papyrus_common.path = "crates/papyrus_common"
+-parity-scale-codec = "3.6"
+-parity-scale-codec-derive = "3.6"
+ paste = "1.0.15"
+-patricia_root_cli.path = "crates/patricia_root_cli"
+ phf = "0.11"
+ pretty_assertions = "1.4.0"
+ primitive-types = "0.12.1"
+-privacy-circuit-verify-v1 = { package = "privacy-circuit-verify", git = "https://github.com/starkware-libs/proving-utils", tag = "v0.14.3-rust-bump" }
+-privacy-circuit-verify-v2 = { package = "privacy-circuit-verify", git = "https://github.com/starkware-libs/proving", rev = "e0035ffc8e08da270b8cb4a71f3708af70c2c775" }
+-privacy-prove = { git = "https://github.com/starkware-libs/proving", rev = "e0035ffc8e08da270b8cb4a71f3708af70c2c775" }
+ proc-macro2 = "1.0"
+ prometheus-parse = "0.2.4"
+-prost = "0.12.1"
+-prost-build = "0.12.1"
+-prost-types = "0.12.1"
+-protoc-prebuilt = "0.3.0"
+-pyo3 = "0.19.1"
+-pyo3-log = "0.8.1"
+ quote = "1.0.26"
+ rand = "0.10.0"
+ rand_chacha = "0.10.0"
+ rand_distr = "0.6.0"
+-reed-solomon-simd = "3.1.0"
+ regex = "1.10.4"
+-replace_with = "0.1.7"
+ reqwest = "0.12"
+-reqwest-middleware = "0.4.2"
+-reqwest-retry = "0.7.0"
+-retry = "2.0.0"
+ rlimit = "0.10.2"
+ rstest = "0.26.1"
+ rstest_reuse = "0.7.0"
+ rust-rocksdb = "0.44.1"
+-rustc-hex = "2.1.0"
+-schemars = "1.0.4"
+ semver = "1.0.23"
+ serde = "1.0.197"
+ serde_json = "1.0.116"
+-serde_repr = "0.1.19"
+ serde_with = "3.12.0"
+ sha2 = "0.10.8"
+ sha3 = "0.10.8"
+ shared_execution_objects.path = "crates/shared_execution_objects"
+-simple_logger = "4.0.0"
+ socket2 = "0.5.8"
+ starknet-core = "0.16.0"
+ starknet-crypto = "0.8.1"
+-starknet-ff = "0.3.7"
+-starknet-rust = "0.17.0"
+ starknet-rust-core = "0.16.0"
+ starknet-types-core = "0.2.4"
+ starknet_api = { path = "crates/starknet_api", version = "0.20.0-rc.1" }
+ starknet_committer.path = "crates/starknet_committer"
+-starknet_committer_and_os_cli.path = "crates/starknet_committer_and_os_cli"
+-starknet_committer_cli.path = "crates/starknet_committer_cli"
+ starknet_os.path = "crates/starknet_os"
+-starknet_os_flow_tests.path = "crates/starknet_os_flow_tests"
+ starknet_patricia.path = "crates/starknet_patricia"
+ starknet_patricia_storage.path = "crates/starknet_patricia_storage"
+-starknet_proof_verifier = { path = "crates/starknet_proof_verifier", version = "0.20.0-rc.1" }
+-starknet_transaction_prover.path = "crates/starknet_transaction_prover"
+-static_assertions = "1.1.0"
+ strum = "0.27.2"
+ syn = "2.0.39"
+ tempfile = "3.7.0"
+ test-case = "3.2.1"
+-test-log = "0.2.14"
+ thiserror = "1.0.37"
+ tikv-jemallocator = "0.5.4"
+ time = "0.3.37"
+ tokio = "1.52.3"
+-tokio-metrics = "0.4.4"
+-tokio-retry = "0.3"
+-tokio-rustls = "0.26.4"
+-tokio-stream = "0.1.8"
+-tokio-test = "0.4.4"
+-tokio-util = "0.7.13"
+ toml = "0.8"
+ toml_test_utils.path = "toml_test_utils"
+-tower = "0.5.2"
+-tower-http = "0.6"
+-tower_ohttp.path = "crates/tower_ohttp"
+ tracing = "0.1.37"
+ tracing-subscriber = "0.3.16"
+ tracing-test = "0.2"
+-trybuild = "1.0.105"
+-unsigned-varint = "0.8.0"
+ url = "2.5.0"
+-uuid = "1"
+ validator = "0.20"
+-void = "1.0.2"
+-waker-fn = "1.2.0"
+-workspace_tests.path = "workspace_tests"
+ zstd = "0.13.1"
+ 
+ # Note: both rust and clippy lints are warning by default and denied on the CI (see run_tests.py).
+@@ -466,3 +179,10 @@ inherits = "dev"
+ as_conversions = "warn"
+ await_holding_lock = "warn"
+ await_holding_refcell_ref = "warn"
++
++[patch.crates-io]
++cairo-lang-starknet-classes = { path = "browser-vendor/cairo-lang-starknet-classes-2.19.6" }
++
++num-prime = { path = "browser-vendor/num-prime-0.4.4" }
++
++zstd-sys = { path = "browser-vendor/zstd-sys-2.0.16+zstd.1.5.7" }
+diff --git a/crates/apollo_infra_utils/Cargo.toml b/crates/apollo_infra_utils/Cargo.toml
+index b0bb956..c82129c 100644
+--- a/crates/apollo_infra_utils/Cargo.toml
++++ b/crates/apollo_infra_utils/Cargo.toml
+@@ -24,8 +24,7 @@ socket2 = { workspace = true, optional = true }
+ strum = { workspace = true, optional = true, features = ["derive"] }
+ tempfile = { workspace = true, optional = true }
+ thiserror.workspace = true
+-tikv-jemallocator.workspace = true
+-tokio = { workspace = true, features = ["process", "rt", "time"] }
++tokio = { workspace = true, features = ["rt", "time"] }
+ tracing.workspace = true
+ tracing-subscriber.workspace = true
+ url.workspace = true
+@@ -43,3 +42,7 @@ tempfile.workspace = true
+ tokio = { workspace = true, features = ["macros", "rt", "signal", "sync"] }
+ toml.workspace = true
+ tracing-subscriber = { workspace = true, features = ["env-filter"] }
++
++[target.'cfg(not(target_family = "wasm"))'.dependencies]
++tikv-jemallocator.workspace = true
++tokio = { workspace = true, features = ["process"] }
+diff --git a/crates/apollo_infra_utils/src/global_allocator.rs b/crates/apollo_infra_utils/src/global_allocator.rs
+index ed3f29a..3627cb7 100644
+--- a/crates/apollo_infra_utils/src/global_allocator.rs
++++ b/crates/apollo_infra_utils/src/global_allocator.rs
+@@ -2,6 +2,7 @@
+ #[macro_export]
+ macro_rules! set_global_allocator {
+     () => {
++        #[cfg(not(target_family = "wasm"))]
+         #[global_allocator]
+         static ALLOC: $crate::tikv_jemallocator::Jemalloc = $crate::tikv_jemallocator::Jemalloc;
+     };
+diff --git a/crates/apollo_infra_utils/src/lib.rs b/crates/apollo_infra_utils/src/lib.rs
+index 3e5995c..67f8fac 100644
+--- a/crates/apollo_infra_utils/src/lib.rs
++++ b/crates/apollo_infra_utils/src/lib.rs
+@@ -2,6 +2,7 @@ pub mod cairo0_compiler;
+ #[cfg(any(feature = "testing", test))]
+ pub mod cairo0_compiler_test_utils;
+ pub mod cairo_compiler_version;
++#[cfg(not(target_family = "wasm"))]
+ pub mod command;
+ pub mod dumping;
+ pub mod global_allocator;
+@@ -19,4 +20,5 @@ pub mod url;
+ pub extern crate apollo_proc_macros as _apollo_proc_macros;
+ 
+ // Re-export tikv-jemallocator for the [set_global_allocator] macro in downstream crates.
++#[cfg(not(target_family = "wasm"))]
+ pub use tikv_jemallocator;
+diff --git a/crates/apollo_starknet_os_program/Cargo.toml b/crates/apollo_starknet_os_program/Cargo.toml
+index d8a528e..e014b8b 100644
+--- a/crates/apollo_starknet_os_program/Cargo.toml
++++ b/crates/apollo_starknet_os_program/Cargo.toml
+@@ -21,7 +21,11 @@ serde_json.workspace = true
+ starknet-types-core.workspace = true
+ thiserror.workspace = true
+ 
++[target.'cfg(target_family = "wasm")'.dependencies]
++flate2.workspace = true
++
+ [build-dependencies]
++flate2.workspace = true
+ apollo_infra_utils.workspace = true
+ serde_json.workspace = true
+ tempfile.workspace = true
+diff --git a/crates/apollo_starknet_os_program/build/compile_program.rs b/crates/apollo_starknet_os_program/build/compile_program.rs
+index 22ae476..0659639 100644
+--- a/crates/apollo_starknet_os_program/build/compile_program.rs
++++ b/crates/apollo_starknet_os_program/build/compile_program.rs
+@@ -31,6 +31,18 @@ pub async fn compile_and_output_program(
+     println!(
+         "cargo::warning=Done compiling {program_name}. Writing compiled bytes to output directory."
+     );
++    // Browser packaging only: retain the exact compiler output, compressed losslessly.
++    // Native program loading and Cairo compilation are unchanged.
++    if std::env::var("CARGO_CFG_TARGET_FAMILY").as_deref() == Ok("wasm") {
++        use std::io::{Read, Write};
++        let mut encoder=flate2::write::GzEncoder::new(Vec::new(),flate2::Compression::best());
++        encoder.write_all(&bytes).expect("compress program");
++        let compressed=encoder.finish().expect("finish program compression");
++        let mut roundtrip=Vec::new();
++        flate2::read::GzDecoder::new(compressed.as_slice()).read_to_end(&mut roundtrip).expect("check program compression");
++        assert_eq!(roundtrip,bytes,"program compression changed bytes");
++        std::fs::write(out_dir.join(format!("{program_name}_bytes.gz")),&compressed).expect("write compressed program");
++    }
+     let bytes_path = out_dir.join(format!("{program_name}_bytes"));
+     std::fs::write(&bytes_path, &bytes).unwrap_or_else(|error| {
+         panic!("Failed to write the compiled {program_name} bytes to {bytes_path:?}: {error}.")
+diff --git a/crates/apollo_starknet_os_program/src/lib.rs b/crates/apollo_starknet_os_program/src/lib.rs
+index c273310..1728294 100644
+--- a/crates/apollo_starknet_os_program/src/lib.rs
++++ b/crates/apollo_starknet_os_program/src/lib.rs
+@@ -38,14 +38,27 @@ pub const VIRTUAL_OS_PROGRAM_BYTES: &[u8] =
+     include_bytes!(concat!(env!("OUT_DIR"), "/virtual_os_bytes"));
+ 
+ pub static OS_PROGRAM: LazyLock<Program> = LazyLock::new(|| {
+-    Program::from_bytes(OS_PROGRAM_BYTES, Some("main")).expect("Failed to load the OS bytes.")
++    #[cfg(not(target_family = "wasm"))]
++    let bytes = OS_PROGRAM_BYTES;
++    #[cfg(target_family = "wasm")]
++    let bytes = decompress_browser_program(include_bytes!(concat!(env!("OUT_DIR"), "/starknet_os_bytes.gz")));
++    Program::from_bytes(&bytes[..], Some("main"))
++        .expect("Failed to load the OS bytes.")
+ });
+ pub static AGGREGATOR_PROGRAM: LazyLock<Program> = LazyLock::new(|| {
+-    Program::from_bytes(AGGREGATOR_PROGRAM_BYTES, Some("main"))
++    #[cfg(not(target_family = "wasm"))]
++    let bytes = AGGREGATOR_PROGRAM_BYTES;
++    #[cfg(target_family = "wasm")]
++    let bytes = decompress_browser_program(include_bytes!(concat!(env!("OUT_DIR"), "/starknet_aggregator_bytes.gz")));
++    Program::from_bytes(&bytes[..], Some("main"))
+         .expect("Failed to load the aggregator bytes.")
+ });
+ pub static VIRTUAL_OS_PROGRAM: LazyLock<Program> = LazyLock::new(|| {
+-    Program::from_bytes(VIRTUAL_OS_PROGRAM_BYTES, Some("main"))
++    #[cfg(not(target_family = "wasm"))]
++    let bytes = VIRTUAL_OS_PROGRAM_BYTES;
++    #[cfg(target_family = "wasm")]
++    let bytes = decompress_browser_program(include_bytes!(concat!(env!("OUT_DIR"), "/virtual_os_bytes.gz")));
++    Program::from_bytes(&bytes[..], Some("main"))
+         .expect("Failed to load the virtual OS bytes.")
+ });
+ 
+@@ -55,3 +68,11 @@ pub static PROGRAM_HASHES: LazyLock<ProgramHashes> = LazyLock::new(|| {
+     serde_json::from_str(include_str!("program_hash.json"))
+         .expect("Failed to deserialize program_hash.json.")
+ });
++
++#[cfg(target_family = "wasm")]
++fn decompress_browser_program(compressed: &[u8]) -> Vec<u8> {
++    use std::io::Read;
++    let mut bytes=Vec::new();
++    flate2::read::GzDecoder::new(compressed).read_to_end(&mut bytes).expect("decompress pinned browser program");
++    bytes
++}
+diff --git a/crates/blockifier/src/transaction/account_transaction.rs b/crates/blockifier/src/transaction/account_transaction.rs
+index d81b80e..8e7bbe3 100644
+--- a/crates/blockifier/src/transaction/account_transaction.rs
++++ b/crates/blockifier/src/transaction/account_transaction.rs
+@@ -20,7 +20,7 @@ use starknet_api::transaction::fields::{
+     TransactionSignature,
+     ValidResourceBounds,
+ };
+-use starknet_api::transaction::{constants, TransactionHash, TransactionVersion};
++use starknet_api::transaction::{TransactionHash, TransactionVersion, constants};
+ use starknet_types_core::felt::Felt;
+ 
+ use super::errors::ResourceBoundsError;
+@@ -1077,3 +1077,77 @@ pub fn is_cairo1(compiled_class: &RunnableCompiledClass) -> bool {
+         RunnableCompiledClass::V1Native(_) => true,
+     }
+ }
++
++// Local browser-port evidence. These tests exercise the unchanged private admission gates.
++#[cfg(test)]
++mod browser_fixture_admission_tests {
++    use starknet_api::block::BlockInfo;
++    use starknet_api::rpc_transaction::RpcInvokeTransactionV3;
++    use starknet_api::transaction::fields::ProofFacts;
++    use starknet_api::versioned_constants_logic::VersionedConstantsTrait;
++
++    use super::*;
++    use crate::blockifier_versioned_constants::VersionedConstants;
++    use crate::bouncer::BouncerConfig;
++    use crate::context::ChainInfo;
++    use crate::state::cached_state::CachedState;
++    use crate::test_utils::dict_state_reader::DictStateReader;
++
++    #[test]
++    #[ignore = "requires BROWSER_ADMISSION_FIXTURE and BROWSER_PROOF_FACTS"]
++    fn browser_generated_facts_admission_gates() {
++        let fixture = std::path::PathBuf::from(std::env::var("BROWSER_ADMISSION_FIXTURE").unwrap());
++        let read = |name: &str| -> serde_json::Value {
++            serde_json::from_slice(&std::fs::read(fixture.join(name)).unwrap()).unwrap()
++        };
++        let snapshot = read("state_snapshot.json");
++        let chain: ChainInfo = serde_json::from_value(snapshot["chain_info"].clone()).unwrap();
++        let hints = read("os_hints.json");
++        let mut block: BlockInfo =
++            serde_json::from_value(hints["os_input"]["os_block_inputs"][0]["block_info"].clone())
++                .unwrap();
++        let facts: Vec<Felt> = serde_json::from_slice(
++            &std::fs::read(std::env::var("BROWSER_PROOF_FACTS").unwrap()).unwrap(),
++        )
++        .unwrap();
++        let proof_block: u64 = facts[4].try_into().unwrap();
++        block.block_number = BlockNumber(proof_block + STORED_BLOCK_HASH_BUFFER);
++        let constants = VersionedConstants::latest_constants().clone();
++        let block_hash_address =
++            constants.os_constants.os_contract_addresses.block_hash_contract_address();
++        let context = BlockContext::new(
++            block.clone(),
++            chain.clone(),
++            constants.clone(),
++            BouncerConfig::default(),
++        );
++        let make_tx = |facts: Vec<Felt>| {
++            let mut rpc: RpcInvokeTransactionV3 =
++                serde_json::from_value(read("rpc_transaction.json")).unwrap();
++            rpc.proof_facts = ProofFacts(facts.into());
++            let invoke = starknet_api::executable_transaction::InvokeTransaction::create(
++                starknet_api::transaction::InvokeTransaction::V3(rpc.into()),
++                &chain.chain_id,
++            )
++            .unwrap();
++            AccountTransaction::new_with_default_flags(Transaction::Invoke(invoke))
++        };
++        let mut reader = DictStateReader::default();
++        reader.storage_view.insert((block_hash_address, StorageKey::from(proof_block)), facts[5]);
++        let mut state = CachedState::new(reader);
++        make_tx(facts.clone()).validate_proof_facts(&context, &mut state).unwrap();
++        for (index, label) in [(2, "program hash"), (5, "block hash"), (6, "config hash")] {
++            let mut bad = facts.clone();
++            bad[index] += Felt::ONE;
++            assert!(make_tx(bad).validate_proof_facts(&context, &mut state).is_err(), "{label}");
++        }
++        block.block_number = BlockNumber(proof_block + STORED_BLOCK_HASH_BUFFER - 1);
++        let recent = BlockContext::new(block, chain.clone(), constants, BouncerConfig::default());
++        assert!(make_tx(facts).validate_proof_facts(&recent, &mut state).is_err());
++        println!(
++            "Browser proof facts passed unchanged program/version/block/config gates in an \
++             explicit synthetic context; all four context mutations rejected. No network \
++             acceptance tested."
++        );
++    }
++}
+diff --git a/crates/starknet_api/src/state.rs b/crates/starknet_api/src/state.rs
+index 0ad79e1..d04aef0 100644
+--- a/crates/starknet_api/src/state.rs
++++ b/crates/starknet_api/src/state.rs
+@@ -21,16 +21,16 @@ use crate::core::{
+     ContractAddress,
+     EntryPointSelector,
+     GlobalRoot,
++    L2_ADDRESS_UPPER_BOUND,
+     Nonce,
+     PatriciaKey,
+-    L2_ADDRESS_UPPER_BOUND,
+ };
+ use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
+ use crate::hash::{PoseidonHash, StarkHash};
+ use crate::rpc_transaction::EntryPointByType;
+ #[cfg(any(test, feature = "testing"))]
+ use crate::test_utils::py_json_dumps;
+-use crate::{impl_from_through_intermediate, StarknetApiError, StarknetApiResult};
++use crate::{StarknetApiError, StarknetApiResult, impl_from_through_intermediate};
+ 
+ pub type DeclaredClasses = IndexMap<ClassHash, SierraContractClass>;
+ pub type DeprecatedDeclaredClasses = IndexMap<ClassHash, DeprecatedContractClass>;
+@@ -299,7 +299,7 @@ impl From<FlattenedSierraClass> for SierraContractClass {
+     }
+ }
+ 
+-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
++#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+ pub struct ContractClassComponentHashes {
+     pub contract_class_version: Felt,
+     pub external_functions_hash: PoseidonHash,
+diff --git a/crates/starknet_os/Cargo.toml b/crates/starknet_os/Cargo.toml
+index 60e7e2d..3dba4da 100644
+--- a/crates/starknet_os/Cargo.toml
++++ b/crates/starknet_os/Cargo.toml
+@@ -32,7 +32,6 @@ ark-secp256k1.workspace = true
+ ark-secp256r1.workspace = true
+ blake2.workspace = true
+ blockifier.workspace = true
+-c-kzg.workspace = true
+ cairo-lang-casm.workspace = true
+ cairo-lang-runner.workspace = true
+ cairo-lang-starknet-classes.workspace = true
+@@ -89,3 +88,5 @@ tokio = { workspace = true, features = ["rt-multi-thread"] }
+ 
+ [lints]
+ workspace = true
++
++[target.'cfg(not(target_family = "wasm"))'.dependencies]
+diff --git a/crates/starknet_os/src/hints/enum_generation.rs b/crates/starknet_os/src/hints/enum_generation.rs
+index 27dd267..47c9ad8 100644
+--- a/crates/starknet_os/src/hints/enum_generation.rs
++++ b/crates/starknet_os/src/hints/enum_generation.rs
+@@ -191,10 +191,19 @@ macro_rules! define_hint_extension_enum {
+ #[macro_export]
+ macro_rules! log_time {
+     ($command:expr, $hint:expr) => {{
+-        let start = std::time::Instant::now();
+-        let result = $command;
+-        let elapsed = start.elapsed().as_secs_f64() * 1000.0;
+-        log::debug!("Took {elapsed:>7.3} ms to execute hint {:?}.", $hint);
+-        result
++        #[cfg(not(target_family = "wasm"))]
++        {
++            let start = std::time::Instant::now();
++            let result = $command;
++            let elapsed = start.elapsed().as_secs_f64() * 1000.0;
++            log::debug!("Took {elapsed:>7.3} ms to execute hint {:?}.", $hint);
++            result
++        }
++        // std::time::Instant is unavailable on wasm32-unknown-unknown. The browser
++        // measures execution at the Worker boundary; execute every hint unchanged.
++        #[cfg(target_family = "wasm")]
++        {
++            $command
++        }
+     }};
+ }
+diff --git a/crates/starknet_os/src/hints/hint_implementation/compiled_class/implementation.rs b/crates/starknet_os/src/hints/hint_implementation/compiled_class/implementation.rs
+index e656b91..82eb365 100644
+--- a/crates/starknet_os/src/hints/hint_implementation/compiled_class/implementation.rs
++++ b/crates/starknet_os/src/hints/hint_implementation/compiled_class/implementation.rs
+@@ -198,7 +198,7 @@ pub(crate) fn load_classes_and_create_bytecode_segment_structures<S: StateReader
+         )?;
+         let bytecode_ptr = ctx.vm.get_relocatable(bytecode_ptr_address)?;
+         let builtin_costs = ctx.get_ptr(Ids::BuiltinCosts)?;
+-        let encoded_ret_opcode = 0x208b7fff7fff7ffe;
++        let encoded_ret_opcode = Felt::from(0x208b7fff7fff7ffe_u64);
+         let data = [encoded_ret_opcode.into(), builtin_costs.into()];
+         ctx.vm.load_data((bytecode_ptr + compiled_class.bytecode.len())?, &data)?;
+ 
+diff --git a/crates/starknet_os/src/hints/hint_implementation/kzg/utils.rs b/crates/starknet_os/src/hints/hint_implementation/kzg/utils.rs
+index 351abf7..3d5666a 100644
+--- a/crates/starknet_os/src/hints/hint_implementation/kzg/utils.rs
++++ b/crates/starknet_os/src/hints/hint_implementation/kzg/utils.rs
+@@ -4,11 +4,12 @@ use std::sync::LazyLock;
+ use ark_bls12_381::Fr;
+ use ark_ff::{BigInteger, PrimeField};
+ use ark_poly::{EvaluationDomain, Radix2EvaluationDomain};
+-use c_kzg::{Blob, KzgCommitment, KzgSettings, BYTES_PER_BLOB, BYTES_PER_FIELD_ELEMENT};
++#[cfg(not(target_family = "wasm"))]
++use c_kzg::{BYTES_PER_BLOB, BYTES_PER_FIELD_ELEMENT, Blob, KzgCommitment, KzgSettings};
+ use num_bigint::{BigInt, BigUint, ParseBigIntError};
+ use num_traits::{Num, Signed, Zero};
+ use serde::{Deserialize, Serialize};
+-use serde_with::{serde_as, Bytes};
++use serde_with::{Bytes, serde_as};
+ use sha2::{Digest, Sha256};
+ use starknet_types_core::felt::Felt;
+ 
+@@ -23,6 +24,7 @@ pub static BLS_PRIME: LazyLock<BigUint> = LazyLock::new(|| {
+     .unwrap()
+ });
+ 
++#[cfg(not(target_family = "wasm"))]
+ const TRUSTED_SETUP: &str = include_str!("trusted_setup.txt");
+ const COMMITMENT_BYTES_LENGTH: usize = 48;
+ const COMMITMENT_BYTES_MIDPOINT: usize = COMMITMENT_BYTES_LENGTH / 2;
+@@ -33,7 +35,10 @@ const _: () = assert!(BYTES_PER_BLOB == FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIEL
+ #[derive(Debug, thiserror::Error)]
+ pub enum FftError {
+     #[error(transparent)]
++    #[cfg(not(target_family = "wasm"))]
+     CKzg(#[from] c_kzg::Error),
++    #[error("KZG commitment generation is unavailable in the browser virtual-OS executor")]
++    BrowserKzgUnsupported,
+     #[error("Failed to create the evaluation domain.")]
+     EvalDomainCreation,
+     #[error(transparent)]
+@@ -48,11 +53,13 @@ pub enum FftError {
+     TooManyCoefficients(usize),
+ }
+ 
++#[cfg(not(target_family = "wasm"))]
+ static KZG_SETTINGS: LazyLock<KzgSettings> = LazyLock::new(|| {
+     KzgSettings::parse_kzg_trusted_setup(TRUSTED_SETUP, 0)
+         .unwrap_or_else(|error| panic!("Failed to load trusted setup: {error}."))
+ });
+ 
++#[cfg(not(target_family = "wasm"))]
+ fn blob_to_kzg_commitment(blob: &Blob) -> Result<KzgCommitment, FftError> {
+     Ok(KZG_SETTINGS.blob_to_kzg_commitment(blob)?)
+ }
+@@ -89,6 +96,7 @@ pub fn deserialize_blob(blob_bytes: &[u8; BYTES_PER_BLOB]) -> [Fr; FIELD_ELEMENT
+         .expect("BYTES_PER_BLOB/BYTES_PER_FIELD_ELEMENT is FIELD_ELEMENTS_PER_BLOB")
+ }
+ 
++#[cfg(not(target_family = "wasm"))]
+ pub(crate) fn split_commitment(commitment: &KzgCommitment) -> Result<(Felt, Felt), FftError> {
+     let commitment_bytes: [u8; COMMITMENT_BYTES_LENGTH] = *commitment.to_bytes().as_ref();
+ 
+@@ -153,6 +161,7 @@ pub(crate) fn polynomial_coefficients_to_blob(
+     serialize_blob(&evals)
+ }
+ 
++#[cfg(not(target_family = "wasm"))]
+ pub(crate) fn polynomial_coefficients_to_kzg_commitment(
+     coefficients: Vec<Fr>,
+ ) -> Result<(Felt, Felt), FftError> {
+@@ -190,6 +199,7 @@ pub struct LegacyBlobArtifacts {
+ }
+ 
+ /// Computes a versioned hash from a KZG commitment.
++#[cfg(not(target_family = "wasm"))]
+ fn kzg_to_versioned_hash(commitment: &KzgCommitment) -> [u8; 32] {
+     const BLOB_COMMITMENT_VERSION_KZG: u8 = 0x01;
+ 
+@@ -209,6 +219,7 @@ fn kzg_to_versioned_hash(commitment: &KzgCommitment) -> [u8; 32] {
+ ///
+ /// For each blob, computes the KZG commitment and the corresponding KZG proof that is used
+ /// to verify the commitment. Returns `LegacyBlobArtifacts` structure.
++#[cfg(not(target_family = "wasm"))]
+ pub fn compute_legacy_blob_commitments(
+     raw_blobs: Vec<Vec<u8>>,
+ ) -> Result<LegacyBlobArtifacts, FftError> {
+@@ -254,6 +265,7 @@ pub struct BlobArtifacts {
+ ///
+ /// For each blob, computes the KZG commitment and the corresponding KZG cell proofs that is used
+ /// to verify the commitment. Returns the internal `CellBlobs` structure with native KZG types.
++#[cfg(not(target_family = "wasm"))]
+ pub fn compute_blob_commitments(raw_blobs: Vec<Vec<u8>>) -> Result<BlobArtifacts, FftError> {
+     let mut commitments = Vec::new();
+     let mut cell_proofs = Vec::new();
+@@ -298,3 +310,15 @@ pub fn decode_blobs(raw_blobs: Vec<[u8; BYTES_PER_BLOB]>) -> Result<Vec<Felt>, F
+     }
+     Ok(result)
+ }
++
++// EIP-4844 sizes, matching c-kzg. Virtual OS output does not use KZG DA.
++#[cfg(target_family = "wasm")]
++pub(crate) const BYTES_PER_FIELD_ELEMENT: usize = 32;
++#[cfg(target_family = "wasm")]
++pub(crate) const BYTES_PER_BLOB: usize = 131072;
++#[cfg(target_family = "wasm")]
++pub(crate) fn polynomial_coefficients_to_kzg_commitment(
++    _coefficients: Vec<Fr>,
++) -> Result<(Felt, Felt), FftError> {
++    Err(FftError::BrowserKzgUnsupported)
++}
+diff --git a/crates/starknet_os/src/hints/hint_implementation/state_diff_encryption/utils.rs b/crates/starknet_os/src/hints/hint_implementation/state_diff_encryption/utils.rs
+index 8721fee..49c71d9 100644
+--- a/crates/starknet_os/src/hints/hint_implementation/state_diff_encryption/utils.rs
++++ b/crates/starknet_os/src/hints/hint_implementation/state_diff_encryption/utils.rs
+@@ -1,10 +1,13 @@
+ use blake2::Blake2s256;
++#[cfg(not(target_family = "wasm"))]
+ use c_kzg::BYTES_PER_BLOB;
+ use digest::Digest;
+ use starknet_types_core::curve::AffinePoint;
+ use starknet_types_core::felt::Felt;
+ 
+-use crate::hints::hint_implementation::kzg::utils::{decode_blobs, FftError};
++#[cfg(target_family = "wasm")]
++use crate::hints::hint_implementation::kzg::utils::BYTES_PER_BLOB;
++use crate::hints::hint_implementation::kzg::utils::{FftError, decode_blobs};
+ use crate::io::os_output::OsOutputError;
+ use crate::io::os_output_types::{PartialOsStateDiff, TryFromOutputIter};
+ 
+diff --git a/crates/starknet_os/src/io/os_input.rs b/crates/starknet_os/src/io/os_input.rs
+index c97274a..0dbaed0 100644
+--- a/crates/starknet_os/src/io/os_input.rs
++++ b/crates/starknet_os/src/io/os_input.rs
+@@ -17,7 +17,7 @@ use crate::commitment_infos::CommitmentInfo;
+ #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
+ #[cfg_attr(feature = "deserialize", serde(deny_unknown_fields))]
+ #[cfg_attr(any(test, feature = "testing"), derive(Default))]
+-#[derive(Debug)]
++#[derive(Debug, serde::Serialize)]
+ pub struct OsHints {
+     pub os_input: StarknetOsInput,
+     pub os_hints_config: OsHintsConfig,
+@@ -37,7 +37,7 @@ impl OsHints {
+ #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
+ #[cfg_attr(feature = "deserialize", serde(deny_unknown_fields))]
+ #[cfg_attr(any(test, feature = "testing"), derive(Default))]
+-#[derive(Debug)]
++#[derive(Debug, serde::Serialize)]
+ pub struct StarknetOsInput {
+     pub os_block_inputs: Vec<OsBlockInput>,
+     pub deprecated_compiled_classes: BTreeMap<ClassHash, ContractClass>,
+@@ -48,7 +48,7 @@ pub struct StarknetOsInput {
+ #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
+ #[cfg_attr(feature = "deserialize", serde(deny_unknown_fields))]
+ #[cfg_attr(any(test, feature = "testing"), derive(Default))]
+-#[derive(Debug)]
++#[derive(Debug, serde::Serialize)]
+ pub struct OsBlockInput {
+     pub contract_state_commitment_info: CommitmentInfo,
+     pub address_to_storage_commitment_info: HashMap<ContractAddress, CommitmentInfo>,
+@@ -82,11 +82,12 @@ pub struct OsBlockInput {
+ #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
+ #[cfg_attr(feature = "deserialize", serde(deny_unknown_fields))]
+ #[cfg_attr(any(test, feature = "testing"), derive(Default))]
+-#[derive(Debug)]
++#[derive(Debug, serde::Serialize)]
+ pub struct OsHintsConfig {
+     pub debug_mode: bool,
+     pub full_output: bool,
+     pub use_kzg_da: bool,
++    #[serde(serialize_with = "serialize_os_chain_info")]
+     pub chain_info: OsChainInfo,
+     pub public_keys: Option<Vec<Felt>>,
+     pub rng_seed_salt: Option<Felt>,
+@@ -102,3 +103,14 @@ pub enum OsInputError {
+     #[error("Invalid length of state readers: {0}. Should match size of block inputs: {1}")]
+     InvalidLengthOfStateReaders(usize, usize),
+ }
++
++fn serialize_os_chain_info<S: serde::Serializer>(
++    info: &OsChainInfo,
++    serializer: S,
++) -> Result<S::Ok, S::Error> {
++    use serde::ser::SerializeStruct;
++    let mut s = serializer.serialize_struct("OsChainInfo", 2)?;
++    s.serialize_field("chain_id", &info.chain_id.as_hex())?;
++    s.serialize_field("strk_fee_token_address", &info.strk_fee_token_address)?;
++    s.end()
++}
+diff --git a/crates/starknet_patricia/Cargo.toml b/crates/starknet_patricia/Cargo.toml
+index f15fae3..313986e 100644
+--- a/crates/starknet_patricia/Cargo.toml
++++ b/crates/starknet_patricia/Cargo.toml
+@@ -31,4 +31,7 @@ starknet_api.workspace = true
+ starknet_patricia_storage.workspace = true
+ strum = { workspace = true, features = ["derive"] }
+ thiserror.workspace = true
+-tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
++tokio = { workspace = true, features = ["macros", "rt"] }
++
++[target.'cfg(not(target_family = "wasm"))'.dependencies]
++tokio = { workspace = true, features = ["rt-multi-thread"] }
+diff --git a/crates/browser_virtual_os/Cargo.toml b/crates/browser_virtual_os/Cargo.toml
+new file mode 100644
+index 0000000..aeca87d
+--- /dev/null
++++ b/crates/browser_virtual_os/Cargo.toml
+@@ -0,0 +1,31 @@
++[package]
++name = "browser_virtual_os"
++version = "0.1.0"
++edition = "2024"
++[lib]
++crate-type = ["cdylib", "rlib"]
++[dependencies]
++cairo-lang-starknet-classes.workspace = true
++cairo-lang-utils.workspace = true
++indexmap.workspace = true
++thiserror.workspace = true
++starknet_patricia.workspace = true
++starknet-rust-core.workspace = true
++blockifier = { workspace = true, features = ["transaction_serde", "reexecution"] }
++starknet_api.workspace = true
++starknet_committer.workspace = true
++starknet_patricia_storage.workspace = true
++tokio = { workspace = true, features = ["rt"] }
++starknet-types-core.workspace = true
++shared_execution_objects.workspace = true
++serde = { workspace = true, features = ["derive"] }
++starknet_os = { workspace = true, features = ["deserialize"] }
++cairo-vm.workspace = true
++serde_json.workspace = true
++zip = { version = "=0.6.6", default-features = false, features = ["deflate"] }
++wasm-bindgen = "=0.2.105"
++
++[target.'cfg(target_arch = "wasm32")'.dependencies]
++getrandom02 = { package = "getrandom", version = "=0.2.16", features = ["js"] }
++getrandom03 = { package = "getrandom", version = "=0.3.4", features = ["wasm_js"] }
++getrandom04 = { package = "getrandom", version = "=0.4.2", features = ["wasm_js"] }
+diff --git a/crates/browser_virtual_os/examples/authenticate_public.rs b/crates/browser_virtual_os/examples/authenticate_public.rs
+new file mode 100644
+index 0000000..5e1ce9d
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/authenticate_public.rs
+@@ -0,0 +1,10 @@
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().collect();
++    if args.len() != 3 {
++        return Err("usage: authenticate_public INPUT OUTPUT".into());
++    }
++    let result =
++        browser_virtual_os::public_state::authenticate_and_convert(&std::fs::read(&args[1])?)?;
++    std::fs::write(&args[2], result)?;
++    Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/compile_public_class.rs b/crates/browser_virtual_os/examples/compile_public_class.rs
+new file mode 100644
+index 0000000..4b01927
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/compile_public_class.rs
+@@ -0,0 +1,6 @@
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let args:Vec<String>=std::env::args().collect();
++ if args.len()!=3{return Err("usage: compile_public_class INPUT OUTPUT".into());}
++ let output=browser_virtual_os::public_class::compile_public_class(&std::fs::read(&args[1])?)?;
++ std::fs::write(&args[2],output)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/execute_hints.rs b/crates/browser_virtual_os/examples/execute_hints.rs
+new file mode 100644
+index 0000000..e23d93b
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/execute_hints.rs
+@@ -0,0 +1,19 @@
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().collect();
++    if args.len() != 3 {
++        return Err("usage: execute_hints OS_HINTS_JSON OUTPUT_DIR".into());
++    }
++    let input = std::fs::read(&args[1])?;
++    let started = std::time::Instant::now();
++    let (pie, output) = browser_virtual_os::execute_hints(&input)?;
++    let elapsed = started.elapsed().as_millis();
++    let dir = std::path::Path::new(&args[2]);
++    std::fs::create_dir_all(dir)?;
++    std::fs::write(dir.join("cairo_pie.zip"), &pie)?;
++    std::fs::write(dir.join("virtual_os_output.json"), output)?;
++    println!(
++        "{}",
++        serde_json::json!({"execution_ms":elapsed,"pie_bytes":pie.len(),"origin":"native-hints-replay","proving":false})
++    );
++    Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/execute_rpc.rs b/crates/browser_virtual_os/examples/execute_rpc.rs
+new file mode 100644
+index 0000000..e09c3f8
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/execute_rpc.rs
+@@ -0,0 +1,34 @@
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().collect();
++    if args.len() != 5 && args.len() != 6 {
++        return Err("usage: execute_rpc HINTS SNAPSHOT RPC_TRANSACTION OUTPUT_DIR \
++                    [STATE_DATABASE]"
++            .into());
++    }
++    let mut hints = serde_json::from_slice(&std::fs::read(&args[1])?)?;
++    let snapshot = std::fs::read(&args[2])?;
++    let rpc = std::fs::read(&args[3])?;
++    browser_virtual_os::preexecute::install_rpc_transaction(&mut hints, &rpc, &snapshot)?;
++    let started = std::time::Instant::now();
++    let database = if args.len() == 6 { Some(std::fs::read(&args[5])?) } else { None };
++    let execution = browser_virtual_os::preexecute::preexecute_with_witness(
++        &mut hints,
++        &snapshot,
++        database.as_deref(),
++    )?;
++    let preexecution_ms = started.elapsed().as_millis();
++    let dir = std::path::Path::new(&args[4]);
++    std::fs::create_dir_all(dir)?;
++    std::fs::write(dir.join("execution_info.json"), execution)?;
++    let regenerated = serde_json::to_vec(&hints)?;
++    std::fs::write(dir.join("os_hints.json"), &regenerated)?;
++    let t = std::time::Instant::now();
++    let (pie, output) = browser_virtual_os::execute_hints(&regenerated)?;
++    std::fs::write(dir.join("cairo_pie.zip"), pie)?;
++    std::fs::write(dir.join("virtual_os_output.json"), output)?;
++    println!(
++        "{}",
++        serde_json::json!({"preexecution_ms":preexecution_ms,"virtual_os_execution_ms":t.elapsed().as_millis(),"rpc_transaction_hash_computed":true,"origin":"native-rpc-snapshot-execution"})
++    );
++    Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/preexecute_hints.rs b/crates/browser_virtual_os/examples/preexecute_hints.rs
+new file mode 100644
+index 0000000..a2e5a40
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/preexecute_hints.rs
+@@ -0,0 +1,66 @@
++fn main() -> Result<(), Box<dyn std::error::Error>> {
++    let args: Vec<String> = std::env::args().collect();
++    if args.len() != 4 {
++        return Err("usage: preexecute_hints HINTS SNAPSHOT OUTPUT_DIR".into());
++    }
++    let mut hints: starknet_os::io::os_input::OsHints =
++        serde_json::from_slice(&std::fs::read(&args[1])?)?;
++    let expected = serde_json::to_value(&hints.os_input.os_block_inputs[0].tx_execution_infos[0])?;
++    let started = std::time::Instant::now();
++    let actual = browser_virtual_os::preexecute::preexecute(&mut hints, &std::fs::read(&args[2])?)?;
++    let preexecution_ms = started.elapsed().as_millis();
++    let dir = std::path::Path::new(&args[3]);
++    std::fs::create_dir_all(dir)?;
++    std::fs::write(dir.join("execution_info.json"), &actual)?;
++    let actual: serde_json::Value = serde_json::from_str(&actual)?;
++    std::fs::write(
++        dir.join("expected_execution_info.json"),
++        serde_json::to_vec_pretty(&expected)?,
++    )?;
++    if normalize(actual) != normalize(expected) {
++        return Err("reexecuted call information differs from upstream fixture; inspect saved \
++                    JSON"
++            .into());
++    }
++    let regenerated = serde_json::to_vec(&hints)?;
++    std::fs::write(dir.join("os_hints.json"), &regenerated)?;
++    let t = std::time::Instant::now();
++    let (pie, output) = browser_virtual_os::execute_hints(&regenerated)?;
++    let execution_ms = t.elapsed().as_millis();
++    std::fs::write(dir.join("cairo_pie.zip"), pie)?;
++    std::fs::write(dir.join("virtual_os_output.json"), output)?;
++    println!(
++        "{}",
++        serde_json::json!({"preexecution_ms":preexecution_ms,"virtual_os_execution_ms":execution_ms,"execution_info_matches_upstream":true,"origin":"native-snapshot-reexecution"})
++    );
++    Ok(())
++}
++
++// The pinned CallInfo stores these three tracker fields as HashSet, so serialization
++// order is not semantic. Preserve every ordered trace, read-value and call array.
++fn normalize(mut v: serde_json::Value) -> serde_json::Value {
++    match &mut v {
++        serde_json::Value::Object(map) => {
++            if let Some(serde_json::Value::Object(tracker)) = map.get_mut("storage_access_tracker")
++            {
++                for key in
++                    ["accessed_storage_keys", "accessed_contract_addresses", "accessed_blocks"]
++                {
++                    if let Some(serde_json::Value::Array(a)) = tracker.get_mut(key) {
++                        a.sort_by_key(|x| x.to_string());
++                    }
++                }
++            }
++            for val in map.values_mut() {
++                *val = normalize(val.take());
++            }
++        }
++        serde_json::Value::Array(a) => {
++            for val in a {
++                *val = normalize(val.take());
++            }
++        }
++        _ => {}
++    }
++    v
++}
+diff --git a/crates/browser_virtual_os/examples/prepare_public_state.rs b/crates/browser_virtual_os/examples/prepare_public_state.rs
+new file mode 100644
+index 0000000..07ab7e9
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/prepare_public_state.rs
+@@ -0,0 +1,6 @@
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let args:Vec<String>=std::env::args().collect();
++ if args.len()!=4{return Err("usage: prepare_public_state PROOF_INPUT CLASSES_INPUT OUTPUT".into());}
++ let output=browser_virtual_os::public_state::prepare_state(&std::fs::read(&args[1])?,&std::fs::read(&args[2])?)?;
++ std::fs::write(&args[3],output)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/public_admission.rs b/crates/browser_virtual_os/examples/public_admission.rs
+new file mode 100644
+index 0000000..36b0d21
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/public_admission.rs
+@@ -0,0 +1,4 @@
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let a:Vec<String>=std::env::args().collect();if a.len()!=5{return Err("usage: public_admission ADMISSION_STATE REQUEST FACTS OUTPUT".into());}
++ std::fs::write(&a[4],browser_virtual_os::public_admission::check(&std::fs::read(&a[1])?,&std::fs::read(&a[2])?,&std::fs::read(&a[3])?)?)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/public_admission_context.rs b/crates/browser_virtual_os/examples/public_admission_context.rs
+new file mode 100644
+index 0000000..9578f9c
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/public_admission_context.rs
+@@ -0,0 +1,11 @@
++use blockifier::blockifier_versioned_constants::VersionedConstants;
++use starknet_api::{core::OsChainInfo,versioned_constants_logic::VersionedConstantsTrait};
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let a:Vec<String>=std::env::args().collect();if a.len()!=4{return Err("usage: public_admission_context ADMISSION_STATE REQUEST OUTPUT".into());}
++ let proof=std::fs::read(&a[1])?;browser_virtual_os::public_state::authenticate_and_convert(&proof)?;
++ let input:browser_virtual_os::public_state::PublicProofInput=serde_json::from_slice(&proof)?;
++ let request:browser_virtual_os::public_execution::ExecutionRequest=serde_json::from_slice(&std::fs::read(&a[2])?)?;
++ let config=OsChainInfo::from(&request.chain_info).compute_virtual_os_config_hash(input.header.block_info()?.starknet_version)?;
++ let constants=VersionedConstants::latest_constants();
++ std::fs::write(&a[3],serde_json::to_vec_pretty(&serde_json::json!({"config_hash":config,"allowed_programs":constants.os_constants.allowed_virtual_os_program_hashes,"allowed_versions":constants.os_constants.allowed_proof_versions,"stored_block_hash_buffer":blockifier::abi::constants::STORED_BLOCK_HASH_BUFFER,"scope":"Pinned backend context description; not a proof or network acceptance"}))?)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/public_demo_sign.rs b/crates/browser_virtual_os/examples/public_demo_sign.rs
+new file mode 100644
+index 0000000..bfb895b
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/public_demo_sign.rs
+@@ -0,0 +1,4 @@
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let a:Vec<String>=std::env::args().collect();if a.len()!=3{return Err("usage: public_demo_sign UNSIGNED_REQUEST OUTPUT".into());}
++ std::fs::write(&a[2],browser_virtual_os::public_demo_signer::sign_request(&std::fs::read(&a[1])?)?)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/public_execute.rs b/crates/browser_virtual_os/examples/public_execute.rs
+new file mode 100644
+index 0000000..0b2b0fe
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/public_execute.rs
+@@ -0,0 +1,6 @@
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let a:Vec<String>=std::env::args().collect();if a.len()!=5{return Err("usage: public_execute PROOF CLASSES REQUEST OUTPUT_DIR".into());}
++ let (hints,report)=browser_virtual_os::public_execution::create_public_hints(&std::fs::read(&a[1])?,&std::fs::read(&a[2])?,&std::fs::read(&a[3])?)?;
++ let out=std::path::Path::new(&a[4]);std::fs::create_dir_all(out)?;
++ std::fs::write(out.join("hints.json"),serde_json::to_vec(&hints)?)?;std::fs::write(out.join("execution.json"),report)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/public_request_hash.rs b/crates/browser_virtual_os/examples/public_request_hash.rs
+new file mode 100644
+index 0000000..09f16fb
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/public_request_hash.rs
+@@ -0,0 +1,11 @@
++//! Hash-only bridge for local external signers. Does not accept or load a signing key.
++use browser_virtual_os::public_execution::ExecutionRequest;
++use starknet_api::transaction::InvokeTransaction;
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let args:Vec<String>=std::env::args().collect();
++ if args.len()!=3{return Err("usage: public_request_hash REQUEST OUTPUT".into());}
++ let request:ExecutionRequest=serde_json::from_slice(&std::fs::read(&args[1])?)?;
++ let invoke=starknet_api::executable_transaction::InvokeTransaction::create(InvokeTransaction::V3(request.transaction.into()),&request.chain_info.chain_id)?;
++ std::fs::write(&args[2],serde_json::to_vec_pretty(&serde_json::json!({"transaction_hash":invoke.tx_hash.0}))?)?;
++ Ok(())
++}
+diff --git a/crates/browser_virtual_os/examples/public_witness.rs b/crates/browser_virtual_os/examples/public_witness.rs
+new file mode 100644
+index 0000000..03aeb6d
+--- /dev/null
++++ b/crates/browser_virtual_os/examples/public_witness.rs
+@@ -0,0 +1,5 @@
++fn main()->Result<(),Box<dyn std::error::Error>>{
++ let a:Vec<String>=std::env::args().collect();if a.len()!=5{return Err("usage: public_witness PROOF CLASSES DIFF OUTPUT".into());}
++ let output=browser_virtual_os::public_witness::witness_control(&std::fs::read(&a[1])?,&std::fs::read(&a[2])?,&std::fs::read(&a[3])?)?;
++ std::fs::write(&a[4],output)?;Ok(())
++}
+diff --git a/crates/browser_virtual_os/src/alloc_metrics.rs b/crates/browser_virtual_os/src/alloc_metrics.rs
+new file mode 100644
+index 0000000..305fa3d
+--- /dev/null
++++ b/crates/browser_virtual_os/src/alloc_metrics.rs
+@@ -0,0 +1,45 @@
++//! Requested Rust heap bytes; excludes allocator overhead, JS heap, and process RSS.
++use std::alloc::{GlobalAlloc, Layout, System};
++use std::sync::atomic::{AtomicUsize, Ordering};
++
++static LIVE: AtomicUsize = AtomicUsize::new(0);
++static PEAK: AtomicUsize = AtomicUsize::new(0);
++pub struct MeteredAllocator;
++
++fn add(bytes: usize) {
++    let live = LIVE.fetch_add(bytes, Ordering::Relaxed) + bytes;
++    PEAK.fetch_max(live, Ordering::Relaxed);
++}
++
++// SAFETY: Every allocation operation delegates with the unchanged pointer and layout to
++// System. Counters neither dereference allocations nor influence allocation behavior.
++unsafe impl GlobalAlloc for MeteredAllocator {
++    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
++        let ptr = unsafe { System.alloc(layout) };
++        if !ptr.is_null() { add(layout.size()); }
++        ptr
++    }
++    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
++        let ptr = unsafe { System.alloc_zeroed(layout) };
++        if !ptr.is_null() { add(layout.size()); }
++        ptr
++    }
++    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
++        unsafe { System.dealloc(ptr, layout) };
++        LIVE.fetch_sub(layout.size(), Ordering::Relaxed);
++    }
++    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
++        let result = unsafe { System.realloc(ptr, layout, new_size) };
++        if !result.is_null() {
++            if new_size >= layout.size() { add(new_size - layout.size()); }
++            else { LIVE.fetch_sub(layout.size() - new_size, Ordering::Relaxed); }
++        }
++        result
++    }
++}
++
++pub fn snapshot() -> String {
++    let live = LIVE.load(Ordering::Relaxed);
++    let peak = PEAK.load(Ordering::Relaxed);
++    format!("{{\"rust_requested_live_bytes\":{live},\"rust_requested_peak_bytes\":{peak}}}")
++}
+diff --git a/crates/browser_virtual_os/src/lib.rs b/crates/browser_virtual_os/src/lib.rs
+new file mode 100644
+index 0000000..b9f69dc
+--- /dev/null
++++ b/crates/browser_virtual_os/src/lib.rs
+@@ -0,0 +1,156 @@
++#[cfg(target_arch = "wasm32")]
++mod alloc_metrics;
++#[cfg(target_arch = "wasm32")]
++#[global_allocator]
++static ALLOCATOR: alloc_metrics::MeteredAllocator = alloc_metrics::MeteredAllocator;
++#[cfg(target_arch = "wasm32")]
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn allocation_metrics() -> String { alloc_metrics::snapshot() }
++pub mod public_admission;
++pub mod public_demo_signer;
++pub mod public_execution;
++pub mod public_witness;
++pub mod public_class;
++#[path="../../apollo_compilation_utils/src/class_utils.rs"]
++pub mod pinned_class_utils;
++pub mod public_header;
++pub mod public_state;
++// Minimal type adapters allow direct reuse of the pinned converter without its HTTP stack.
++pub mod errors {
++    #[derive(Debug,thiserror::Error)]
++    pub enum ProofProviderError {
++        #[error("Invalid state diff: {0}")] InvalidStateDiff(String),
++        #[error(transparent)] SerializationError(#[from] starknet_patricia_storage::errors::SerializationError),
++        #[error("Invalid RPC proof: {0}")] InvalidProofResponse(String),
++        #[error("Block commitment: {0}")] BlockCommitmentError(String),
++    }
++}
++pub mod running { pub mod storage_proofs {
++    #[derive(serde::Deserialize)]
++    #[serde(deny_unknown_fields)]
++    pub struct RpcStorageProofsQuery {
++        pub class_hashes: Vec<starknet_rust_core::types::Felt>,
++        pub contract_addresses: Vec<starknet_api::core::ContractAddress>,
++        #[serde(rename="contracts_storage_keys")]
++        pub contract_storage_keys: Vec<starknet_rust_core::types::ContractStorageKeys>,
++    }
++}}
++#[path="../../starknet_transaction_prover/src/running/committer_utils.rs"]
++pub mod pinned_committer_utils;
++pub mod preexecute;
++pub mod witness;
++// Executes pinned virtual OS hints locally. State acquisition and Blockifier preexecution
++// remain explicit preceding stages. This module does not construct a proof.
++use std::io::{Cursor, Write};
++
++use cairo_vm::vm::runners::cairo_pie::CairoPie;
++use wasm_bindgen::prelude::*;
++
++/// In-memory equivalent of CairoPie::write_zip_file(path, false).
++pub fn pie_zip(pie: &CairoPie) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
++    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
++    let options = zip::write::FileOptions::default()
++        .compression_method(zip::CompressionMethod::Deflated)
++        .large_file(true);
++    zip.start_file("version.json", options)?;
++    serde_json::to_writer(&mut zip, &pie.version)?;
++    zip.start_file("metadata.json", options)?;
++    serde_json::to_writer(&mut zip, &pie.metadata)?;
++    zip.start_file("memory.bin", options)?;
++    zip.write_all(&pie.memory.to_bytes(None))?;
++    zip.start_file("additional_data.json", options)?;
++    serde_json::to_writer(&mut zip, &pie.additional_data)?;
++    zip.start_file("execution_resources.json", options)?;
++    serde_json::to_writer(&mut zip, &pie.execution_resources)?;
++    Ok(zip.finish()?.into_inner())
++}
++
++pub fn execute_hints(hints_json: &[u8]) -> Result<(Vec<u8>, String), Box<dyn std::error::Error>> {
++    let hints: starknet_os::io::os_input::OsHints = serde_json::from_slice(hints_json)?;
++    if hints.os_hints_config.use_kzg_da {
++        return Err("virtual OS browser executor requires use_kzg_da=false".into());
++    }
++    let result = starknet_os::runner::run_virtual_os(hints)?;
++    result.cairo_pie.run_validity_checks()?;
++    // Strict native virtual-output parser checks version, message count and trailing fields.
++    starknet_os::io::virtual_os_output::VirtualOsOutput::from_raw_output(&result.raw_output)?;
++    let output = serde_json::to_string(&result.raw_output)?;
++    Ok((pie_zip(&result.cairo_pie)?, output))
++}
++
++#[wasm_bindgen]
++pub struct ExecutionResult {
++    pie: Vec<u8>,
++    output: String,
++}
++#[wasm_bindgen]
++impl ExecutionResult {
++    pub fn pie_bytes(&self) -> Vec<u8> {
++        self.pie.clone()
++    }
++    pub fn output_json(&self) -> String {
++        self.output.clone()
++    }
++}
++#[wasm_bindgen]
++pub fn run_virtual_os(hints_json: &[u8]) -> Result<ExecutionResult, JsValue> {
++    execute_hints(hints_json)
++        .map(|(pie, output)| ExecutionResult { pie, output })
++        .map_err(|e| JsValue::from_str(&e.to_string()))
++}
++
++#[wasm_bindgen]
++extern "C" {
++    #[wasm_bindgen(js_namespace = console, js_name = error)]
++    fn console_error(message: &str);
++}
++#[wasm_bindgen(start)]
++pub fn install_panic_hook() {
++    std::panic::set_hook(Box::new(|info| console_error(&info.to_string())));
++}
++
++/// Regenerates transaction call information from a complete local state snapshot.
++/// The input may have an empty tx_execution_infos array; it is never used by this stage.
++#[wasm_bindgen]
++pub fn prepare_transaction(hints_json: &[u8], snapshot_json: &[u8]) -> Result<String, JsValue> {
++    let prepare = || -> Result<String, Box<dyn std::error::Error>> {
++        let mut hints = serde_json::from_slice(hints_json)?;
++        preexecute::preexecute(&mut hints, snapshot_json)?;
++        Ok(serde_json::to_string(&hints)?)
++    };
++    prepare().map_err(|e| JsValue::from_str(&e.to_string()))
++}
++
++/// Start from a plain RPC transaction, recompute its hash, and execute locally.
++/// The supplied hints provide the base-block metadata, classes and storage witness.
++#[wasm_bindgen]
++pub fn prepare_rpc_transaction(
++    hints_json: &[u8],
++    snapshot_json: &[u8],
++    rpc_json: &[u8],
++) -> Result<String, JsValue> {
++    let prepare = || -> Result<String, Box<dyn std::error::Error>> {
++        let mut hints = serde_json::from_slice(hints_json)?;
++        preexecute::install_rpc_transaction(&mut hints, rpc_json, snapshot_json)?;
++        preexecute::preexecute(&mut hints, snapshot_json)?;
++        Ok(serde_json::to_string(&hints)?)
++    };
++    prepare().map_err(|e| JsValue::from_str(&e.to_string()))
++}
++
++/// Rebuild storage witnesses from the complete local facts database after browser execution.
++#[wasm_bindgen]
++pub fn prepare_rpc_with_witness(
++    hints_json: &[u8],
++    snapshot_json: &[u8],
++    rpc_json: &[u8],
++    database_json: &[u8],
++) -> Result<String, JsValue> {
++    let prepare = || -> Result<String, Box<dyn std::error::Error>> {
++        let mut hints = serde_json::from_slice(hints_json)?;
++        preexecute::install_rpc_transaction(&mut hints, rpc_json, snapshot_json)?;
++        preexecute::preexecute_with_witness(&mut hints, snapshot_json, Some(database_json))?;
++        Ok(serde_json::to_string(&hints)?)
++    };
++    prepare().map_err(|e| JsValue::from_str(&e.to_string()))
++}
+diff --git a/crates/browser_virtual_os/src/preexecute.rs b/crates/browser_virtual_os/src/preexecute.rs
+new file mode 100644
+index 0000000..9ea0cfd
+--- /dev/null
++++ b/crates/browser_virtual_os/src/preexecute.rs
+@@ -0,0 +1,284 @@
++//! Offline preexecution against a complete synthetic test-chain snapshot.
++//! No RPC, implicit remote state, or fallback to native execution.
++use std::collections::{BTreeMap, HashMap};
++
++use blockifier::blockifier::config::TransactionExecutorConfig;
++use blockifier::blockifier::transaction_executor::TransactionExecutor;
++use blockifier::blockifier_versioned_constants::VersionedConstants;
++use blockifier::bouncer::BouncerConfig;
++use blockifier::context::{BlockContext, ChainInfo};
++use blockifier::execution::contract_class::{CompiledClassV1, RunnableCompiledClass};
++use blockifier::state::cached_state::{CachedState, StateMaps};
++use blockifier::state::errors::StateError;
++use blockifier::state::state_api::{StateReader, StateResult};
++use blockifier::transaction::transaction_execution::Transaction;
++use serde::Deserialize;
++use shared_execution_objects::central_objects::CentralTransactionExecutionInfo;
++use starknet_api::contract_class::SierraVersion;
++use starknet_api::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
++use starknet_api::state::StorageKey;
++use starknet_api::versioned_constants_logic::VersionedConstantsTrait;
++use starknet_os::io::os_input::OsHints;
++use starknet_types_core::felt::Felt;
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct Snapshot {
++    #[serde(default = "default_execution_mode")]
++    execution_mode: String,
++    state_maps: StateMaps,
++    sierra_versions: BTreeMap<ClassHash, SierraVersion>,
++    compiled_class_hashes_v2: BTreeMap<ClassHash, CompiledClassHash>,
++    chain_info: ChainInfo,
++    scope: String,
++}
++fn default_execution_mode() -> String {
++    "upstream_fixture".into()
++}
++struct SnapshotReader {
++    strict_missing: bool,
++    state: StateMaps,
++    classes: HashMap<ClassHash, RunnableCompiledClass>,
++    hashes_v2: BTreeMap<ClassHash, CompiledClassHash>,
++}
++impl SnapshotReader {
++    fn absent<T: Default>(&self, request: serde_json::Value) -> StateResult<T> {
++        if self.strict_missing {
++            Err(StateError::StateReadError(format!("BROWSER_STATE_MISS:{request}")))
++        } else {
++            Ok(T::default())
++        }
++    }
++}
++impl StateReader for SnapshotReader {
++    fn get_storage_at(&self, a: ContractAddress, k: StorageKey) -> StateResult<Felt> {
++        self.state.storage.get(&(a, k)).copied().map(Ok).unwrap_or_else(|| {
++            self.absent(serde_json::json!({"kind":"storage","address":a,"key":k}))
++        })
++    }
++    fn get_nonce_at(&self, a: ContractAddress) -> StateResult<Nonce> {
++        self.state
++            .nonces
++            .get(&a)
++            .copied()
++            .map(Ok)
++            .unwrap_or_else(|| self.absent(serde_json::json!({"kind":"nonce","address":a})))
++    }
++    fn get_class_hash_at(&self, a: ContractAddress) -> StateResult<ClassHash> {
++        self.state
++            .class_hashes
++            .get(&a)
++            .copied()
++            .map(Ok)
++            .unwrap_or_else(|| self.absent(serde_json::json!({"kind":"class_hash","address":a})))
++    }
++    fn get_compiled_class_hash(&self, h: ClassHash) -> StateResult<CompiledClassHash> {
++        self.state.compiled_class_hashes.get(&h).copied().map(Ok).unwrap_or_else(|| {
++            self.absent(serde_json::json!({"kind":"compiled_class_hash","class_hash":h}))
++        })
++    }
++    fn get_compiled_class(&self, h: ClassHash) -> StateResult<RunnableCompiledClass> {
++        self.classes.get(&h).cloned().ok_or(StateError::UndeclaredClassHash(h))
++    }
++    fn get_compiled_class_hash_v2(
++        &self,
++        h: ClassHash,
++        _c: &RunnableCompiledClass,
++    ) -> StateResult<CompiledClassHash> {
++        self.hashes_v2.get(&h).copied().ok_or(StateError::MissingCompiledClassHashV2(h))
++    }
++}
++
++/// Replace all native-prepared call information with fresh pinned Blockifier execution.
++/// The state-commitment witness remains supplied input and is checked by the virtual OS.
++pub fn preexecute(
++    hints: &mut OsHints,
++    snapshot_json: &[u8],
++) -> Result<String, Box<dyn std::error::Error>> {
++    preexecute_with_witness(hints, snapshot_json, None)
++}
++
++pub fn preexecute_with_witness(
++    hints: &mut OsHints,
++    snapshot_json: &[u8],
++    database_json: Option<&[u8]>,
++) -> Result<String, Box<dyn std::error::Error>> {
++    let snapshot: Snapshot = serde_json::from_slice(snapshot_json)?;
++    let strict_missing = match snapshot.scope.as_str() {
++        "complete synthetic test-chain state; absence means zero" => false,
++        "partial state cache; unknown entries are errors" => true,
++        _ => return Err("unsupported state snapshot scope".into()),
++    };
++    if hints.os_input.os_block_inputs.len() != 1 {
++        return Err("expected one block".into());
++    }
++    let block = &mut hints.os_input.os_block_inputs[0];
++    if block.transactions.len() != 1 {
++        return Err("expected one transaction".into());
++    }
++    if !matches!(
++        block.transactions[0],
++        starknet_api::executable_transaction::Transaction::Account(
++            starknet_api::executable_transaction::AccountTransaction::Invoke(_)
++        )
++    ) {
++        return Err("expected Invoke".into());
++    }
++    if snapshot.chain_info.chain_id != hints.os_hints_config.chain_info.chain_id
++        || snapshot.chain_info.fee_token_addresses.strk_fee_token_address
++            != hints.os_hints_config.chain_info.strk_fee_token_address
++    {
++        return Err("snapshot chain identity mismatch".into());
++    }
++    let mut classes = HashMap::new();
++    for (hash, version) in &snapshot.sierra_versions {
++        let compiled_hash =
++            snapshot.compiled_class_hashes_v2.get(hash).ok_or("missing V2 class identity")?;
++        let casm =
++            hints.os_input.compiled_classes.get(compiled_hash).ok_or("missing compiled class")?;
++        classes.insert(
++            *hash,
++            RunnableCompiledClass::V1(CompiledClassV1::try_from((casm.clone(), version.clone()))?),
++        );
++    }
++    let reader = SnapshotReader {
++        strict_missing,
++        state: snapshot.state_maps,
++        classes,
++        hashes_v2: snapshot.compiled_class_hashes_v2,
++    };
++    let mut state = CachedState::new(reader);
++    // These are the exact pinned upstream flow-test context and sequencing flags.
++    let mut constants = VersionedConstants::latest_constants().clone();
++    let (transaction, bouncer) = match snapshot.execution_mode.as_str() {
++        "upstream_fixture" => {
++            (Transaction::new_for_sequencing(block.transactions[0].clone()), BouncerConfig::max())
++        }
++        "backend_zero_fee" => {
++            constants.disable_casm_hash_migration();
++            constants.min_sierra_version_for_sierra_gas = SierraVersion::new(0, 0, 1);
++            let starknet_api::executable_transaction::Transaction::Account(
++                starknet_api::executable_transaction::AccountTransaction::Invoke(invoke),
++            ) = &block.transactions[0]
++            else {
++                unreachable!()
++            };
++            let tx = Transaction::from_api(
++                starknet_api::transaction::Transaction::Invoke(invoke.tx.clone()),
++                invoke.tx_hash,
++                None,
++                None,
++                None,
++                blockifier::transaction::account_transaction::ExecutionFlags {
++                    only_query: false,
++                    charge_fee: false,
++                    validate: true,
++                    strict_nonce_check: false,
++                },
++            )?;
++            (tx, BouncerConfig::default())
++        }
++        _ => return Err("unsupported execution mode".into()),
++    };
++    let context =
++        BlockContext::new(block.block_info.clone(), snapshot.chain_info, constants, bouncer);
++    // Same single-transaction execution and capacity gate as the RPC backend.
++    // No block preprocessing or native worker pool is used.
++    let mut executor =
++        TransactionExecutor::new(state, context.clone(), TransactionExecutorConfig::default());
++    let (execution, _) = executor.execute(&transaction)?;
++    state = executor.block_state.take().ok_or("transaction executor state unavailable")?;
++    if let Some(error) = execution.revert_error {
++        return Err(format!("virtual transaction reverted: {error}").into());
++    }
++    if let Some(database_json) = database_json {
++        // Same extended-read collection used by the upstream flow-test builder.
++        let reads = state.get_initial_reads()?;
++        for address in reads.get_contract_addresses() {
++            state.get_class_hash_at(address)?;
++            state.get_nonce_at(address)?;
++        }
++        for hash in reads.declared_contracts.keys() {
++            state.get_compiled_class_hash(*hash)?;
++        }
++        let mut initial_reads = state.get_initial_reads()?;
++        initial_reads.declared_contracts.clear();
++        let diff = state.to_state_diff()?.state_maps;
++        let commitment_diff = diff.clone().into();
++        let mut constants = context.versioned_constants().clone();
++        constants.enable_stateful_compression = false;
++        let accessed = blockifier::state::accessed_keys::AccessedKeys::new(
++            [&execution],
++            [],
++            &commitment_diff,
++            &constants,
++        );
++        let keys = blockifier::state::cached_state::StateChangesKeys {
++            nonce_keys: Default::default(),
++            class_hash_keys: Default::default(),
++            storage_keys: accessed.storage_keys.into_iter().collect(),
++            compiled_class_hash_keys: accessed.accessed_class_hashes.into_iter().collect(),
++            modified_contracts: accessed.accessed_contracts.into_iter().collect(),
++        };
++        let infos = crate::witness::regenerate(
++            database_json,
++            diff,
++            &keys,
++            starknet_api::hash::StateRoots {
++                contracts_trie_root_hash: block.contract_state_commitment_info.previous_root,
++                classes_trie_root_hash: block.contract_class_commitment_info.previous_root,
++            },
++        )?;
++        block.initial_reads = initial_reads;
++        block.contract_state_commitment_info = infos.contracts_trie_commitment_info;
++        block.contract_class_commitment_info = infos.classes_trie_commitment_info;
++        block.address_to_storage_commitment_info = infos.storage_tries_commitment_infos;
++    }
++    let execution: CentralTransactionExecutionInfo = execution.into();
++    let result = serde_json::to_string(&execution)?;
++    block.tx_execution_infos = vec![execution];
++    Ok(result)
++}
++
++/// Install a plain RPC invoke, computing its transaction hash with pinned Starknet API code.
++/// Fee/input checks mirror the backend's default input policy; this local adapter only
++/// supports the explicit complete-snapshot execution mode, not RPC state acquisition.
++pub fn install_rpc_transaction(
++    hints: &mut OsHints,
++    rpc_json: &[u8],
++    snapshot_json: &[u8],
++) -> Result<(), Box<dyn std::error::Error>> {
++    let snapshot: Snapshot = serde_json::from_slice(snapshot_json)?;
++    if snapshot.execution_mode != "backend_zero_fee" {
++        return Err("RPC input requires backend_zero_fee snapshot mode".into());
++    }
++    let rpc: starknet_api::rpc_transaction::RpcInvokeTransactionV3 =
++        serde_json::from_slice(rpc_json)?;
++    if !rpc.proof.is_empty() || !rpc.proof_facts.is_empty() {
++        return Err("proof and proof_facts must be empty on input".into());
++    }
++    let bounds = &rpc.resource_bounds;
++    if rpc.tip.0 != 0
++        || bounds.l1_gas.max_price_per_unit.0 != 0
++        || bounds.l2_gas.max_price_per_unit.0 != 0
++        || bounds.l1_data_gas.max_price_per_unit.0 != 0
++    {
++        return Err("all input gas prices and tip must be zero".into());
++    }
++    if bounds.l2_gas.max_amount.0 == 0 {
++        return Err("L2 gas amount must be nonzero".into());
++    }
++    if hints.os_input.os_block_inputs.len() != 1 {
++        return Err("expected one block".into());
++    }
++    let invoke = starknet_api::executable_transaction::InvokeTransaction::create(
++        starknet_api::transaction::InvokeTransaction::V3(rpc.into()),
++        &snapshot.chain_info.chain_id,
++    )?;
++    hints.os_input.os_block_inputs[0].transactions =
++        vec![starknet_api::executable_transaction::Transaction::Account(
++            starknet_api::executable_transaction::AccountTransaction::Invoke(invoke),
++        )];
++    hints.os_input.os_block_inputs[0].tx_execution_infos.clear();
++    Ok(())
++}
+diff --git a/crates/browser_virtual_os/src/public_admission.rs b/crates/browser_virtual_os/src/public_admission.rs
+new file mode 100644
+index 0000000..e7ae005
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_admission.rs
+@@ -0,0 +1,27 @@
++//! Scoped proof-fact admission using unchanged pinned Blockifier prevalidation.
++//! Fee payment, account validation, execution and consensus inclusion are outside this check.
++use starknet_api::executable_transaction::AccountTransaction as Transaction;
++use std::collections::{HashMap,BTreeMap};
++use blockifier::{blockifier_versioned_constants::VersionedConstants,bouncer::BouncerConfig,context::BlockContext,state::cached_state::{CachedState,StateMaps},transaction::account_transaction::{AccountTransaction,ExecutionFlags}};
++use starknet_api::{core::OsChainInfo,transaction::{InvokeTransaction,fields::ProofFacts},versioned_constants_logic::VersionedConstantsTrait};
++use starknet_types_core::felt::Felt;
++use crate::public_execution::{ExecutionRequest,PublicReader};
++pub fn check(proof_bytes:&[u8],request_bytes:&[u8],facts_bytes:&[u8])->Result<String,Box<dyn std::error::Error>>{
++ let checked:serde_json::Value=serde_json::from_str(&crate::public_state::authenticate_and_convert(proof_bytes)?)?;
++ let initial:StateMaps=serde_json::from_value(checked["initial_reads"].clone())?;
++ let input:crate::public_state::PublicProofInput=serde_json::from_slice(proof_bytes)?;
++ let mut request:ExecutionRequest=serde_json::from_slice(request_bytes)?;
++ if Felt::from_hex(&request.chain_info.chain_id.as_hex())?!=request.captured_chain_id{return Err("Admission chain differs from captured chain".into());}
++ if request.chain_info.is_l3{return Err("L3 admission context unsupported".into());}
++ let facts:ProofFacts=serde_json::from_slice(facts_bytes)?;
++ if facts.0.is_empty(){return Err("Empty facts are not SNIP-36 admission evidence".into());}
++ request.transaction.proof_facts=facts;
++ let invoke=starknet_api::executable_transaction::InvokeTransaction::create(InvokeTransaction::V3(request.transaction.into()),&request.chain_info.chain_id)?;
++ let block_info=input.header.block_info()?;
++ let config=OsChainInfo::from(&request.chain_info).compute_virtual_os_config_hash(block_info.starknet_version)?;
++ let context=BlockContext::new(block_info,request.chain_info,VersionedConstants::latest_constants().clone(),BouncerConfig::default());
++ let tx=AccountTransaction{tx:Transaction::Invoke(invoke),execution_flags:ExecutionFlags{only_query:false,charge_fee:false,validate:true,strict_nonce_check:true}};
++ let mut state=CachedState::new(PublicReader{state:initial,classes:HashMap::new(),hashes_v2:BTreeMap::new()});
++ tx.perform_pre_validation_stage(&mut state,&context.to_tx_context(&tx))?;
++ Ok(serde_json::to_string(&serde_json::json!({"admission":"accepted","admission_block_hash":input.block_hash,"admission_block_number":input.header.block_number,"config_hash":config,"chain_id":request.captured_chain_id,"scope":"Unchanged pinned nonce and proof version/program/block-age/stored-block-hash/config gates against authenticated RPC state; fees and account signature validation not checked","network_acceptance_tested":false}))?)
++}
+diff --git a/crates/browser_virtual_os/src/public_class.rs b/crates/browser_virtual_os/src/public_class.rs
+new file mode 100644
+index 0000000..89d43da
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_class.rs
+@@ -0,0 +1,60 @@
++//! Uses the pinned native in-process Sierra compilation function verbatim.
++use blockifier::state::{errors::StateError,state_api::StateResult};
++use cairo_lang_starknet_classes::{allowed_libfuncs::ListSelector,casm_contract_class::CasmContractClass};
++use starknet_api::contract_class::{ContractClass,SierraVersion};
++use starknet_api::state::SierraContractClass;
++use crate::pinned_class_utils::into_contract_class_for_compilation;
++// Pinned apollo_sierra_compilation_config::config::DEFAULT_MAX_BYTECODE_SIZE.
++const DEFAULT_MAX_BYTECODE_SIZE:usize=80*1024;
++pub fn sierra_to_versioned_contract_class_v1(
++    sierra_contract: SierraContractClass,
++) -> StateResult<(ContractClass, SierraVersion)> {
++    let sierra_version = SierraVersion::extract_from_program(&sierra_contract.sierra_program)
++        .map_err(|err| {
++            StateError::StateReadError(format!("Failed to extract Sierra version: {err}"))
++        })?;
++    let contract_class_for_compilation = into_contract_class_for_compilation(&sierra_contract);
++    let extracted_sierra_program =
++        contract_class_for_compilation.extract_sierra_program(false).map_err(|err| {
++            StateError::StateReadError(format!("Failed to extract the Sierra program: {err}"))
++        })?;
++    // Re-execution must accept any class the network accepted; do not restrict to the audited
++    // libfuncs list.
++    extracted_sierra_program
++        .validate_version_compatible(ListSelector::ListName("all".to_string()))
++        .map_err(|err| {
++            StateError::StateReadError(format!("Sierra program version validation failed: {err}"))
++        })?;
++    let casm_contract_class = CasmContractClass::from_contract_class(
++        contract_class_for_compilation,
++        extracted_sierra_program,
++        // Add pythonic hints, as the sequencer does when compiling declared classes.
++        true,
++        // Generous bound; declared classes already passed the network's bytecode-size limit.
++        10 * DEFAULT_MAX_BYTECODE_SIZE,
++    )
++    .map_err(|err| {
++        StateError::StateReadError(format!("Failed to compile Sierra to Casm: {err}"))
++    })?;
++
++    Ok((ContractClass::V1((casm_contract_class, sierra_version.clone())), sierra_version))
++}
++
++#[derive(serde::Deserialize)]
++#[serde(deny_unknown_fields)]
++struct Input { class_hash:starknet_api::core::ClassHash, class: SierraContractClass }
++pub fn compile_public_class(bytes:&[u8])->Result<String,Box<dyn std::error::Error>>{
++ use starknet_api::contract_class::compiled_class_hash::{HashVersion,HashableCompiledClass};
++ use starknet_committer::{hash_function::hash::TreeHashFunctionImpl,patricia_merkle_tree::types::CompiledClassHash};
++ use starknet_patricia::patricia_merkle_tree::updated_skeleton_tree::hash_function::TreeHashFunction;
++ let input:Input=serde_json::from_slice(bytes)?;
++ if input.class.calculate_class_hash()!=input.class_hash{return Err("Sierra class hash mismatch".into());}
++ let (class,version)=sierra_to_versioned_contract_class_v1(input.class)?;
++ let ContractClass::V1((casm,_))=class else {return Err("Expected Cairo1 class".into());};
++ let hash_v1=casm.hash(&HashVersion::V1);let hash_v2=casm.hash(&HashVersion::V2);
++ let leaf_v1=TreeHashFunctionImpl::compute_leaf_hash(&CompiledClassHash(hash_v1.0));
++ let leaf_v2=TreeHashFunctionImpl::compute_leaf_hash(&CompiledClassHash(hash_v2.0));
++ Ok(serde_json::to_string(&serde_json::json!({"class_hash":input.class_hash,"sierra_version":version,"compiled_hash_v1":hash_v1,"compiled_hash_v2":hash_v2,"leaf_v1":leaf_v1,"leaf_v2":leaf_v2,"casm":casm,"scope":"Sierra identity checked; pinned native compiler used locally; match compiled class leaf to authenticated classes-tree path separately"}))?)
++}
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn compile_captured_class(bytes:&[u8])->Result<String,wasm_bindgen::JsValue>{compile_public_class(bytes).map_err(|e|wasm_bindgen::JsValue::from_str(&e.to_string()))}
+diff --git a/crates/browser_virtual_os/src/public_demo_signer.rs b/crates/browser_virtual_os/src/public_demo_signer.rs
+new file mode 100644
+index 0000000..a9707c6
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_demo_signer.rs
+@@ -0,0 +1,22 @@
++//! Fixed, deliberately public scalar-1 test signer. Never accepts private credentials.
++use starknet_types_core::felt::Felt;
++use starknet_api::transaction::InvokeTransaction;
++use crate::public_execution::ExecutionRequest;
++pub fn sign_request(bytes:&[u8])->Result<String,Box<dyn std::error::Error>>{
++ let request:ExecutionRequest=serde_json::from_slice(bytes)?;
++ let sepolia=Felt::from_hex("0x534e5f5345504f4c4941")?;
++ if request.captured_chain_id!=sepolia || Felt::from_hex(&request.chain_info.chain_id.as_hex())?!=sepolia{return Err("Public demo signer is restricted to SN_SEPOLIA".into());}
++ if !request.transaction.signature.0.is_empty(){return Err("Public demo signer requires an unsigned request".into());}
++ if !request.transaction.proof.is_empty() || !request.transaction.proof_facts.is_empty(){return Err("Public demo signer requires empty proof fields".into());}
++ let invoke=starknet_api::executable_transaction::InvokeTransaction::create(InvokeTransaction::V3(request.transaction.into()),&request.chain_info.chain_id)?;
++ let hash=invoke.tx_hash.0;
++ let signature=starknet_rust_core::crypto::ecdsa_sign(&Felt::ONE,&hash)?;
++ let public_key=Felt::from_hex("0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca")?;
++ let checked=starknet_rust_core::crypto::Signature{r:signature.r,s:signature.s};
++ if !starknet_rust_core::crypto::ecdsa_verify(&public_key,&hash,&checked)?{return Err("Public demo signature self-check failed".into());}
++ let mut signed:serde_json::Value=serde_json::from_slice(bytes)?;
++ signed["transaction"]["signature"]=serde_json::json!([signature.r,signature.s]);
++ Ok(serde_json::to_string(&serde_json::json!({"request":signed,"transaction_hash":hash,"public_key":public_key,"public_test_scalar":"0x1","scope":"Deliberately public test signer; deployment and account authorization must be authenticated separately"}))?)
++}
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn sign_public_demo_request(bytes:&[u8])->Result<String,wasm_bindgen::JsValue>{sign_request(bytes).map_err(|e|wasm_bindgen::JsValue::from_str(&e.to_string()))}
+diff --git a/crates/browser_virtual_os/src/public_execution.rs b/crates/browser_virtual_os/src/public_execution.rs
+new file mode 100644
+index 0000000..05c5e6b
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_execution.rs
+@@ -0,0 +1,195 @@
++//! Real-header virtual execution and OS input assembly. No synthetic hint template is accepted.
++use std::collections::{BTreeMap,HashMap};
++use blockifier::{blockifier::{config::TransactionExecutorConfig,transaction_executor::TransactionExecutor},blockifier_versioned_constants::VersionedConstants,bouncer::BouncerConfig,context::{BlockContext,ChainInfo},execution::contract_class::{CompiledClassV1,RunnableCompiledClass},state::{cached_state::{CachedState,StateMaps},errors::StateError,state_api::{StateReader,StateResult}},transaction::transaction_execution::Transaction};
++use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
++use serde::Deserialize;
++use shared_execution_objects::central_objects::CentralTransactionExecutionInfo;
++use starknet_api::{block::{BlockHash,BlockInfo},block_hash::block_hash_calculator::{BlockHeaderCommitments,concat_counts},contract_class::SierraVersion,core::{ClassHash,CompiledClassHash,ContractAddress,Nonce,OsChainInfo},state::StorageKey,transaction::{InvokeTransaction,TransactionHash},versioned_constants_logic::VersionedConstantsTrait};
++use starknet_os::{commitment_infos::CommitmentInfo,io::os_input::{OsBlockInput,OsHints,OsHintsConfig,StarknetOsInput}};
++use starknet_types_core::felt::Felt;
++pub(crate) struct VirtualOsBlockInput {
++    contract_state_commitment_info: CommitmentInfo,
++    address_to_storage_commitment_info: HashMap<ContractAddress, CommitmentInfo>,
++    contract_class_commitment_info: CommitmentInfo,
++    chain_info: OsChainInfo,
++    transactions: Vec<(InvokeTransaction, TransactionHash)>,
++    tx_execution_infos: Vec<CentralTransactionExecutionInfo>,
++    block_info: BlockInfo,
++    /// The base block's version string as returned by the RPC; used by the OS to recompute the
++    /// base block hash (may be newer than the latest known `StarknetVersion`).
++    raw_starknet_version: String,
++    initial_reads: StateMaps,
++    base_block_hash: BlockHash,
++    base_block_header_commitments: BlockHeaderCommitments,
++    prev_base_block_hash: BlockHash,
++    compiled_classes: BTreeMap<CompiledClassHash, CasmContractClass>,
++}
++
++impl From<VirtualOsBlockInput> for OsHints {
++    fn from(virtual_os_block_input: VirtualOsBlockInput) -> Self {
++        let os_block_input = OsBlockInput {
++            block_hash_commitments: virtual_os_block_input.base_block_header_commitments,
++            contract_state_commitment_info: virtual_os_block_input.contract_state_commitment_info,
++            address_to_storage_commitment_info: virtual_os_block_input
++                .address_to_storage_commitment_info,
++            contract_class_commitment_info: virtual_os_block_input.contract_class_commitment_info,
++            transactions: virtual_os_block_input
++                .transactions
++                .into_iter()
++                .map(|(invoke_tx, tx_hash)| {
++                    starknet_api::executable_transaction::Transaction::Account(
++                        starknet_api::executable_transaction::AccountTransaction::Invoke(
++                            starknet_api::executable_transaction::InvokeTransaction {
++                                tx: invoke_tx,
++                                tx_hash,
++                            },
++                        ),
++                    )
++                })
++                .collect(),
++            tx_execution_infos: virtual_os_block_input.tx_execution_infos,
++            prev_block_hash: virtual_os_block_input.prev_base_block_hash,
++            block_info: virtual_os_block_input.block_info,
++            starknet_version_override: Some(virtual_os_block_input.raw_starknet_version),
++            initial_reads: virtual_os_block_input.initial_reads,
++            declared_class_hash_to_component_hashes: HashMap::new(),
++            new_block_hash: virtual_os_block_input.base_block_hash,
++            old_block_number_and_hash: None,
++            class_hashes_to_migrate: Vec::new(),
++        };
++
++        let os_input = StarknetOsInput {
++            os_block_inputs: vec![os_block_input],
++            deprecated_compiled_classes: BTreeMap::new(),
++            compiled_classes: virtual_os_block_input.compiled_classes,
++        };
++
++        OsHints {
++            os_input,
++            os_hints_config: OsHintsConfig {
++                debug_mode: false,
++                full_output: false,
++                use_kzg_da: false,
++                chain_info: virtual_os_block_input.chain_info,
++                public_keys: None,
++                rng_seed_salt: None,
++            },
++        }
++    }
++}
++
++pub(crate) struct PublicReader {
++    pub(crate) state: StateMaps,
++    pub(crate) classes: HashMap<ClassHash, RunnableCompiledClass>,
++    pub(crate) hashes_v2: BTreeMap<ClassHash, CompiledClassHash>,
++}
++impl PublicReader {
++    fn absent<T>(&self,request:serde_json::Value)->StateResult<T>{
++        Err(StateError::StateReadError(format!("BROWSER_STATE_MISS:{request}")))
++    }
++}
++impl StateReader for PublicReader {
++    fn get_storage_at(&self, a: ContractAddress, k: StorageKey) -> StateResult<Felt> {
++        self.state.storage.get(&(a, k)).copied().map(Ok).unwrap_or_else(|| {
++            self.absent(serde_json::json!({"kind":"storage","address":a,"key":k}))
++        })
++    }
++    fn get_nonce_at(&self, a: ContractAddress) -> StateResult<Nonce> {
++        self.state
++            .nonces
++            .get(&a)
++            .copied()
++            .map(Ok)
++            .unwrap_or_else(|| self.absent(serde_json::json!({"kind":"nonce","address":a})))
++    }
++    fn get_class_hash_at(&self, a: ContractAddress) -> StateResult<ClassHash> {
++        self.state
++            .class_hashes
++            .get(&a)
++            .copied()
++            .map(Ok)
++            .unwrap_or_else(|| self.absent(serde_json::json!({"kind":"class_hash","address":a})))
++    }
++    fn get_compiled_class_hash(&self, h: ClassHash) -> StateResult<CompiledClassHash> {
++        self.state.compiled_class_hashes.get(&h).copied().map(Ok).unwrap_or_else(|| {
++            self.absent(serde_json::json!({"kind":"compiled_class_hash","class_hash":h}))
++        })
++    }
++    fn get_compiled_class(&self, h: ClassHash) -> StateResult<RunnableCompiledClass> {
++        self.classes.get(&h).cloned().map(Ok).unwrap_or_else(||self.absent(serde_json::json!({"kind":"class","class_hash":h})))
++    }
++    fn get_compiled_class_hash_v2(
++        &self,
++        h: ClassHash,
++        _c: &RunnableCompiledClass,
++    ) -> StateResult<CompiledClassHash> {
++        self.hashes_v2.get(&h).copied().ok_or(StateError::MissingCompiledClassHashV2(h))
++    }
++}
++
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct ExecutionRequest {
++ pub captured_chain_id:Felt,
++ pub chain_info:ChainInfo,
++ pub transaction:starknet_api::rpc_transaction::RpcInvokeTransactionV3,
++}
++#[derive(Deserialize)]
++struct Prepared {
++ initial_reads:StateMaps,
++ compiled_classes:BTreeMap<CompiledClassHash,CasmContractClass>,
++ sierra_versions:BTreeMap<ClassHash,SierraVersion>,
++ compiled_class_hashes_v2:BTreeMap<ClassHash,CompiledClassHash>,
++}
++
++pub fn create_public_hints(proof_bytes:&[u8],classes_bytes:&[u8],request_bytes:&[u8])->Result<(OsHints,String),Box<dyn std::error::Error>>{
++ let request:ExecutionRequest=serde_json::from_slice(request_bytes)?;
++ if Felt::from_hex(&request.chain_info.chain_id.as_hex())?!=request.captured_chain_id{return Err("Execution chain differs from captured RPC chain".into());}
++ if request.chain_info.is_l3{return Err("Public-chain adapter does not support L3 context".into());}
++ // Canonical STRK token from backend snip36-core/src/types.rs.
++ let strk=Felt::from_hex("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")?;
++ if **request.chain_info.fee_token_addresses.strk_fee_token_address!=strk{return Err("Unexpected public-chain STRK token".into());}
++ let rpc=request.transaction;
++ if rpc.signature.0.is_empty(){return Err("Representative public invocation requires a signature".into());}
++ if !rpc.proof.is_empty() || !rpc.proof_facts.is_empty(){return Err("proof and proof_facts must be empty on input".into());}
++ let bounds=&rpc.resource_bounds;
++ if rpc.tip.0!=0 || bounds.l1_gas.max_price_per_unit.0!=0 || bounds.l2_gas.max_price_per_unit.0!=0 || bounds.l1_data_gas.max_price_per_unit.0!=0{return Err("All input gas prices and tip must be zero".into());}
++ if bounds.l2_gas.max_amount.0==0{return Err("L2 gas amount must be nonzero".into());}
++ let prepared:Prepared=serde_json::from_str(&crate::public_state::prepare_state(proof_bytes,classes_bytes)?)?;
++ let input:crate::public_state::PublicProofInput=serde_json::from_slice(proof_bytes)?;
++ let mut classes=HashMap::new();
++ for (hash,version) in &prepared.sierra_versions{
++  let compiled_hash=prepared.compiled_class_hashes_v2.get(hash).ok_or("Missing authenticated V2 hash")?;
++  let casm=prepared.compiled_classes.get(compiled_hash).ok_or("Missing authenticated CASM")?;
++  classes.insert(*hash,RunnableCompiledClass::V1(CompiledClassV1::try_from((casm.clone(),version.clone()))?));
++ }
++ let initial=prepared.initial_reads;
++ let reader=PublicReader{state:initial.clone(),classes,hashes_v2:prepared.compiled_class_hashes_v2};
++ let invoke=starknet_api::executable_transaction::InvokeTransaction::create(InvokeTransaction::V3(rpc.into()),&request.chain_info.chain_id)?;
++ let block_info=input.header.block_info()?;
++ let mut constants=VersionedConstants::latest_constants().clone();constants.disable_casm_hash_migration();constants.min_sierra_version_for_sierra_gas=SierraVersion::new(0,0,1);
++ let context=BlockContext::new(block_info.clone(),request.chain_info.clone(),constants,BouncerConfig::default());
++ let transaction=Transaction::from_api(starknet_api::transaction::Transaction::Invoke(invoke.tx.clone()),invoke.tx_hash,None,None,None,blockifier::transaction::account_transaction::ExecutionFlags{only_query:false,charge_fee:false,validate:true,strict_nonce_check:false})?;
++ let mut executor=TransactionExecutor::new(CachedState::new(reader),context,TransactionExecutorConfig::default());
++ let (execution,_)=executor.execute(&transaction)?;
++ if let Some(error)=&execution.revert_error{return Err(format!("Public virtual invocation reverted: {error}").into());}
++ let mut state=executor.block_state.take().ok_or("Execution state unavailable")?;
++ let diff=state.to_state_diff()?.state_maps;
++ let infos=crate::public_witness::commit_authenticated(&input.proof,&input.query,&initial,diff.clone())?;
++ let message_hashes=starknet_os::io::virtual_os_output::compute_messages_to_l1_hashes(&execution.accumulated_sorted_l2_to_l1_messages());
++ let config_hash=OsChainInfo::from(&request.chain_info).compute_virtual_os_config_hash(block_info.starknet_version)?;
++ let central:CentralTransactionExecutionInfo=execution.into();
++ let report=serde_json::to_string(&serde_json::json!({"transaction_hash":invoke.tx_hash,"block_hash":input.block_hash,"chain_id":request.captured_chain_id,"execution":central,"state_diff":diff,"expected_config_hash":config_hash,"expected_message_hashes":message_hashes,"scope":"Pinned Blockifier execution with authenticated public inputs; network submission not performed"}))?;
++ let header=input.header;
++ let hints:OsHints=VirtualOsBlockInput{
++  contract_state_commitment_info:infos.contracts_trie_commitment_info,address_to_storage_commitment_info:infos.storage_tries_commitment_infos,contract_class_commitment_info:infos.classes_trie_commitment_info,
++  chain_info:OsChainInfo::from(&request.chain_info),transactions:vec![(invoke.tx,invoke.tx_hash)],tx_execution_infos:vec![central],block_info,raw_starknet_version:header.starknet_version,
++  initial_reads:initial,base_block_hash:header.block_hash,base_block_header_commitments:BlockHeaderCommitments{transaction_commitment:header.transaction_commitment,event_commitment:header.event_commitment,receipt_commitment:header.receipt_commitment,state_diff_commitment:header.state_diff_commitment,concatenated_counts:concat_counts(header.transaction_count,header.event_count,header.state_diff_length,header.l1_da_mode)},prev_base_block_hash:header.parent_hash,compiled_classes:prepared.compiled_classes,
++ }.into();
++ Ok((hints,report))
++}
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn public_preexecute(proof_bytes:&[u8],classes_bytes:&[u8],request_bytes:&[u8])->Result<String,wasm_bindgen::JsValue>{
++ create_public_hints(proof_bytes,classes_bytes,request_bytes).and_then(|(hints,report)|Ok(serde_json::to_string(&serde_json::json!({"hints":hints,"execution":serde_json::from_str::<serde_json::Value>(&report)?}))?)).map_err(|e|wasm_bindgen::JsValue::from_str(&e.to_string()))
++}
+diff --git a/crates/browser_virtual_os/src/public_header.rs b/crates/browser_virtual_os/src/public_header.rs
+new file mode 100644
+index 0000000..36feff0
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_header.rs
+@@ -0,0 +1,101 @@
++//! Header shape copied unchanged from pinned blockifier_reexecution RPC objects.
++//! Hash order mirrors pinned calculate_block_hash; only raw version-string support is added,
++//! as required by the pinned native virtual executor / OS version override.
++use serde::{Deserialize, Serialize};
++use starknet_api::StarknetApiError;
++use starknet_api::block::{
++    BlockHash,
++    BlockNumber,
++    BlockTimestamp,
++    GasPricePerToken,
++    StarknetVersion,
++};
++use starknet_api::block_hash::block_hash_calculator::{
++    BlockHashVersion,
++    concat_counts,
++    gas_prices_to_hash,
++};
++use starknet_api::core::{
++    ContractAddress,
++    EventCommitment,
++    GlobalRoot,
++    ReceiptCommitment,
++    StateDiffCommitment,
++    TransactionCommitment,
++    ascii_as_felt,
++};
++use starknet_types_core::hash::{Poseidon,StarkHash};
++use starknet_api::data_availability::L1DataAvailabilityMode;
++use starknet_types_core::felt::Felt;
++#[derive(Clone, Debug, Default, Deserialize, Serialize)]
++pub struct BlockHeader {
++    pub block_hash: BlockHash,
++    pub parent_hash: BlockHash,
++    pub block_number: BlockNumber,
++    pub sequencer_address: ContractAddress,
++    pub new_root: GlobalRoot,
++    pub timestamp: BlockTimestamp,
++    pub l1_gas_price: GasPricePerToken,
++    pub l1_data_gas_price: GasPricePerToken,
++    pub l2_gas_price: GasPricePerToken,
++    pub l1_da_mode: L1DataAvailabilityMode,
++    pub starknet_version: String,
++    pub state_diff_commitment: StateDiffCommitment,
++    pub event_commitment: EventCommitment,
++    pub receipt_commitment: ReceiptCommitment,
++    pub transaction_commitment: TransactionCommitment,
++    pub transaction_count: usize,
++    pub event_count: usize,
++    pub state_diff_length: usize,
++}
++
++// Copied unchanged from pinned virtual_block_executor.rs.
++pub fn starknet_version_or_latest(
++    version_string: &str,
++) -> Result<StarknetVersion, StarknetApiError> {
++    match StarknetVersion::try_from(version_string) {
++        Err(StarknetApiError::InvalidStarknetVersion(segments))
++            if segments > Vec::<u8>::from(StarknetVersion::LATEST) =>
++        {
++            Ok(StarknetVersion::LATEST)
++        }
++        result => result,
++    }
++}
++pub fn check_header(header: &BlockHeader) -> Result<(), Box<dyn std::error::Error>> {
++    let version: BlockHashVersion =
++        starknet_version_or_latest(&header.starknet_version)?.try_into()?;
++    let counts = concat_counts(
++        header.transaction_count,
++        header.event_count,
++        header.state_diff_length,
++        header.l1_da_mode,
++    );
++    // HashChain is crate-private; retain its exact array construction and pinned Poseidon primitive.
++    let mut fields=vec![version.clone().into(), header.block_number.0.into(),header.new_root.0,
++        **header.sequencer_address,header.timestamp.0.into(),counts,header.state_diff_commitment.0.0,
++        header.transaction_commitment.0,header.event_commitment.0,header.receipt_commitment.0];
++    fields.extend(gas_prices_to_hash(&header.l1_gas_price,&header.l1_data_gas_price,&header.l2_gas_price,&version));
++    fields.extend([ascii_as_felt(&header.starknet_version)?,Felt::ZERO,header.parent_hash.0]);
++    let calculated=Poseidon::hash_array(&fields);
++    if calculated != header.block_hash.0 {
++        return Err("Header block hash reconstruction mismatch".into());
++    }
++    Ok(())
++}
++
++impl BlockHeader {
++    /// Pinned RPC BlockHeader conversion with the native virtual-executor version selection.
++    pub fn block_info(&self)->Result<starknet_api::block::BlockInfo,Box<dyn std::error::Error>>{
++        use starknet_api::block::{BlockInfo,GasPrices,GasPriceVector,GasPrice,NonzeroGasPrice};
++        let nonzero=|v:GasPrice|NonzeroGasPrice::new(v).map_err(|_|"Zero gas price in public block header");
++        Ok(BlockInfo{
++            block_number:self.block_number,sequencer_address:self.sequencer_address,block_timestamp:self.timestamp,
++            gas_prices:GasPrices{
++                eth_gas_prices:GasPriceVector{l1_gas_price:nonzero(self.l1_gas_price.price_in_wei)?,l1_data_gas_price:nonzero(self.l1_data_gas_price.price_in_wei)?,l2_gas_price:nonzero(self.l2_gas_price.price_in_wei)?},
++                strk_gas_prices:GasPriceVector{l1_gas_price:nonzero(self.l1_gas_price.price_in_fri)?,l1_data_gas_price:nonzero(self.l1_data_gas_price.price_in_fri)?,l2_gas_price:nonzero(self.l2_gas_price.price_in_fri)?},
++            },
++            use_kzg_da:self.l1_da_mode.is_use_kzg_da(),starknet_version:starknet_version_or_latest(&self.starknet_version)?,
++        })
++    }
++}
+diff --git a/crates/browser_virtual_os/src/public_state.rs b/crates/browser_virtual_os/src/public_state.rs
+new file mode 100644
+index 0000000..775b714
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_state.rs
+@@ -0,0 +1,263 @@
++//! Verify RPC Patricia paths before using the unchanged pinned proof-to-facts converter.
++//! The supplied header root must separately be authenticated/reconstructed by the caller.
++use std::collections::HashSet;
++
++use blockifier::state::cached_state::StateMaps;
++use indexmap::IndexMap;
++use serde::Deserialize;
++use starknet_api::core::{ClassHash, ContractAddress, Nonce};
++use starknet_api::hash::{HashOutput, StateRoots};
++use starknet_committer::block_committer::input::StarknetStorageValue;
++use starknet_committer::hash_function::hash::TreeHashFunctionImpl;
++use starknet_committer::patricia_merkle_tree::leaf::leaf_impl::ContractState;
++use starknet_committer::patricia_merkle_tree::types::CompiledClassHash;
++use starknet_patricia::patricia_merkle_tree::node_data::inner_node::NodeData;
++use starknet_patricia::patricia_merkle_tree::node_data::leaf::Leaf;
++use starknet_patricia::patricia_merkle_tree::updated_skeleton_tree::hash_function::TreeHashFunction;
++use starknet_rust_core::types::{Felt, MerkleNode, StorageProof};
++
++use crate::running::storage_proofs::RpcStorageProofsQuery;
++
++type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
++fn bit(value: Felt, index: usize) -> bool {
++    let bytes = value.to_bytes_be();
++    (bytes[31 - index / 8] >> (index % 8)) & 1 == 1
++}
++fn trie_key(value: Felt) -> Result<()> {
++    if (251..256).any(|i| bit(value, i)) {
++        return Err("Patricia key exceeds 251 bits".into());
++    }
++    Ok(())
++}
++// Check lengths before pinned NodeData conversion, whose upstream API assumes valid edges.
++fn validate_nodes<L: Leaf>(nodes: &IndexMap<Felt, MerkleNode>) -> Result<()>
++where
++    TreeHashFunctionImpl: TreeHashFunction<L>,
++{
++    for (hash, node) in nodes {
++        if let MerkleNode::EdgeNode(edge) = node {
++            if edge.length == 0
++                || edge.length > 251
++                || (edge.length as usize..256).any(|i| bit(edge.path, i))
++            {
++                return Err("Invalid Patricia edge path/length".into());
++            }
++        }
++        let data: NodeData<L, HashOutput> = NodeData::from(node);
++        if TreeHashFunctionImpl::compute_node_hash(&data).0 != *hash {
++            return Err("Patricia node hash mismatch".into());
++        }
++    }
++    Ok(())
++}
++// Returns the authenticated terminal leaf digest, or zero for an authenticated absent path.
++fn lookup(nodes: &IndexMap<Felt, MerkleNode>, root: Felt, key: Felt) -> Result<Felt> {
++    trie_key(key)?;
++    let (mut current, mut depth) = (root, 0usize);
++    while current != Felt::ZERO && depth < 251 {
++        let node = nodes.get(&current).ok_or("Incomplete Patricia path")?;
++        match node {
++            MerkleNode::BinaryNode(n) => {
++                current = if bit(key, 250 - depth) { n.right } else { n.left };
++                depth += 1;
++            }
++            MerkleNode::EdgeNode(n) => {
++                let length = n.length as usize;
++                if length == 0 || depth + length > 251 {
++                    return Err("Patricia edge exceeds remaining height".into());
++                }
++                for offset in 0..length {
++                    if bit(key, 250 - depth - offset) != bit(n.path, length - 1 - offset) {
++                        return Ok(Felt::ZERO);
++                    }
++                }
++                depth += length;
++                current = n.child;
++            }
++        }
++    }
++    Ok(current)
++}
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct PublicProofInput {
++    pub header: crate::public_header::BlockHeader,
++    pub block_hash: Felt,
++    pub state_root: Felt,
++    pub query: RpcStorageProofsQuery,
++    pub proof: StorageProof,
++    pub storage_reads: Vec<StorageRead>,
++}
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct StorageRead {
++    pub address: ContractAddress,
++    pub key: starknet_api::state::StorageKey,
++    pub value: Felt,
++}
++
++pub fn authenticate_and_convert(bytes: &[u8]) -> Result<String> {
++    // Reject duplicate serialized node identities before IndexMap deserialization could overwrite
++    // them.
++    let raw: serde_json::Value = serde_json::from_slice(bytes)?;
++    let mut lists = vec![&raw["proof"]["classes_proof"], &raw["proof"]["contracts_proof"]["nodes"]];
++    if let Some(storage) = raw["proof"]["contracts_storage_proofs"].as_array() {
++        lists.extend(storage.iter());
++    }
++    for list in lists {
++        let mut seen = HashSet::new();
++        for node in list.as_array().ok_or("Expected proof node array")? {
++            let hash: Felt = serde_json::from_value(node["node_hash"].clone())?;
++            if !seen.insert(hash) {
++                return Err("Duplicate proof node identity".into());
++            }
++        }
++    }
++    let input: PublicProofInput = serde_json::from_value(raw)?;
++    crate::public_header::check_header(&input.header)?;
++    if input.header.block_hash.0 != input.block_hash || input.header.new_root.0 != input.state_root
++    {
++        return Err("Selected anchor disagrees with header".into());
++    }
++    let proof = &input.proof;
++    let query = &input.query;
++    if proof.global_roots.block_hash != input.block_hash {
++        return Err("Mixed-block proof".into());
++    }
++    let roots = StateRoots {
++        contracts_trie_root_hash: HashOutput(proof.global_roots.contracts_tree_root),
++        classes_trie_root_hash: HashOutput(proof.global_roots.classes_tree_root),
++    };
++    if roots.global_root().0 != input.state_root {
++        return Err("Proof roots do not match header state root".into());
++    }
++    validate_nodes::<ContractState>(&proof.contracts_proof.nodes)?;
++    validate_nodes::<CompiledClassHash>(&proof.classes_proof)?;
++    for nodes in &proof.contracts_storage_proofs {
++        validate_nodes::<StarknetStorageValue>(nodes)?;
++    }
++    if query.contract_addresses.len() != proof.contracts_proof.contract_leaves_data.len()
++        || query.contract_storage_keys.len() != proof.contracts_storage_proofs.len()
++    {
++        return Err("Proof positional length mismatch".into());
++    }
++    let mut initial = StateMaps::default();
++    let mut addresses = HashSet::new();
++    let mut class_hashes = HashSet::new();
++    let mut storage_roots = std::collections::HashMap::new();
++    for (address, leaf) in
++        query.contract_addresses.iter().zip(&proof.contracts_proof.contract_leaves_data)
++    {
++        if !addresses.insert(*address) {
++            return Err("Duplicate contract query".into());
++        }
++        let root = leaf.storage_root.unwrap_or(Felt::ZERO);
++        let actual = lookup(
++            &proof.contracts_proof.nodes,
++            proof.global_roots.contracts_tree_root,
++            ***address,
++        )?;
++        let state = ContractState {
++            class_hash: ClassHash(leaf.class_hash),
++            nonce: Nonce(leaf.nonce),
++            storage_root_hash: HashOutput(root),
++        };
++        if actual == Felt::ZERO {
++            if leaf.class_hash != Felt::ZERO || leaf.nonce != Felt::ZERO || root != Felt::ZERO {
++                return Err("Nonempty leaf for absent contract".into());
++            }
++        } else if TreeHashFunctionImpl::compute_leaf_hash(&state).0 != actual {
++            return Err("Contract leaf differs from authenticated path".into());
++        }
++        initial.class_hashes.insert(*address, ClassHash(leaf.class_hash));
++        initial.nonces.insert(*address, Nonce(leaf.nonce));
++        storage_roots.insert(*address, root);
++    }
++    let mut class_leaves = Vec::new();
++    for hash in &query.class_hashes {
++        if !class_hashes.insert(*hash) {
++            return Err("Duplicate class query".into());
++        }
++        class_leaves.push((
++            *hash,
++            lookup(&proof.classes_proof, proof.global_roots.classes_tree_root, *hash)?,
++        ));
++    }
++    let mut requested = HashSet::new();
++    let mut storage_contracts = HashSet::new();
++    for (request, nodes) in query.contract_storage_keys.iter().zip(&proof.contracts_storage_proofs)
++    {
++        let address = ContractAddress::try_from(request.contract_address)?;
++        if !storage_contracts.insert(address) {
++            return Err("Duplicate storage contract query".into());
++        }
++        let root = *storage_roots
++            .get(&address)
++            .ok_or("Storage proof missing authenticated contract leaf")?;
++        for key in &request.storage_keys {
++            let storage_key = starknet_api::state::StorageKey::try_from(*key)?;
++            if !requested.insert((address, storage_key)) {
++                return Err("Duplicate storage key query".into());
++            }
++            let actual = lookup(nodes, root, *key)?;
++            initial.storage.insert((address, storage_key), actual);
++        }
++    }
++    let mut supplied = HashSet::new();
++    for read in input.storage_reads {
++        if !supplied.insert((read.address, read.key)) {
++            return Err("Duplicate storage read".into());
++        }
++        if initial.storage.get(&(read.address, read.key)) != Some(&read.value) {
++            return Err("Storage value differs from authenticated path".into());
++        }
++    }
++    if supplied != requested {
++        return Err("Missing storage read for requested proof".into());
++    }
++    let db =
++        crate::pinned_committer_utils::create_facts_db_from_storage_proof(proof, query, &initial)?;
++    let mut entries: Vec<_> = db.consume_storage().0.into_iter().map(|(k, v)| (k.0, v.0)).collect();
++    entries.sort();
++    Ok(serde_json::to_string(
++        &serde_json::json!({"roots":roots,"entries":entries,"initial_reads":initial,"class_leaf_hashes":class_leaves,"compiled_class_preimages_verified":false,"header_authenticated":false,"header_hash_checked":true,"scope":"Patricia paths and storage reads checked against supplied header state root; header authenticity and compiled class preimages require separate checks"}),
++    )?)
++}
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn convert_public_proof(bytes: &[u8]) -> std::result::Result<String, wasm_bindgen::JsValue> {
++    authenticate_and_convert(bytes).map_err(|e| wasm_bindgen::JsValue::from_str(&e.to_string()))
++}
++
++/// Complete the facts database with class preimages produced by the pinned compiler.
++/// The selected native backend uses compiled hash V2; a V1 commitment is rejected explicitly.
++pub fn prepare_state(proof_bytes:&[u8],classes_bytes:&[u8])->Result<String>{
++    let mut facts:serde_json::Value=serde_json::from_str(&authenticate_and_convert(proof_bytes)?)?;
++    let input:PublicProofInput=serde_json::from_slice(proof_bytes)?;
++    let mut initial:StateMaps=serde_json::from_value(facts["initial_reads"].clone())?;
++    let class_leaves:Vec<(Felt,Felt)>=serde_json::from_value(facts["class_leaf_hashes"].clone())?;
++    let classes:Vec<serde_json::Value>=serde_json::from_slice(classes_bytes)?;
++    let mut seen=HashSet::new();let mut compiled=std::collections::BTreeMap::new();
++    let mut versions=std::collections::BTreeMap::new();let mut hashes=std::collections::BTreeMap::new();
++    for class in classes {
++        let result:serde_json::Value=serde_json::from_str(&crate::public_class::compile_public_class(&serde_json::to_vec(&class)?)?)?;
++        let hash:ClassHash=serde_json::from_value(result["class_hash"].clone())?;
++        if !seen.insert(hash.0){return Err("Duplicate captured class".into());}
++        let actual=class_leaves.iter().find(|(h,_)|*h==hash.0).ok_or("Class is not included in authenticated query")?.1;
++        let expected:Felt=serde_json::from_value(result["leaf_v2"].clone())?;
++        if actual==Felt::ZERO || actual!=expected{return Err("Compiled class V2 preimage differs from authenticated class leaf".into());}
++        let compiled_hash:starknet_api::core::CompiledClassHash=serde_json::from_value(result["compiled_hash_v2"].clone())?;
++        initial.compiled_class_hashes.insert(hash,compiled_hash);
++        versions.insert(hash,result["sierra_version"].clone());hashes.insert(hash,compiled_hash);
++        compiled.insert(compiled_hash,result["casm"].clone());
++    }
++    if seen!=input.query.class_hashes.iter().copied().collect(){return Err("Missing captured class for authenticated query".into());}
++    let db=crate::pinned_committer_utils::create_facts_db_from_storage_proof(&input.proof,&input.query,&initial)?;
++    let mut entries:Vec<_>=db.consume_storage().0.into_iter().map(|(k,v)|(k.0,v.0)).collect();entries.sort();
++    facts["entries"]=serde_json::to_value(entries)?;facts["initial_reads"]=serde_json::to_value(initial)?;
++    facts["compiled_classes"]=serde_json::to_value(compiled)?;facts["sierra_versions"]=serde_json::to_value(versions)?;
++    facts["compiled_class_hashes_v2"]=serde_json::to_value(hashes)?;facts["compiled_class_preimages_verified"]=true.into();
++    facts["scope"]="Header hash, Patricia paths, storage values, Sierra identities, and pinned-compiler V2 class preimages checked; network trust remains tied to the selected public RPC snapshot".into();
++    Ok(serde_json::to_string(&facts)?)
++}
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn prepare_public_state(proof_bytes:&[u8],classes_bytes:&[u8])->std::result::Result<String,wasm_bindgen::JsValue>{prepare_state(proof_bytes,classes_bytes).map_err(|e|wasm_bindgen::JsValue::from_str(&e.to_string()))}
+diff --git a/crates/browser_virtual_os/src/public_witness.rs b/crates/browser_virtual_os/src/public_witness.rs
+new file mode 100644
+index 0000000..fbd0358
+--- /dev/null
++++ b/crates/browser_virtual_os/src/public_witness.rs
+@@ -0,0 +1,41 @@
++//! Sparse public-state commitment witnesses, using the pinned backend's converter and committer.
++use blockifier::state::cached_state::StateMaps;
++use starknet_api::hash::StateRoots;
++use starknet_os::commitment_infos::StateCommitmentInfos;
++use starknet_patricia::patricia_merkle_tree::node_data::inner_node::{flatten_preimages,Preimage,PreimageMap};
++use starknet_rust_core::types::StorageProof;
++use crate::pinned_committer_utils::{create_facts_db_from_storage_proof,state_maps_to_committer_state_diff,validate_virtual_os_state_diff,commit_state_diff};
++use crate::running::storage_proofs::RpcStorageProofsQuery;
++
++pub(crate) fn commit_authenticated(
++    proof:&StorageProof,query:&RpcStorageProofsQuery,initial:&StateMaps,diff:StateMaps,
++)->Result<StateCommitmentInfos,Box<dyn std::error::Error>>{
++    // Every changed path must be among the authenticated initial reads; never fill an unknown leaf with zero.
++    for address in diff.nonces.keys(){if !initial.nonces.contains_key(address){return Err("Nonce update lacks authenticated initial read".into());}}
++    for key in diff.storage.keys(){if !initial.storage.contains_key(key){return Err("Storage update lacks authenticated initial read".into());}}
++    let diff=state_maps_to_committer_state_diff(diff);validate_virtual_os_state_diff(&diff)?;
++    let mut db=create_facts_db_from_storage_proof(proof,query,initial)?;
++    let previous=StateRoots{contracts_trie_root_hash:starknet_api::hash::HashOutput(proof.global_roots.contracts_tree_root),classes_trie_root_hash:starknet_api::hash::HashOutput(proof.global_roots.classes_tree_root)};
++    let runtime=tokio::runtime::Builder::new_current_thread().build()?;
++    runtime.block_on(async{
++        let updated=commit_state_diff(&mut db,previous.contracts_trie_root_hash,previous.classes_trie_root_hash,diff).await?;
++        let mut storage=db.consume_storage();
++        let mut infos=starknet_os::commitment_infos::build_state_commitment_infos(&previous,&updated,&mut storage,&initial.keys().into()).await?;
++        // Match native storage_proofs::create_commitment_infos_with_state_changes.
++        let preimages:PreimageMap=proof.classes_proof.iter().map(|(hash,node)|(starknet_api::hash::HashOutput(*hash),Preimage::from(node))).collect();
++        infos.classes_trie_commitment_info.commitment_facts.extend(flatten_preimages(&preimages));
++        Ok(infos)
++    })
++}
++
++/// Component test entry point. A proposed diff is not evidence of transaction execution.
++pub fn witness_control(proof_bytes:&[u8],classes_bytes:&[u8],diff_bytes:&[u8])->Result<String,Box<dyn std::error::Error>>{
++    let prepared:serde_json::Value=serde_json::from_str(&crate::public_state::prepare_state(proof_bytes,classes_bytes)?)?;
++    let initial:StateMaps=serde_json::from_value(prepared["initial_reads"].clone())?;
++    let input:crate::public_state::PublicProofInput=serde_json::from_slice(proof_bytes)?;
++    let diff:StateMaps=serde_json::from_slice(diff_bytes)?;
++    let infos=commit_authenticated(&input.proof,&input.query,&initial,diff)?;
++    Ok(serde_json::to_string(&serde_json::json!({"contracts":infos.contracts_trie_commitment_info,"classes":infos.classes_trie_commitment_info,"storage":infos.storage_tries_commitment_infos}))?)
++}
++#[wasm_bindgen::prelude::wasm_bindgen]
++pub fn public_witness_control(proof_bytes:&[u8],classes_bytes:&[u8],diff_bytes:&[u8])->Result<String,wasm_bindgen::JsValue>{witness_control(proof_bytes,classes_bytes,diff_bytes).map_err(|e|wasm_bindgen::JsValue::from_str(&e.to_string()))}
+diff --git a/crates/browser_virtual_os/src/witness.rs b/crates/browser_virtual_os/src/witness.rs
+new file mode 100644
+index 0000000..1f569fd
+--- /dev/null
++++ b/crates/browser_virtual_os/src/witness.rs
+@@ -0,0 +1,98 @@
++//! Construct transaction-specific storage witnesses using the pinned committer.
++//! Input is a full local synthetic facts DB, not a precomputed transaction witness.
++use blockifier::state::cached_state::{StateChangesKeys, StateMaps, StorageDiff, StorageView};
++use serde::Deserialize;
++use starknet_api::hash::StateRoots;
++use starknet_committer::block_committer::commit::commit_block;
++use starknet_committer::block_committer::input::{
++    Input,
++    ReaderConfig,
++    StarknetStorageKey,
++    StarknetStorageValue,
++    StateDiff,
++};
++use starknet_committer::block_committer::measurements_util::NoMeasurements;
++use starknet_committer::db::facts_db::db::FactsDb;
++use starknet_committer::db::facts_db::types::FactsDbInitialRead;
++use starknet_committer::db::forest_trait::{ForestWriter, StorageInitializer};
++use starknet_committer::patricia_merkle_tree::types::CompiledClassHash;
++use starknet_os::commitment_infos::StateCommitmentInfos;
++use starknet_patricia_storage::map_storage::MapStorage;
++use starknet_patricia_storage::storage_trait::{DbKey, DbValue};
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct Database {
++    roots: StateRoots,
++    entries: Vec<(Vec<u8>, Vec<u8>)>,
++    scope: String,
++}
++
++pub fn regenerate(
++    database_json: &[u8],
++    diff: StateMaps,
++    keys: &StateChangesKeys,
++    expected_roots: StateRoots,
++) -> Result<StateCommitmentInfos, Box<dyn std::error::Error>> {
++    let database: Database = serde_json::from_slice(database_json)?;
++    if database.scope != "complete synthetic initial-state facts database" {
++        return Err("unsupported database scope".into());
++    }
++    if database.roots != expected_roots {
++        return Err("facts database roots differ from the selected base state".into());
++    }
++    // Match the virtual backend's supported transitions. Ordinary invoke nonce changes are allowed.
++    if !diff.class_hashes.is_empty()
++        || !diff.compiled_class_hashes.is_empty()
++        || diff.storage.values().any(|v| *v == starknet_types_core::felt::Felt::ZERO)
++    {
++        return Err(
++            "virtual OS does not support deployment, declaration, or storage deletion".into()
++        );
++    }
++    let diff = StateDiff {
++        address_to_class_hash: diff.class_hashes,
++        address_to_nonce: diff.nonces,
++        class_hash_to_compiled_class_hash: diff
++            .compiled_class_hashes
++            .into_iter()
++            .map(|(h, c)| (h, CompiledClassHash(c.0)))
++            .collect(),
++        storage_updates: StorageDiff::from(StorageView(diff.storage))
++            .into_iter()
++            .map(|(a, updates)| {
++                (
++                    a,
++                    updates
++                        .into_iter()
++                        .map(|(k, v)| (StarknetStorageKey(k), StarknetStorageValue(v)))
++                        .collect(),
++                )
++            })
++            .collect(),
++    };
++    let storage =
++        MapStorage(database.entries.into_iter().map(|(k, v)| (DbKey(k), DbValue(v))).collect());
++    // Pure CPU/map-storage futures. No sockets, filesystem, or timers are enabled.
++    let runtime = tokio::runtime::Builder::new_current_thread().build()?;
++    runtime.block_on(async {
++        let mut db = FactsDb::new(storage);
++        let input = Input {
++            state_diff: diff,
++            initial_read_context: FactsDbInitialRead(database.roots),
++            config: ReaderConfig::new(false, false),
++        };
++        let (forest, _) = commit_block(input, &mut db, &mut NoMeasurements).await?;
++        db.write(&forest).await?;
++        let updated = StateRoots {
++            contracts_trie_root_hash: forest.get_contract_root_hash(),
++            classes_trie_root_hash: forest.get_compiled_class_root_hash(),
++        };
++        let mut storage = db.consume_storage();
++        Ok(starknet_os::commitment_infos::build_state_commitment_infos(&database.roots, &updated, &mut storage, &blockifier::state::accessed_keys::AccessedKeys {
++            storage_keys: keys.storage_keys.iter().copied().collect(),
++            accessed_contracts: keys.modified_contracts.iter().copied().collect(),
++            accessed_class_hashes: keys.compiled_class_hash_keys.iter().copied().collect(),
++        }).await?)
++    })
++}

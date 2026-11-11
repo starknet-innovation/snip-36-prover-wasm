@@ -33,11 +33,15 @@ test("default load keeps cached streaming compile", async (t) => {
   assert.deepEqual(api.identity, {});
 });
 
-test("trusted expected bootloader output agrees with retained independently verified CoinFlip evidence", async () => {
+test("trusted bootloader output binds V2 evidence and distinguishes historical V1 evidence", async () => {
   const fixture = JSON.parse(await readFile("fixtures/coinflip/heads.json"));
   const evidence = JSON.parse(await readFile("evidence/coinflip-browser-proof.json"));
   const pins = JSON.parse(await readFile("pins.json"));
-  assert.ok(sameFelts(expectedPreimage(fixture, pins.program_hash), evidence.output_preimage));
+  assert.ok(!sameFelts(expectedPreimage(fixture, pins.program_hash), evidence.output_preimage));
+  assert.ok(sameFelts(expectedPreimage(fixture, evidence.output_preimage[2]), evidence.output_preimage));
+  const v2 = JSON.parse(await readFile("evidence/v2-source-validation.json"));
+  const balance = JSON.parse(await readFile("fixtures/captured-execution.json"));
+  assert.ok(sameFelts(expectedPreimage(balance, pins.program_hash), v2.output_preimage));
   assert.ok(!sameFelts(["0x1"], ["0x2"]));
   assert.throws(() => checkExecution({ report: { pie_sha256: sha256(Buffer.from("pie")) }, output: ["0x1"] },
     { output: ["0x2"] }, Buffer.from("pie")), /differs/);

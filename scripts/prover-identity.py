@@ -35,13 +35,16 @@ def main():
     parser.add_argument('--wasm', required=True, type=Path)
     parser.add_argument('--metadata', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
-    parser.add_argument('--source-root', default=Path('build/baseline'), type=Path)
+    parser.add_argument('--source-root', default=Path('build/proving'), type=Path)
     parser.add_argument('--clang', default=os.environ.get('WASM_CC', '/opt/homebrew/Cellar/llvm@21/21.1.8/bin/clang'))
     args = parser.parse_args()
     pins = json.loads((ROOT / 'pins.json').read_text())
     metadata = json.loads(args.metadata.read_text())
-    source_directory = lambda name: (Path('build') if name == 'native-prover' else args.source_root) / name
-    receipt = ROOT / args.source_root / 'proving-utils/.wasm-patches-complete'
+    source_directory = lambda name: (Path('build/native-prover') if name == 'native-prover' else
+                                     args.source_root if args.source_root.name == name else args.source_root / name)
+    receipt = ROOT / args.source_root / '.wasm-patches-complete'
+    if not receipt.is_file():
+        receipt = ROOT / args.source_root / 'proving-utils/.wasm-patches-complete'
     if not receipt.is_file():
         raise RuntimeError('Prepared source receipt required for identity')
     prepared = json.loads(receipt.read_text())

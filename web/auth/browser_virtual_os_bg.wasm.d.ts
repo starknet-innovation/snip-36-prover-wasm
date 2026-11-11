@@ -1,21 +1,29 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export const convert_public_proof: (a: number, b: number) => [number, number, number, number];
-export const prepare_public_state: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const sign_public_demo_request: (a: number, b: number) => [number, number, number, number];
 export const public_witness_control: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
-export const compile_captured_class: (a: number, b: number) => [number, number, number, number];
 export const __wbg_executionresult_free: (a: number, b: number) => void;
 export const allocation_metrics: () => [number, number];
+export const convert_public_proof: (a: number, b: number) => [number, number, number, number];
 export const executionresult_output_json: (a: number) => [number, number];
 export const executionresult_pie_bytes: (a: number) => [number, number];
+export const prepare_public_state: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const prepare_rpc_transaction: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const prepare_rpc_with_witness: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
 export const prepare_transaction: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-export const public_preexecute: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const run_virtual_os: (a: number, b: number) => [number, number, number];
-export const sign_public_demo_request: (a: number, b: number) => [number, number, number, number];
 export const install_panic_hook: () => void;
+export const compile_captured_class: (a: number, b: number) => [number, number, number, number];
+export const public_preexecute: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+export const rust_zstd_wasm_shim_calloc: (a: number, b: number) => number;
+export const rust_zstd_wasm_shim_free: (a: number) => void;
+export const rust_zstd_wasm_shim_malloc: (a: number) => number;
+export const rust_zstd_wasm_shim_memcmp: (a: number, b: number, c: number) => number;
+export const rust_zstd_wasm_shim_memcpy: (a: number, b: number, c: number) => number;
+export const rust_zstd_wasm_shim_memmove: (a: number, b: number, c: number) => number;
+export const rust_zstd_wasm_shim_memset: (a: number, b: number, c: number) => number;
+export const rust_zstd_wasm_shim_qsort: (a: number, b: number, c: number, d: number) => void;
 export const __wbindgen_exn_store_command_export: (a: number) => void;
 export const __externref_table_alloc_command_export: () => number;
 export const __wbindgen_externrefs: WebAssembly.Table;

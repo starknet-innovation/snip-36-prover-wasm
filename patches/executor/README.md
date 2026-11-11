@@ -8,7 +8,7 @@ Apache-2.0 license.
 
 This directory exposes the complete supported browser workspace and local
 dependency paths to Dependabot. Unused upstream node, Python-binding, networking
-and cloud targets are removed by `dependency-scope.patch`. The 29 manifests
+and cloud targets are removed by the workspace scope in `v2.patch`. The 30 manifests
 include normal/build, optional and development dependencies.
 
 `browser-vendor/num-prime-0.4.4` contains the upstream crate under its included
@@ -39,3 +39,5 @@ workspaces resolve identical dependency edges, features and target conditions
 with `--locked`. It neither compiles the resolver placeholders nor changes the
 reviewed lock. Dependency updates still need the build and browser/native
 validation appropriate to the affected targets before release promotion.
+
+The V2 portability patch is consolidated in `v2.patch`. `v2-portable-vendor.tar.gz` contains Cairo 2.19.6 with the wasm32 wire-encoding fix and the Wasm-compatible zstd C sources, each with its upstream license. The resolver mirror stores their manifests; source preparation extracts their implementations.

@@ -1,3 +1,5 @@
+> Historical V1 research: the active source and UI now target backend v1.4.0 / V2. These memory-profile measurements and patch layers have not been ported to V2. The V1 build commands below require the historical V1 checkout; current builds reject those modes. See [current source instructions](../build.md).
+
 # Browser memory port validation
 
 Starting revision: `739b084d1f533e60cd38cf9a0a6391de7965aafd` (matches the handoff).

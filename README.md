@@ -1,28 +1,36 @@
 # SNIP-36 browser prover
 
+The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Build both Wasm modules from source while the `v0.2.0` browser assets await publication. The configured Sepolia bank is a V1 deployment: new deposits, reveal and V2 settlement stay disabled until a compatible bank is deployed and configured. Its profile is checked on-chain. Existing refund/expiry actions remain available.
+
+The hosted demo and historical on-chain receipts document V1. They do not establish V2 network acceptance.
+
 **[Play CoinFlip on Sepolia](https://starknet-innovation.github.io/snip-36-prover-wasm/play.html)** · [Recorded replay lab](https://starknet-innovation.github.io/snip-36-prover-wasm/)
 
 Based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip-36-prover-backend/tree/main/apps/coinflip), the live demo uses your Starknet wallet to commit/deposit, reveal, and settle. A prefunded bank matches the stake; a browser Worker executes the public coinflip and generates a SNIP-36 proof. The bank checks the exact game's proof facts before settlement. GitHub Pages hosts the entire frontend; no signing backend is required.
 
 The wallet must support **Wallet API 0.10.3+ proof-bearing invocation**. Unsupported versions are blocked before deposit. Advertising that version is necessary but does not guarantee a wallet implementation accepts arbitrary CoinFlip proofs. E2E automation uses a Wallet API adapter backed by the existing sncast account, not an installed wallet extension. Test tokens only, maximum stake 0.01 test STRK, 24-hour reveal deadline. Block-hash-derived seeds are not certified unbiased randomness. See [architecture, recovery and compatibility](docs/live-coinflip.md).
 
-Run locally with `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium and approximately 14 GiB available memory. Execution alone downloads 36 MB and is much lighter. The Pages workflow checks asset hashes, runs real browser execution against the recorded PIE hash, then deploys the static site. No account keys or signing secrets are included in the website or Pages workflow.
+Build the modules using [the source instructions](docs/build.md), then run `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium. Execution alone is much lighter. CI and Pages build both pinned modules, verify their source-build receipts, and replay the recorded rounds in Chromium. No account keys or signing secrets are included in the website or Pages workflow.
 
 [![CI](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml)
 [![Daily Sepolia Browser E2E](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml)
 
 Generate SNIP-36 proofs entirely in browser Workers, from an authenticated public Starknet state snapshot through Cairo execution and recursive proving. Signing is local and separate; the browser never receives a private key. The daily test submits the resulting proof to Sepolia and requires a successful on-chain receipt.
 
-This is a desktop-browser prototype: the measured recursive prover used about **14.1 GB of Wasm linear memory** and **13.8 GB of peak requested Rust allocations**, taking about **87 seconds** on an Apple M3 Max. Linear memory, requested allocations and resident process memory are different metrics. Mobile support and arbitrary workload performance are untested.
+This is a desktop-browser prototype. The historical V1 recursive prover used about **14.1 GB of Wasm linear memory** and **13.8 GB of peak requested Rust allocations**, taking about **87 seconds** on an Apple M3 Max. Linear memory, requested allocations and resident process memory are different metrics. Mobile support and arbitrary workload performance are untested.
 
-## Verified on Sepolia
+## V2 local validation
+
+A V2 proof generated in a real Chromium Worker passed the unpatched upstream native verifier: **231,440 proof bytes**, **72.4 seconds** including initialization, and **13.3 GiB Wasm linear memory** (13.2 GiB peak requested Rust allocations). Both recorded CoinFlip rounds and the balance query replayed successfully, offline replay was identical, and an invalid account signature was rejected. These are local measurements for the retained captures. [Evidence](evidence/v2-source-validation.json). V2 network submission and bank deployment remain untested here.
+
+## Historical V1 verification on Sepolia
 
 The live wallet CoinFlip flow also completed: [settlement transaction](https://sepolia.voyager.online/tx/0x20b184e3a7a2926806437fcafcfce1096ca54d16116aa08ce526ebc03786712), block **16,114,692**. Its browser-generated 234,138-byte proof passed the unchanged native verifier; settlement paid **0.002 test STRK** on a 0.001 stake. A proofless settlement call against the revealed state reverted with `Expected one proof message`. [Full public evidence](evidence/live-coinflip-e2e.json). This exercised the Wallet API test adapter; installed extension compatibility remains unverified.
 
 
 A real browser-generated proof was accepted in [transaction `0x60e1…bd30d`](https://sepolia.voyager.online/tx/0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d), block **16,111,332**, on 2026-10-05. It executed STRK `balance_of(account)` through an existing account and cost **1.172821106001977728 testnet STRK**. The nonce advanced and the balance delta matched the fee. Public receipts are in [`evidence/`](evidence/).
 
-**The correct prover pin matters.** The reference backend's `prove virtual-os` path invokes its sequencer transaction service, using proving-utils **3035dd**. Its standalone utility uses a different revision, **0a97f45**. The latter produced locally valid proofs rejected by Sepolia in our test. This repository uses **3035dd**, without changing the pinned circuit or security parameters. See [`pins.json`](pins.json) and [`docs/architecture.md`](docs/architecture.md).
+**The transaction-service prover pin matters.** v1.4.0's sequencer uses the `starkware-libs/proving` monorepo at **e0035ffc8**. Its separately bundled standalone utility remains on proving-utils **0a97f45**. The browser and native diagnostic verifier use the transaction-service V2 stack. See [`pins.json`](pins.json) and [`docs/architecture.md`](docs/architecture.md).
 
 ## Run
 
@@ -30,14 +38,17 @@ Requirements: Node.js24+, a recent Chromium with WebAssembly memory64 support, a
 
 ```sh
 npm ci --ignore-scripts
-npm run assets           # Download released Wasm modules and verify their SHA256/size.
+# Build both modules first; see docs/build.md for the toolchain requirements.
+WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh executor
+WASM_CC=/path/to/clang WASM_AR=/path/to/llvm-ar ./scripts/build.sh prover
+npm run assets           # Verify source-build provenance, module hashes and bindings.
 npm test
 npm run serve
 ```
 
 Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
 
-The source is distributed as pinned upstream checkouts plus browser portability patches. Prebuilt modules are release assets rather than large Git blobs. Their checksums are committed in [`assets.json`](assets.json). See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification. The unchanged prover remains the default; `prover-memory` is an optional source profile that trades proving time for lower memory use (about 2.3 GB instead of 14 GB, roughly 1.45× slower); both CoinFlip pages let you pick either build.
+The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the pending V2 release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
 ## Daily testing
 
@@ -52,7 +63,7 @@ GitHub Actions runs every day at **06:00 UTC** and supports manual dispatch from
 5. Checks the statement/program/capture linkage, signs the proof-bearing transaction, and persists its intended hash before broadcast.
 6. Submits once to the sequencer gateway and requires `SUCCEEDED` plus closed-block L2/L1 acceptance. Receipts, proofs and captures are retained as workflow artifacts.
 
-The balance-query test has a hard maximum fee budget of **25 testnet STRK**. A following live CoinFlip test deposits **0.001 test STRK**, reveals, proves in Chromium and settles through the test Wallet API adapter. It caps each transaction at 25 test STRK, uses the existing prefunded bank, and never deploys or automatically tops up contracts. No mainnet mode exists. PR CI runs offline tests without signing credentials. Scheduled runs require the `sepolia` environment setup described in the runbook.
+The balance-query test has a hard maximum fee budget of **25 testnet STRK**. Once a matching V2 bank is configured, a following live CoinFlip test deposits **0.001 test STRK**, reveals, proves in Chromium and settles through the test Wallet API adapter. It caps each transaction at 25 test STRK, uses the existing prefunded bank, and never deploys or automatically tops up contracts. No mainnet mode exists. Until then, the CoinFlip step explicitly skips the legacy bank. PR CI builds the pinned Wasm modules and runs offline tests without signing credentials. Scheduled runs require the `sepolia` environment setup described in the runbook.
 
 ## Scope
 

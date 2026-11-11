@@ -3,6 +3,7 @@ import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
 import { CHAIN, STRK, selector } from "../web/live-core.mjs";
+import { PROGRAM, PROOF_VERSION } from "../web/prover-profile.mjs";
 const config = JSON.parse(await readFile("web/live-config.json"));
 const server = await startServer(0),
   browser = await chromium.launch({ headless: true });
@@ -17,9 +18,16 @@ try {
     "wallet-waiting",
     "wallet-rejected",
     "pending",
+    "legacy-bank",
+    "mismatched-bank",
   ]) {
     const page = await browser.newPage();
     let submitted = 0;
+    await page.route("**/live-config.json", (route) => route.fulfill({
+      json: scenario === "legacy-bank" ? config : {
+        ...config, program_hash: PROGRAM, proof_version: PROOF_VERSION,
+      },
+    }));
     await page.route("https://api.zan.top/**", async (route) => {
       const q = route.request().postDataJSON();
       let result, error;
@@ -34,6 +42,8 @@ try {
         error = { code: 29, message: "Transaction hash not found" };
       else if (q.params.request.entry_point_selector === selector("get_config"))
         result = [config.owner, config.coinflip, STRK];
+      else if (q.params.request.entry_point_selector === selector("get_proof_profile"))
+        result = scenario === "mismatched-bank" ? ["0x50524f4f4631", PROGRAM] : [PROOF_VERSION, PROGRAM];
       else if (q.params.request.entry_point_selector === selector("liquidity"))
         result = ["0xde0b6b3a7640000", "0x0"];
       else result = Array(9).fill("0x0");
@@ -102,6 +112,9 @@ try {
     await page.waitForFunction(() =>
       document.querySelector("#wallets").textContent.includes("Test wallet"),
     );
+    if (!(await page.locator('input[name="prover-build"][value="standard"]').isChecked()) ||
+        !(await page.locator('input[name="prover-build"][value="memory"]').isDisabled()))
+      throw Error("Wallet UI selected an incompatible V1 circuit");
     await page.click("#connect");
     if (["wrong-network", "switch-rejected"].includes(scenario)) {
       await page.waitForFunction(() =>
@@ -202,6 +215,8 @@ try {
       !(await page.locator("#next").isDisabled())
     )
       throw Error("Unsafe action enabled: " + scenario);
+    if (["legacy-bank", "mismatched-bank"].includes(scenario) && submitted !== 0)
+      throw Error("Legacy bank accepted a new deposit");
     await page.setViewportSize({ width: 390, height: 844 });
     if (
       await page.evaluate(

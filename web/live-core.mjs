@@ -3,8 +3,14 @@ import { pedersen, poseidonHashMany, keccak } from "@scure/starknet";
 export const CHAIN = "0x534e5f5345504f4c4941";
 export const STRK =
   "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
-export const PROGRAM =
-  "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1";
+import { PROGRAM, PROOF_VERSION, assertProofProfile } from "./prover-profile.mjs";
+export { PROGRAM };
+// Legacy games may still refund/expire; revealing needs a usable settlement path.
+export function requiresProverProfile(game, now = Date.now() / 1000) {
+  const state = game?.state ?? 0;
+  return state === 0 || state === 3 ||
+    (state === 2 && now < game.deadline);
+}
 export const CONFIG =
   "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57";
 export const RPC = "https://api.zan.top/public/starknet-sepolia/rpc/v0_10";
@@ -222,7 +228,8 @@ export function proofMaterial(receipt, config, r, g) {
     !receipt.output_preimage.every((v, i) => felt(v) === felt(expected[i]))
   )
     throw Error("Proof is not bound to this round");
-  const tags = ["0x50524f4f4631", "0x5649525455414c5f534e4f53"];
+  assertProofProfile(receipt.proof);
+  const tags = [PROOF_VERSION, "0x5649525455414c5f534e4f53"];
   let binary = "";
   for (let i = 0; i < receipt.proof.length; i += 8192)
     binary += String.fromCharCode(...receipt.proof.slice(i, i + 8192));

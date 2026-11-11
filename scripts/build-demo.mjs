@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { BACKEND_RELEASE, PROVING_REVISION } from "../web/prover-profile.mjs";
 import { build } from "esbuild";
 import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 await build({
@@ -30,6 +32,20 @@ await writeFile(
     block: fixture.anchor.header.block_number,
   }),
 );
+let moduleManifest;
+try {
+  moduleManifest = JSON.parse(await readFile("build/source-assets.json"));
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+if (moduleManifest) execFileSync("python3", ["scripts/source-assets.py", "verify"], { stdio: "inherit" });
+const releaseManifest = JSON.parse(await readFile("assets.json"));
+const proverAsset = moduleManifest?.assets["web/sequencer-prover.wasm"] ??
+  releaseManifest.assets.find((asset) => asset.name === "prover.wasm");
+await writeFile("web/demo-data/prover-assets.json", JSON.stringify({
+  backend_release: BACKEND_RELEASE, proving_revision: PROVING_REVISION,
+  builds: { standard: { sha256: proverAsset.sha256, bytes: proverAsset.bytes } },
+}));
 await cp("evidence/first-daily-ci-run.json", "web/demo-data/evidence.json");
 await cp(
   "evidence/coinflip-deployment.json",

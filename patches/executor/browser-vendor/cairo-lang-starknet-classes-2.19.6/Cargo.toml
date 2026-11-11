@@ -12,7 +12,7 @@
 [package]
 edition = "2024"
 name = "cairo-lang-starknet-classes"
-version = "2.19.0-rc.3"
+version = "2.19.6"
 build = false
 autolib = false
 autobins = false
@@ -30,21 +30,21 @@ name = "cairo_lang_starknet_classes"
 path = "src/lib.rs"
 
 [dependencies.cairo-lang-casm]
-version = "=2.19.0-rc.3"
+version = "=2.19.6"
 features = ["serde"]
 default-features = true
 
 [dependencies.cairo-lang-sierra]
-version = "=2.19.0-rc.3"
+version = "=2.19.6"
 
 [dependencies.cairo-lang-sierra-to-casm]
-version = "=2.19.0-rc.3"
+version = "=2.19.6"
 
 [dependencies.cairo-lang-sierra-type-size]
-version = "=2.19.0-rc.3"
+version = "=2.19.6"
 
 [dependencies.cairo-lang-utils]
-version = "=2.19.0-rc.3"
+version = "=2.19.6"
 features = ["tracing"]
 
 [dependencies.convert_case]
@@ -105,10 +105,3 @@ version = "3.3.1"
 
 [dev-dependencies.tracing]
 version = "0.1.40"
-
-# The published manifest omits upstream test helpers; restore their exact pinned versions locally.
-[dev-dependencies.cairo-lang-sierra-generator]
-version = "=2.19.0-rc.3"
-[dev-dependencies.cairo-lang-test-utils]
-version = "=2.19.0-rc.3"
-features = ["testing"]

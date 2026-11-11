@@ -29,6 +29,9 @@ try {
     result.sha !== fixture.report.pie_sha256
   )
     throw Error(JSON.stringify(result));
+  if (!(await page.locator('input[name="prover-build"][value="standard"]').isChecked()) ||
+      !(await page.locator('input[name="prover-build"][value="memory"]').isDisabled()))
+    throw Error("Incompatible V1 build became selectable after execution");
   if ((await page.locator("#downloads a").count()) !== 2)
     throw Error("Missing downloads");
   const firstResult = await page.locator("#coin-result").textContent();

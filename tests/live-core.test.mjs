@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { poseidonHashMany } from "@scure/starknet";
+import { PROOF_HEADER, PROOF_VERSION } from "../web/prover-profile.mjs";
 import {
   amount,
   newRound,
@@ -13,11 +14,22 @@ import {
   hex,
   PROGRAM,
   CONFIG,
+  requiresProverProfile,
   withTimeout,
   apiVersionParam,
 } from "../web/live-core.mjs";
 const config = { bank: "0x9", coinflip: "0x8", executor: "0x7" };
 const round = () => newRound("0x6", config.bank, 0, "0.001");
+test("legacy games retain refund and expiry without revealing into an unavailable settlement", () => {
+  assert.equal(requiresProverProfile(null, 100), true);
+  assert.equal(requiresProverProfile({ state: 0 }, 100), true);
+  assert.equal(requiresProverProfile({ state: 1, deadline: 99 }, 100), false);
+  assert.equal(requiresProverProfile({ state: 2, deadline: 101 }, 100), true);
+  assert.equal(requiresProverProfile({ state: 2, deadline: 100 }, 100), false);
+  assert.equal(requiresProverProfile({ state: 3 }, 100), true);
+  for (const state of [4, 5, 6])
+    assert.equal(requiresProverProfile({ state }, 100), false);
+});
 test("stakes use exact decimal units with a bounded testnet ceiling", () => {
   assert.equal(amount("0.001"), "1000000000000000");
   for (const v of [
@@ -80,7 +92,7 @@ test("proof attachment must bind the exact round and message", () => {
   const receipt = {
     ok: true,
     kind: "proof",
-    proof: Array(1100).fill(0),
+    proof: [...PROOF_HEADER, ...Array(1100).fill(0)],
     anchor: { header: { block_number: 100, block_hash: "0x12" } },
     output_preimage: [
       "0x1",
@@ -95,6 +107,8 @@ test("proof attachment must bind the exact round and message", () => {
     ],
   };
   assert.equal(proofMaterial(receipt, config, r, g).proof_facts.length, 9);
+  assert.equal(proofMaterial(receipt, config, r, g).proof_facts[0], PROOF_VERSION);
+  assert.throws(() => proofMaterial({ ...receipt, proof: Array(1100).fill(0) }, config, r, g), /V2 circuit/);
   for (const field of ["seed", "player"])
     assert.throws(() =>
       proofMaterial(receipt, config, r, { ...g, [field]: "0x55" }),

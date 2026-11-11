@@ -1,3 +1,4 @@
+import { PROVING_REVISION, BACKEND_RELEASE, assertProofProfile } from "../web/prover-profile.mjs";
 import { fetchRpc } from "../web/rpc-retry.mjs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -123,6 +124,7 @@ async function validateArtifacts() {
     if (!same(execution[k], proof[k]))
       throw Error("Browser receipt linkage mismatch: " + k);
   await validateCaptureForExecution(execution);
+  assertProofProfile(proof.proof);
   const facts = proofFacts(proof.output_preimage),
     raw = execution.output;
   if (
@@ -248,7 +250,8 @@ async function signSubmission() {
       proof_sha256: proof.report.proof_sha256,
       pie_sha256: execution.report.pie_sha256,
       program_hash: PROGRAM,
-      proving_utils_revision: "3035dd00421daa541894297bd754db6e2787807b",
+      proving_revision: PROVING_REVISION,
+      backend_release: BACKEND_RELEASE,
       fee_ceiling_fri: maximum.toString(),
       balance_before_fri: funds.toString(),
       created_at: new Date().toISOString(),

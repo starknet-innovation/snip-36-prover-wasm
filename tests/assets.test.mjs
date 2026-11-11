@@ -17,11 +17,10 @@ import { responseBytes, responseJson } from "../scripts/network.mjs";
 const wasm = Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]);
 const manifest = {
   repository: "starknet-innovation/snip-36-prover-wasm",
-  release: "v0.1.0",
+  release: "v0.2.0",
   assets: [
     { name: "executor.wasm", path: "web/auth/browser_virtual_os_bg.wasm" },
     { name: "prover.wasm", path: "web/sequencer-prover.wasm" },
-    { name: "prover-memory.wasm", path: "web/prover-memory.wasm" },
   ].map((asset) => ({
     ...asset,
     bytes: wasm.length,
@@ -65,7 +64,7 @@ test("release metadata cannot select another repository, URL or destination", as
   }
   assert.equal(
     validateManifest(manifest)[0].url,
-    "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.1.0/executor.wasm",
+    "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v0.2.0/executor.wasm",
   );
 });
 
