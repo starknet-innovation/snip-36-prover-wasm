@@ -5,6 +5,7 @@ import { startServer } from "./server.mjs";
 import { CHAIN, STRK, selector } from "../web/live-core.mjs";
 import { PROGRAM, PROOF_VERSION } from "../web/prover-profile.mjs";
 const config = JSON.parse(await readFile("web/live-config.json"));
+const legacyConfig = JSON.parse(await readFile("web/legacy-live-config.json"));
 const server = await startServer(0),
   browser = await chromium.launch({ headless: true });
 try {
@@ -19,12 +20,14 @@ try {
     "wallet-rejected",
     "pending",
     "legacy-bank",
+    "legacy-recovery",
     "mismatched-bank",
   ]) {
     const page = await browser.newPage();
+    const chainConfig = ["legacy-bank", "legacy-recovery"].includes(scenario) ? legacyConfig : config;
     let submitted = 0;
     await page.route("**/live-config.json", (route) => route.fulfill({
-      json: scenario === "legacy-bank" ? config : {
+      json: scenario === "legacy-bank" ? legacyConfig : {
         ...config, program_hash: PROGRAM, proof_version: PROOF_VERSION,
       },
     }));
@@ -35,13 +38,13 @@ try {
       else if (q.method === "starknet_blockNumber") result = 100;
       else if (q.method === "starknet_getClassHashAt")
         result =
-          q.params.contract_address === config.bank
-            ? config.bank_class_hash
-            : config.executor_class_hash;
+          q.params.contract_address === chainConfig.bank
+            ? chainConfig.bank_class_hash
+            : chainConfig.executor_class_hash;
       else if (q.method === "starknet_getTransactionReceipt")
         error = { code: 29, message: "Transaction hash not found" };
       else if (q.params.request.entry_point_selector === selector("get_config"))
-        result = [config.owner, config.coinflip, STRK];
+        result = [chainConfig.owner, chainConfig.coinflip, STRK];
       else if (q.params.request.entry_point_selector === selector("get_proof_profile"))
         result = scenario === "mismatched-bank" ? ["0x50524f4f4631", PROGRAM] : [PROOF_VERSION, PROGRAM];
       else if (q.params.request.entry_point_selector === selector("liquidity"))
@@ -108,7 +111,7 @@ try {
       },
       { scenario, CHAIN },
     );
-    await page.goto(`http://127.0.0.1:${server.address().port}/play.html`);
+    await page.goto(`http://127.0.0.1:${server.address().port}/play.html${scenario === "legacy-recovery" ? "?bank=v1" : ""}`);
     await page.waitForFunction(() =>
       document.querySelector("#wallets").textContent.includes("Test wallet"),
     );
@@ -215,7 +218,12 @@ try {
       !(await page.locator("#next").isDisabled())
     )
       throw Error("Unsafe action enabled: " + scenario);
-    if (["legacy-bank", "mismatched-bank"].includes(scenario) && submitted !== 0)
+    if (scenario === "legacy-recovery" &&
+        (!(await page.locator("h1").textContent()).includes("earlier round") ||
+         !(await page.locator("#action-hint").textContent()).includes("V1 settlement") ||
+         !(await page.locator("#contract-links a").first().getAttribute("href")).endsWith(legacyConfig.bank)))
+      throw Error("Legacy recovery does not identify the original V1 bank");
+    if (["legacy-bank", "legacy-recovery", "mismatched-bank"].includes(scenario) && submitted !== 0)
       throw Error("Legacy bank accepted a new deposit");
     await page.setViewportSize({ width: 390, height: 844 });
     if (

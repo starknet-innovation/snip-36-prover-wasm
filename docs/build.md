@@ -2,7 +2,7 @@
 
 The current profile adopts backend v1.4.0 / deps-v15. It uses sequencer `148de44521b49e32c5a675e287572768932cc99e` and the transaction-service `starkware-libs/proving` monorepo at `e0035ffc8e08da270b8cb4a71f3708af70c2c775`. The separately bundled proving-utils `0a97f45` is not this prover.
 
-The V2 browser release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) supplies both verified Wasm modules. Run `npm ci --ignore-scripts && npm run assets` to download them using the committed checksums. The source instructions below rebuild the same pinned profile; CI and Pages use the reusable `build-wasm.yml` workflow. Existing V1 release modules cannot be mixed into this profile.
+The V2 browser release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) supplies both verified Wasm modules. Run `npm ci --ignore-scripts && npm run assets` to download them using the committed checksums. The source instructions below rebuild the same pinned profile; CI uses the reusable `build-wasm.yml` workflow. Pages checks the committed release validation record against the current pins, patches and module identities before downloading the published modules; a changed source profile requires a newly validated release. Existing V1 release modules cannot be mixed into this profile.
 
 Requirements: Git, Rust/rustup, Python 3.11+ for preparation, Python 3.10 for Cairo tooling, and LLVM clang/llvm-ar 21 or newer for the memory64 indirect-call ABI. CI uses LLVM 23 from the signed official LLVM apt repository. Older Clang can produce a module that links successfully but fails WebAssembly validation; `build.sh` rejects it for the prover. Every CI artifact must compile, instantiate and initialize in Chromium before upload. Keep rustup's Cargo ahead of standalone Cargo installations in PATH. Dependencies stay under `build/`. Budget substantial memory and disk space for the first build.
 
@@ -38,7 +38,7 @@ build/target-native/release/examples/spike_native verify proof.bin output_preima
 
 The native example also supports `prove PIE OUTPUT_PREIMAGE_JSON OUTPUT_DIR`. Signing credentials are unnecessary for these builds; `build.sh` rejects `STARKNET_PRIVATE_KEY`.
 
-The existing Sepolia CoinFlip bank requires the historical V1 statement. The updated contract source requires PROOF2 and the new virtual-OS hash, and exposes `get_proof_profile`. Deploy and configure a compatible bank before enabling deposits. Publishing assets or deploying contracts is separate from a local source build. Historical V1 receipts remain in `evidence/`.
+The default Sepolia CoinFlip configuration points to the deployed V2 bank. It requires PROOF2 and the new virtual-OS hash and exposes `get_proof_profile`; the frontend verifies that profile on-chain. The original V1 bank remains in `web/legacy-live-config.json` and the `play.html?bank=v1` recovery view. Publishing assets does not migrate bank state. Deployment and accepted V2 settlement evidence are in `evidence/v2-bank-deployment.json`; historical V1 receipts remain separate.
 
 V2 blinding is unchanged: upstream derives the recursive circuit blinding seed from the Cairo proof trace root. The retained Web Crypto host ABI was not invoked in the recorded V2 run (see its zero random-call counter); no alternative seed or blinding rule was introduced.
 
