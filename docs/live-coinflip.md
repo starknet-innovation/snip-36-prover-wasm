@@ -66,9 +66,16 @@ page for new V2 games.
 
 The pre-cutover scan at block **17,968,904** checked 38 deposited rounds and found
 three revealed, unsettled V1 rounds (0.001 test STRK per stake; 0.006 test STRK in
-combined escrow). They remain on the original bank without a settlement expiry;
-no escrow or game state was migrated. Their public IDs and states are retained
-in the V2 deployment evidence. Preserve recovery files and use compatible V1
-proving/settlement tooling for these rounds; the current V2 prover cannot settle
-them. The historical V1 source is retained at commit `397985e` and the V1 binary
-release is `v0.1.0`. V1 network admission was not retested by this V2 deployment.
+combined escrow). All three were subsequently settled on 2026-11-11 using the
+original `v0.1.0` browser modules and unchanged V1 native verifier. The two winners
+received 0.002 test STRK each; the losing round returned its escrow to the pool.
+The final check at block **17,969,980** found no active rounds among the 38 tracked
+sessions: both the token balance and available liquidity were **0.989 test STRK**,
+with no remaining escrow. [Settlement receipts and verification evidence](../evidence/v1-round-settlements.json).
+
+No escrow or game state was migrated to the V2 bank. Historical IDs/states remain
+in the V2 deployment evidence, and the recovery view remains available for old
+history. The V1 source is retained at commit `397985e`, its binary release is
+`v0.1.0`, and its proof profile is required for any future legacy settlement;
+the current V2 prover cannot produce those proofs. V1 network admission was
+confirmed by the three successful proof-bearing transactions.
