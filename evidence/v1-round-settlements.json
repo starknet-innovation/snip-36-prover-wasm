@@ -1,0 +1,385 @@
+{
+  "network": "SN_SEPOLIA",
+  "settled_at": "2026-11-11T08:10:13.230Z",
+  "bank": "0x30b11259ed036688a04bb9d4cace3912b1858eef69a87e540967a66eddd3e6d",
+  "bank_class_hash": "0x43d560e0afa6b19b40201b477fe4d7ab2801803247b5042d2c60902069076ca",
+  "program_hash": "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+  "proof_version": "0x50524f4f4631",
+  "settlement_account": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+  "application_source": "397985e6826defc8dc353cd02f120970580c9d02",
+  "prover_release": "v0.1.0",
+  "modules": {
+    "executor_sha256": "cabdfd7feb2ece97c552fb5a46aef1237f7a526795b7dfbf7e1e4e6cfad26646",
+    "prover_sha256": "1f76da1636c1e0e5f9952b3b49fc23d5a93493c2b94d3a2ec221965aa802a8aa"
+  },
+  "native_verifier": {
+    "proving_utils_revision": "3035dd00421daa541894297bd754db6e2787807b",
+    "binary_sha256": "49ff428b0b756bcf214622fc2d052cfd9fb71cf3fd90cd1be2b37d3697ca07fd",
+    "unpatched_upstream_implementation": true
+  },
+  "max_fee_fri_per_transaction": "25000000000000000000",
+  "actual_fees_fri_total": "5425051489555377280",
+  "winning_payout_fri_total": "4000000000000000",
+  "rounds": [
+    {
+      "name": "round-1",
+      "round": "0x73ca9a947bf65101cf6f304216111d136b057c84bb63a3c23509950ee0273fe",
+      "game_before": {
+        "player": "0x585390cbe65de265795657a4b2d8535ba4e04e63fefbc1da66db7f3922f1594",
+        "amount": "1000000000000000",
+        "commitment": "0x500079df80f6e1ddbe32ed7a9d3588cbf32787db464180c0366582e9fae5b2c",
+        "seed_block": 16123085,
+        "seed": "0x4a55394978766bc79f898947a583fbc0fb51865ed949b95a5cfec3333cf9699",
+        "choice": 0,
+        "state": 3,
+        "deadline": 1791293461
+      },
+      "game_after": {
+        "player": "0x585390cbe65de265795657a4b2d8535ba4e04e63fefbc1da66db7f3922f1594",
+        "amount": "1000000000000000",
+        "commitment": "0x500079df80f6e1ddbe32ed7a9d3588cbf32787db464180c0366582e9fae5b2c",
+        "seed_block": 16123085,
+        "seed": "0x4a55394978766bc79f898947a583fbc0fb51865ed949b95a5cfec3333cf9699",
+        "choice": 0,
+        "state": 4,
+        "deadline": 1791293461
+      },
+      "won": true,
+      "payout_verified": true,
+      "native_verified": true,
+      "proof_sha256": "669b42b05b2c882fbd00087ee59dde75f7b02604393d4345c40c6c5f4e8341d6",
+      "proof_bytes": 234969,
+      "anchor": {
+        "block_hash": "0x6cf9deb6fcffd551191ea3cdcec944202602e4814d3b1ecb9bfea576b3b8a78",
+        "block_number": 17969785,
+        "event_commitment": "0x5d91dd8a2064ea8250b7aac12182159020f84bc90c57426ad8207fba0f3c25d",
+        "event_count": 3,
+        "l1_da_mode": "BLOB",
+        "l1_data_gas_price": {
+          "price_in_fri": "0xd77d",
+          "price_in_wei": "0x1"
+        },
+        "l1_gas_price": {
+          "price_in_fri": "0x322c216d49da",
+          "price_in_wei": "0x3b9aca10"
+        },
+        "l2_gas_price": {
+          "price_in_fri": "0x57ad65a9d",
+          "price_in_wei": "0x68291"
+        },
+        "new_root": "0x2f576a3708e1482e2b488e46fb97b3cd7459f7f8fb6eaa100aed636467524da",
+        "parent_hash": "0x1293c317a7f1856f650db39c0de352a4527ef2318806938d463d20500f13f08",
+        "receipt_commitment": "0x6f4a55bc9e703d234a05d732c1daaeb2bcb63020be9c8cabcf82df33774179f",
+        "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "starknet_version": "0.14.4",
+        "state_diff_commitment": "0x77e5f8863c817aa01279b25a2f7ef173233ddf0de84f5bec95cc41a3e090354",
+        "state_diff_length": 8,
+        "status": "ACCEPTED_ON_L2",
+        "timestamp": 1794384272,
+        "transaction_commitment": "0x74dbfa3378fd9e1f37e586d7b3e2fe413a6dbab524733607764a4d04d914f2d",
+        "transaction_count": 3,
+        "transactions": [
+          "0x7ba0687587a0a08b02fc8af6a7e6d350ac722ec2f63c78737785e8fd4aafd63",
+          "0x7794ccc36114b926e36a4c7146af9423c4ab568a955f54fa38602e31a0eb4fc",
+          "0x35cb5a540fc7e7fde8f4a68994e2df51617fc35aa11a477543f1413028cddcf"
+        ]
+      },
+      "output_preimage": [
+        "0x1",
+        "0x8",
+        "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+        "0x5649525455414c5f534e4f5330",
+        "0x1123279",
+        "0x6cf9deb6fcffd551191ea3cdcec944202602e4814d3b1ecb9bfea576b3b8a78",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x1",
+        "0x2b0c8cf410b05ab0b378411327d0687cb8fa8fbe21b3cc4d773bd119be2bce7"
+      ],
+      "transaction_hash": "0xd2108974d718e0124a1cd2c519bc39ffaf67f04a3388b42a7fcb313a494f65",
+      "receipt": {
+        "actual_fee": {
+          "amount": "0x1923ba200a7c92c0",
+          "unit": "FRI"
+        },
+        "block_hash": "0x31bf26fa350ea3b91804780bb406696af076dc898800bc4be8abec821c7bcb7",
+        "block_number": 17969897,
+        "events": [
+          {
+            "data": [
+              "0x71afd498d0000",
+              "0x0"
+            ],
+            "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "keys": [
+              "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+              "0x30b11259ed036688a04bb9d4cace3912b1858eef69a87e540967a66eddd3e6d",
+              "0x585390cbe65de265795657a4b2d8535ba4e04e63fefbc1da66db7f3922f1594"
+            ]
+          },
+          {
+            "data": [
+              "0x1923ba200a7c92c0",
+              "0x0"
+            ],
+            "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "keys": [
+              "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+              "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+              "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"
+            ]
+          }
+        ],
+        "execution_resources": {
+          "l1_data_gas": 384,
+          "l1_gas": 0,
+          "l2_gas": 76968000
+        },
+        "execution_status": "SUCCEEDED",
+        "finality_status": "ACCEPTED_ON_L2",
+        "messages_sent": [],
+        "transaction_hash": "0xd2108974d718e0124a1cd2c519bc39ffaf67f04a3388b42a7fcb313a494f65",
+        "type": "INVOKE"
+      }
+    },
+    {
+      "name": "round-2",
+      "round": "0x37b81b328553358348a23df0b39f63df5e69fdb4321fa46c868ec41faa43f36",
+      "game_before": {
+        "player": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+        "amount": "1000000000000000",
+        "commitment": "0x5604211fb5c796e80df57cddd8eb26a25a9a046860f2f5c6e2d598b01c312ab",
+        "seed_block": 17367403,
+        "seed": "0x5469cda2994b0672168b3ac34f8904ebce3fe0ab07f5b5568987471b19e3e75",
+        "choice": 0,
+        "state": 3,
+        "deadline": 1793427999
+      },
+      "game_after": {
+        "player": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+        "amount": "1000000000000000",
+        "commitment": "0x5604211fb5c796e80df57cddd8eb26a25a9a046860f2f5c6e2d598b01c312ab",
+        "seed_block": 17367403,
+        "seed": "0x5469cda2994b0672168b3ac34f8904ebce3fe0ab07f5b5568987471b19e3e75",
+        "choice": 0,
+        "state": 4,
+        "deadline": 1793427999
+      },
+      "won": false,
+      "payout_verified": false,
+      "native_verified": true,
+      "proof_sha256": "0eebd4dea607beeac4645b44d8f8c05c7a32f2b07c436389a54372e8e9b62284",
+      "proof_bytes": 230464,
+      "anchor": {
+        "block_hash": "0x71cbed361cbeb3ec39225b23b360efe0a67e5b015af7b1f5e970115aa52be84",
+        "block_number": 17969824,
+        "event_commitment": "0x76659a908b0f9f6c14a204383ee67f592430605f9a372406322f8b0f6cdb969",
+        "event_count": 7,
+        "l1_da_mode": "BLOB",
+        "l1_data_gas_price": {
+          "price_in_fri": "0xd77d",
+          "price_in_wei": "0x1"
+        },
+        "l1_gas_price": {
+          "price_in_fri": "0x322c216d49da",
+          "price_in_wei": "0x3b9aca10"
+        },
+        "l2_gas_price": {
+          "price_in_fri": "0x57ad65a9d",
+          "price_in_wei": "0x68291"
+        },
+        "new_root": "0x16b7731773dc1b920387a77c1ce4e705eff10f241fe8cf1d09752a45a2e8ca4",
+        "parent_hash": "0x2cf4cb66c5efe5e2c8f0fa4d14f5820a181a6f5ccb73b88fcb7ed657fb7f988",
+        "receipt_commitment": "0x71de870e406b1bdcdab1218aec35f4c59fc13271de26505a81c2d9b886d1887",
+        "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "starknet_version": "0.14.4",
+        "state_diff_commitment": "0x62a30bbe72f204b7fbab8bf70ca7ecc3106cdae76c0c6bbf8fd784dfdccf031",
+        "state_diff_length": 9,
+        "status": "ACCEPTED_ON_L2",
+        "timestamp": 1794384339,
+        "transaction_commitment": "0x46df897f19d0235970463fe92af095520917959ed7de5dcbf3b0950bf408b48",
+        "transaction_count": 4,
+        "transactions": [
+          "0x2fa360ed6d0d76fd995f264666dd84ed8747e1fc6bfeabbf28adca840cdc363",
+          "0x7a381b8089a1622642b3f390980fa9598c021ee8c30941aa3569a4b6d28687f",
+          "0x6ab01e72d7d0e23037a99d95d468b6728020e34c5674da601796286292c1c43",
+          "0x1d5f2417c29a64c52527725b5032d76238e8c5354bc726249478ef047d72466"
+        ]
+      },
+      "output_preimage": [
+        "0x1",
+        "0x8",
+        "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+        "0x5649525455414c5f534e4f5330",
+        "0x11232a0",
+        "0x71cbed361cbeb3ec39225b23b360efe0a67e5b015af7b1f5e970115aa52be84",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x1",
+        "0x514fbb678e1c3b12920f93630a6fc209df28cdf6684f567054647a9a1a49c10"
+      ],
+      "transaction_hash": "0x1cde9cf3706a9ecc2abc27bab91e0b7f83f10ad49d48c528bdcfbba57bd8318",
+      "receipt": {
+        "actual_fee": {
+          "amount": "0x19058b8f6b31f980",
+          "unit": "FRI"
+        },
+        "block_hash": "0x71e7c9fd0e35748513f75b46385b32916a4be8fb9a79fdfcdcb15d8d5e6ed33",
+        "block_number": 17969901,
+        "events": [
+          {
+            "data": [
+              "0x19058b8f6b31f980",
+              "0x0"
+            ],
+            "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "keys": [
+              "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+              "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+              "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"
+            ]
+          }
+        ],
+        "execution_resources": {
+          "l1_data_gas": 320,
+          "l1_gas": 0,
+          "l2_gas": 76607040
+        },
+        "execution_status": "SUCCEEDED",
+        "finality_status": "ACCEPTED_ON_L2",
+        "messages_sent": [],
+        "transaction_hash": "0x1cde9cf3706a9ecc2abc27bab91e0b7f83f10ad49d48c528bdcfbba57bd8318",
+        "type": "INVOKE"
+      }
+    },
+    {
+      "name": "round-3",
+      "round": "0x13319084f08999cf5f7e6d43461e3c6c564a23b5d95fdb1862fff1c19bf56a",
+      "game_before": {
+        "player": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+        "amount": "1000000000000000",
+        "commitment": "0x36f9baea9be023273b31f99f791ee5158232d8c65890361922a2a46e8d05ca8",
+        "seed_block": 17716757,
+        "seed": "0x66869a7f171859194da3f8e04b1cc701306549dcebe53e25a44c81bce34f5e3",
+        "choice": 0,
+        "state": 3,
+        "deadline": 1794032679
+      },
+      "game_after": {
+        "player": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+        "amount": "1000000000000000",
+        "commitment": "0x36f9baea9be023273b31f99f791ee5158232d8c65890361922a2a46e8d05ca8",
+        "seed_block": 17716757,
+        "seed": "0x66869a7f171859194da3f8e04b1cc701306549dcebe53e25a44c81bce34f5e3",
+        "choice": 0,
+        "state": 4,
+        "deadline": 1794032679
+      },
+      "won": true,
+      "payout_verified": true,
+      "native_verified": true,
+      "proof_sha256": "bec48743925cb5449960643f1980a3746b7d1e42a9cfc031201c9055e6f1e680",
+      "proof_bytes": 229912,
+      "anchor": {
+        "block_hash": "0x31e832f8d884f4dea7e4c4da0211c165e2a92313b2773781960bd33d85c4c14",
+        "block_number": 17969885,
+        "event_commitment": "0x231dffafed1bf2a158fee2c99d236b6d43d65059df5f761313c863e10a815ce",
+        "event_count": 3,
+        "l1_da_mode": "BLOB",
+        "l1_data_gas_price": {
+          "price_in_fri": "0xd77d",
+          "price_in_wei": "0x1"
+        },
+        "l1_gas_price": {
+          "price_in_fri": "0x322c216d49da",
+          "price_in_wei": "0x3b9aca10"
+        },
+        "l2_gas_price": {
+          "price_in_fri": "0x57ad65a9d",
+          "price_in_wei": "0x68291"
+        },
+        "new_root": "0x1f51b9f53684a86064d2c2bd5a318e50f08bfd0a2d2025c53ade42c327a1692",
+        "parent_hash": "0x6d8d5e4015fedcf0a62914479a5d166a1e3594f17056c291dc64ea97b61c601",
+        "receipt_commitment": "0x3e6afb71041f6afc24368120564dfee1ea8c312c7b2d0547a5de3161f8833df",
+        "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "starknet_version": "0.14.4",
+        "state_diff_commitment": "0x2b28dcfd9cceba556a35eb1384776fc1f3653abfe115bc8716f14c6308eb3eb",
+        "state_diff_length": 5,
+        "status": "ACCEPTED_ON_L2",
+        "timestamp": 1794384443,
+        "transaction_commitment": "0x7bc22ce57240a21f47ab5297ed05d2b15e73be899e378d86228b09ae4d89afb",
+        "transaction_count": 3,
+        "transactions": [
+          "0x113277f8ebc8123082963781352dbb40fedb764be0ec9a988dde78cf6fcfd98",
+          "0x4ebf18692d3f8c23d90cd1a7d4673f78aef723cabb0bc4fecce58ed90a46da0",
+          "0x61e87e4ce14e20d9d0828e8fbb77290db3350e638b44cfe2969390556335556"
+        ]
+      },
+      "output_preimage": [
+        "0x1",
+        "0x8",
+        "0x53f6c9fcfd31d27279ff7d7e422b44623550a732b59fe193354a7316a96daa1",
+        "0x5649525455414c5f534e4f5330",
+        "0x11232dd",
+        "0x31e832f8d884f4dea7e4c4da0211c165e2a92313b2773781960bd33d85c4c14",
+        "0x57ed4d5e20d617d8cc087a5882eae4f71d005172326be6439b2e1fd8b4dc57",
+        "0x1",
+        "0x1ebc96102bf4b9ef4588817376618b3b39ce1df19c5db74ead4b91ce534e7ed"
+      ],
+      "transaction_hash": "0x4faea1caf8ad383ae4b73398005017b92f07d61be9f3d0a24d5880ec92e5233",
+      "receipt": {
+        "actual_fee": {
+          "amount": "0x192061e6b5786040",
+          "unit": "FRI"
+        },
+        "block_hash": "0x25229278f3058043f16c26eaec367888600e561a5e9c60085757372df95f58d",
+        "block_number": 17969933,
+        "events": [
+          {
+            "data": [
+              "0x71afd498d0000",
+              "0x0"
+            ],
+            "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "keys": [
+              "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+              "0x30b11259ed036688a04bb9d4cace3912b1858eef69a87e540967a66eddd3e6d",
+              "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa"
+            ]
+          },
+          {
+            "data": [
+              "0x192061e6b5786040",
+              "0x0"
+            ],
+            "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "keys": [
+              "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+              "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+              "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"
+            ]
+          }
+        ],
+        "execution_resources": {
+          "l1_data_gas": 320,
+          "l1_gas": 0,
+          "l2_gas": 76928000
+        },
+        "execution_status": "SUCCEEDED",
+        "finality_status": "ACCEPTED_ON_L2",
+        "messages_sent": [],
+        "transaction_hash": "0x4faea1caf8ad383ae4b73398005017b92f07d61be9f3d0a24d5880ec92e5233",
+        "type": "INVOKE"
+      }
+    }
+  ],
+  "final_reconciliation": {
+    "checked_at": "2026-11-11T08:10:13.230Z",
+    "block": 17969980,
+    "bank": "0x30b11259ed036688a04bb9d4cace3912b1858eef69a87e540967a66eddd3e6d",
+    "rounds_checked": 38,
+    "active_rounds": [],
+    "token_balance_fri": "989000000000000000",
+    "available_liquidity_fri": "989000000000000000",
+    "unallocated_balance_fri": "0"
+  },
+  "v2_configuration_changed": false
+}
