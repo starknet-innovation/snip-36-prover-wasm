@@ -1,20 +1,20 @@
 {
-  "release": "v0.2.0",
+  "release": "v1.0.0",
   "repository": "starknet-innovation/snip-36-prover-wasm",
   "assets": [
     {
       "name": "executor.wasm",
       "path": "web/auth/browser_virtual_os_bg.wasm",
-      "bytes": 36326834,
-      "sha256": "5627488ac26749946315aacdce0ae8c126c37dda93d8fadd3082e27d6ceea757"
+      "bytes": 36330443,
+      "sha256": "f3833e3ac1b78f870831d28a3ddc585cda81d30420cc9da1071bb50fc754aa18"
     },
     {
       "name": "prover.wasm",
       "path": "web/sequencer-prover.wasm",
-      "bytes": 70082288,
-      "sha256": "c484387b6f22730a72f1990ce4d4ad64474edcb2142e603f2d64b174094e6f46"
+      "bytes": 70062417,
+      "sha256": "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca"
     }
   ],
-  "release_status": "unpublished",
+  "release_status": "published",
   "backend_release": "v1.4.0"
 }

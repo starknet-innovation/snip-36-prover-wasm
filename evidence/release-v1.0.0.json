@@ -1,0 +1,205 @@
+{
+  "release": "v1.0.0",
+  "date": "2026-11-11",
+  "source_base_commit": "42a5b200198198f51858e4b188de566110352f3e",
+  "artifact_source": {
+    "run_id": 42975383302,
+    "run_url": "https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/42975383302",
+    "commit": "aaa2a15f3cc12437a8e655dd81b73a6e573780ea",
+    "artifact_id": 13835727414,
+    "artifact_digest": "sha256:f0d4392b496d15948eaf0461d66d603a7648aaf51a3c8d14c7af1c325a0fe3f1",
+    "ci_conclusion": "success",
+    "compiler": "Ubuntu clang 23.1.6 (++20261108033755+c47d7823685a-1~exp1~20261108153854.96)"
+  },
+  "pins": {
+    "backend_release": "v1.4.0",
+    "backend": "cf4bc4d63a3bf0819dd1a04821adc0e8ac7911c2",
+    "deps_release": "deps-v15",
+    "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
+    "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "proof_version": "0x50524f4f4632"
+  },
+  "modules": {
+    "web/auth/browser_virtual_os_bg.wasm": {
+      "path": "web/auth/browser_virtual_os_bg.wasm",
+      "bytes": 36330443,
+      "sha256": "f3833e3ac1b78f870831d28a3ddc585cda81d30420cc9da1071bb50fc754aa18"
+    },
+    "web/sequencer-prover.wasm": {
+      "path": "web/sequencer-prover.wasm",
+      "bytes": 70062417,
+      "sha256": "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca"
+    }
+  },
+  "source_identity": {
+    "pins_sha256": "5c52564390cc0b429a22f607fba72bb05550732d0c698880c015bc6ad08970a4",
+    "executor_patch_sha256": "043a965d089ab187a3debd12ba01e99c4a152acffc707c6ea0ac2e1fba95e019",
+    "prover_patch_sha256": "d51666fcd849c026aa3087b4158d8ddbd111da9c6ee78c1771b13c4a66f56023"
+  },
+  "native_verifier": {
+    "source_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "binary_sha256": "1d78a26ddc5adf5546d1eccc765a98af41fd5c8b3379bacf94dbb980818ce31a",
+    "upstream_lock_sha256": "c6663b3de0d96f6e45531eb3324d578ae801d2866ae0f304b5aafe5b1d207432",
+    "cli_example_sha256": "eeb90bec2b935f67bfeb21f526292da3f56755f59963e1de8fefcbe754dcb6fb",
+    "upstream_implementation_unchanged": true
+  },
+  "checks": {
+    "javascript_tests": 79,
+    "python_tests": 29,
+    "cairo_tests_in_ci": 8,
+    "rust_boundary_tests_in_ci": 2,
+    "compiler_and_dependency_guards_passed": true,
+    "source_modules_and_bindings_verified": true,
+    "all_three_executor_replays_passed": true,
+    "wallet_ui_scenarios": 11,
+    "worker_boundaries_and_module_substitution_passed": true,
+    "npm_advisories": 0,
+    "chromium_module_initialization_passed_in_ci_and_locally": true,
+    "legacy_clang_18_ci_module_rejected_by_new_smoke_check": true
+  },
+  "workloads": [
+    {
+      "name": "balance",
+      "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+      "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+      "proof_bytes": 231440,
+      "native_verified": true,
+      "proof_unchanged_from_prior_v2_validation": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 70062417,
+        "wasm_sha256": "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+        "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+        "proof_bytes": 231440,
+        "load_ms": 91.48000000417233,
+        "init_ms": 4526.245000004768,
+        "prove_ms": 61105.69500000775,
+        "total_ms": 65728.10500000417,
+        "wasm_linear_memory_bytes": 14283112448,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 10885363163,
+        "rust_requested_peak_bytes": 14146828585,
+        "backend_release": "v1.4.0",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 65758.1400000006,
+        "harness_call_ms": 68595.339875,
+        "browser_process_peak_bytes": 8192622592,
+        "browser_process_rss_sum_bytes": 6771916800,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    },
+    {
+      "name": "coinflip-heads",
+      "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+      "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+      "proof_bytes": 235881,
+      "native_verified": true,
+      "proof_unchanged_from_prior_v2_validation": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 70062417,
+        "wasm_sha256": "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+        "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+        "proof_bytes": 235881,
+        "load_ms": 89.41499999165535,
+        "init_ms": 4491.909999996424,
+        "prove_ms": 60556.95499999821,
+        "total_ms": 65142.75,
+        "wasm_linear_memory_bytes": 14560002048,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 10883294772,
+        "rust_requested_peak_bytes": 14144403799,
+        "backend_release": "v1.4.0",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 65167.16500000656,
+        "harness_call_ms": 67273.7885,
+        "browser_process_peak_bytes": 12567298048,
+        "browser_process_rss_sum_bytes": 7021510656,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    },
+    {
+      "name": "coinflip-tails",
+      "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+      "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+      "proof_bytes": 231605,
+      "native_verified": true,
+      "proof_unchanged_from_prior_v2_validation": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 70062417,
+        "wasm_sha256": "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+        "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+        "proof_bytes": 231605,
+        "load_ms": 87.54999999701977,
+        "init_ms": 4564.034999996424,
+        "prove_ms": 57616.67500001192,
+        "total_ms": 62272.05000001192,
+        "wasm_linear_memory_bytes": 14298316800,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 10883290496,
+        "rust_requested_peak_bytes": 14144420115,
+        "backend_release": "v1.4.0",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 62295.75999999046,
+        "harness_call_ms": 64428.771584,
+        "browser_process_peak_bytes": 13023297536,
+        "browser_process_rss_sum_bytes": 9184690176,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    }
+  ],
+  "network_transactions_submitted": false,
+  "v2_bank_deployed": false
+}

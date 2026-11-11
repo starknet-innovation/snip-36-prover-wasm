@@ -24,6 +24,8 @@ class ProverProfiles(unittest.TestCase):
         bins = self.root / 'bin'; bins.mkdir()
         (bins / 'python3').symlink_to(sys.executable)
         (bins / 'rustup').write_text('#!/bin/sh\nexit 0\n')
+        (bins / 'test-clang').write_text('#!/bin/sh\necho 23.1.5\n')
+        (bins / 'test-clang').chmod(0o755)
         (bins / 'cargo').write_text(f'#!{sys.executable}\n' + '''import json, os, sys
 from pathlib import Path
 args = sys.argv[1:]
@@ -60,6 +62,14 @@ Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': s
         self.assertIn('target-feature=+simd128', call['rustflags'])
         self.assertIn(f'--remap-path-prefix={self.root}=/src', call['rustflags'])
         self.assertTrue(any(flag.startswith('--remap-path-prefix=') and flag.endswith('=/cargo') for flag in call['rustflags']))
+
+    def test_legacy_clang_fails_before_build_or_install(self):
+        (self.root / 'bin/test-clang').write_text('#!/bin/sh\necho 18.1.3\n')
+        result = self.run_build('prover')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('requires LLVM clang 21 or newer', result.stderr)
+        self.assertFalse((self.root / 'cargo-call.json').exists())
+        self.assertEqual(self.installed.read_bytes(), b'released-default')
 
     def test_v1_profiles_fail_before_compiling_or_installing(self):
         for mode in ['prover-memory', 'prover-tradeoffs', 'prover-kernels']:

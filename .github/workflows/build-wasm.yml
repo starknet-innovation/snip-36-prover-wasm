@@ -9,8 +9,8 @@ jobs:
     timeout-minutes: 90
     env:
       CARGO_BUILD_JOBS: 2
-      WASM_CC: clang
-      WASM_AR: llvm-ar
+      WASM_CC: clang-23
+      WASM_AR: llvm-ar-23
       PYTHON310: python3.10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -22,14 +22,33 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Install Wasm C compiler
-        run: sudo apt-get update && sudo apt-get install -y clang llvm libgmp-dev
+      - name: Install LLVM 23 for the memory64 indirect-call ABI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl gnupg libgmp-dev
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key -o /tmp/llvm-key.asc
+          fingerprint=$(gpg --show-keys --with-colons /tmp/llvm-key.asc | awk -F: '$1 == "fpr" { print $10; exit }')
+          test "$fingerprint" = 6084F3CF814B57C1CF12EFD515CF4D18AF4F7421
+          gpg --dearmor < /tmp/llvm-key.asc | sudo tee /usr/share/keyrings/llvm-archive-keyring.gpg > /dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] https://apt.llvm.org/noble/ llvm-toolchain-noble-23 main' | sudo tee /etc/apt/sources.list.d/llvm23.list
+          sudo apt-get update
+          sudo apt-get install -y clang-23 llvm-23
+          clang-23 --version
       - name: Build pinned executor
         run: ./scripts/build.sh executor
       - name: Build pinned V2 prover
         run: ./scripts/build.sh prover
       - name: Verify source-built modules
         run: python3 scripts/source-assets.py verify
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run demo:build
+      - run: npx playwright install --with-deps chromium
+      - name: Instantiate and initialize the memory64 prover in Chromium
+        run: node scripts/prover-smoke.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: browser-wasm-v2
