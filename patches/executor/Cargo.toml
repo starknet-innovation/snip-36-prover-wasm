@@ -181,6 +181,7 @@ await_holding_lock = "warn"
 await_holding_refcell_ref = "warn"
 
 [patch.crates-io]
+cairo-vm = { path = "browser-vendor/cairo-vm-3.2.0" }
 cairo-lang-starknet-classes = { path = "browser-vendor/cairo-lang-starknet-classes-2.19.6" }
 
 num-prime = { path = "browser-vendor/num-prime-0.4.4" }

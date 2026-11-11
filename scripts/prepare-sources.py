@@ -47,6 +47,12 @@ def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name):
         run("git", "-C", str(source), "apply", "--check", str(patch))
         run("git", "-C", str(source), "apply", str(patch))
         if patch_name == "v2.patch":
+            # Retain the pinned VM; migrate only its ZIP dependency/API.
+            with tarfile.open(patch_dir / "cairo-vm-3.2.0.crate") as archive:
+                archive.extractall(source / "browser-vendor", filter="data")
+            vm = source / "browser-vendor/cairo-vm-3.2.0"
+            run("git", "-C", str(vm), "apply", "--check", str(patch_dir / "cairo-vm-zip.patch"))
+            run("git", "-C", str(vm), "apply", str(patch_dir / "cairo-vm-zip.patch"))
             shutil.copytree(patch_dir / "browser-vendor/num-prime-0.4.4",
                             source / "browser-vendor/num-prime-0.4.4", dirs_exist_ok=True)
             check_manifests(source)
