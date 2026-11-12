@@ -1,0 +1,136 @@
+{
+  "release": "v1.0.1",
+  "release_commit": "3c38100a25e4e97d1b3196ebe5b4984b19c6e4fd",
+  "tested_at": "2026-11-12T11:19:51.241Z",
+  "chain_id": "0x534e5f5345504f4c4941",
+  "rpc": "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
+  "transport": "Wallet API test adapter backed by sncast account; not a browser extension",
+  "config": {
+    "chain_id": "0x534e5f5345504f4c4941",
+    "bank": "0xa7326f4400c58184b197ff34a66a5b6d5acce50123d7133d85a88da482db9e",
+    "coinflip": "0x2a2afbcfb434e7e0d74fe6cd1f6b1b469227f98f34cb508ace50cb25ad7355",
+    "executor": "0x6a9ec8c581b53d48ef220d70cd5f8c7cecfdcb0d2ca1ef9e6037a8b8b5a65de",
+    "source_commit": "ca98c373e439d08758d49d7bab7eff2ebbdeb32a",
+    "owner": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+    "bank_class_hash": "0x3f6bff1e0fb49450f7125b2740c22d8bf42de9890c2c2a9ad320136c83d4b24",
+    "executor_class_hash": "0x82cba4cf730106e720c3c706290b7209491606477427c31ea1a412da1de2b6",
+    "proof_version": "0x50524f4f4632",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324"
+  },
+  "modules": [
+    {
+      "name": "executor.wasm",
+      "path": "web/auth/browser_virtual_os_bg.wasm",
+      "bytes": 36330443,
+      "sha256": "9f9bc0c258df577a2136c3484c6bd48de22dfae51530901b4cf5c269ef8036fd"
+    },
+    {
+      "name": "prover.wasm",
+      "path": "web/sequencer-prover.wasm",
+      "bytes": 76749727,
+      "sha256": "febb42b85947772b129eec17ba58aec50dae1988a7af5ef0fd6b61812358bde7"
+    }
+  ],
+  "round": "0x53451f602146ccaec575d1eda0bb13b81bbc141b7db8a6168303af4ced92b7d",
+  "game": {
+    "player": "0x5a018f06581781371af2d639e5c905e5da998acbc53136f17e6ec99bdd77aa",
+    "amount": "1000000000000000",
+    "commitment": "0x548cda0310628073c9677d0f2e1762ad4ade889640a42c52c3da1f0602ef1c0",
+    "seed_block": 18026991,
+    "seed": "0x6096ebc8348353d9ccacc591f0feb49443797707882b0e0f5d3117f29da64a6",
+    "choice": 0,
+    "state": 4,
+    "deadline": 1794568650
+  },
+  "stake_wei": "1000000000000000",
+  "stake_test_strk": "0.001",
+  "outcome": 1,
+  "won": false,
+  "payout_wei": "0",
+  "outcome_and_payout_consistent": true,
+  "transactions": {
+    "deposit": {
+      "hash": "0x412110b6aa44204dd3ebec7564179034b9bab344a99d84be157d63daadb8180",
+      "block_number": 18026990,
+      "block_hash": "0x20d9e2645d4c26f20ccd152463bf6f612f6b9420df45aca0c6f8674acde60a1",
+      "execution_status": "SUCCEEDED",
+      "finality_status": "ACCEPTED_ON_L2",
+      "actual_fee_wei": "143644645901722432",
+      "fee_unit": "FRI",
+      "explorer_url": "https://sepolia.voyager.online/tx/0x412110b6aa44204dd3ebec7564179034b9bab344a99d84be157d63daadb8180"
+    },
+    "reveal": {
+      "hash": "0x38912ced0e2518a9e3a77b5ef0131971b7bb9a8d7997ef51705d0aaeae60db3",
+      "block_number": 18027009,
+      "block_hash": "0x5cb6dedf281e857818ffe2a3140e019c455552eb9f1033173b4460f19cf47fb",
+      "execution_status": "SUCCEEDED",
+      "finality_status": "ACCEPTED_ON_L2",
+      "actual_fee_wei": "44264532792091424",
+      "fee_unit": "FRI",
+      "explorer_url": "https://sepolia.voyager.online/tx/0x38912ced0e2518a9e3a77b5ef0131971b7bb9a8d7997ef51705d0aaeae60db3"
+    },
+    "settle": {
+      "hash": "0x2e618f62c67d2fc7bee45f2c90733eecfe2575cef25c33812d72a051cffd977",
+      "block_number": 18027068,
+      "block_hash": "0x18d2bc4e1e48f188d7b67e1d05b9fd27e9b270b9ededaffb537e7c68650ea1f",
+      "execution_status": "SUCCEEDED",
+      "finality_status": "ACCEPTED_ON_L2",
+      "actual_fee_wei": "1834863659970955520",
+      "fee_unit": "FRI",
+      "explorer_url": "https://sepolia.voyager.online/tx/0x2e618f62c67d2fc7bee45f2c90733eecfe2575cef25c33812d72a051cffd977"
+    }
+  },
+  "proof": {
+    "sha256": "76e39ef3fac9e479a8c6088a2c5ce4b1ac033258a962f3acf5f61294b69c4d4f",
+    "bytes": 227398,
+    "browser_report": {
+      "runtime": "browser Worker memory64",
+      "prover_build": "standard",
+      "wasm_bytes": 76749727,
+      "wasm_sha256": "febb42b85947772b129eec17ba58aec50dae1988a7af5ef0fd6b61812358bde7",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+      "pie_sha256": "56df2b31f2155f30ba7fd5c91fe67494c70e9de1b0f1bb4a2db2b3cec9c35ac4",
+      "proof_sha256": "76e39ef3fac9e479a8c6088a2c5ce4b1ac033258a962f3acf5f61294b69c4d4f",
+      "proof_bytes": 227398,
+      "load_ms": 104.86999997496605,
+      "init_ms": 113.25500002503395,
+      "prove_ms": 81044.74000000954,
+      "total_ms": 81266.12999999523,
+      "wasm_linear_memory_bytes": 3194421248,
+      "webcrypto_random_calls": 0,
+      "webcrypto_random_bytes": 0,
+      "rust_requested_live_bytes": 483442181,
+      "rust_requested_peak_bytes": 2346948420,
+      "backend_release": "v1.4.2",
+      "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+      "scope": "V2 recursive proving in browser; native verification separate"
+    },
+    "native_verification": {
+      "origin": "verify",
+      "output_matches_fixture": true,
+      "precomputes_ms": 0,
+      "proof_bytes": 227398,
+      "prove_ms": 0,
+      "total_ms": 46,
+      "verified": true,
+      "verify_ms": 45
+    },
+    "proofless_settlement_rejected": true
+  },
+  "accounting": {
+    "before_block": 18026976,
+    "after_block": 18027153,
+    "nonce_before": "0x5fb",
+    "nonce_after": "0x5fe",
+    "wallet_balance_before": "1941793700299402183092",
+    "wallet_balance_after": "1939769927460737413716",
+    "bank_balance_before": "1000000000000000000",
+    "bank_balance_after": "1001000000000000000",
+    "available_liquidity_after": "1001000000000000000",
+    "total_fees_wei": "2022772838664769376",
+    "total_fees_test_strk": "2.022772838664769376",
+    "wallet_and_pool_balances_reconciled": true,
+    "remaining_escrow_gap": "0"
+  },
+  "scope": "One fresh Sepolia round with the exact published v1.0.1 modules, browser execution/proving, independent native verification and successful closed-block proof-bearing settlement. Uses a test Wallet API adapter, not a browser extension. No Mainnet or general fairness/security guarantee."
+}

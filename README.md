@@ -4,6 +4,8 @@ The source targets [backend v1.4.2](https://github.com/starknet-innovation/snip-
 
 The [v1.4.2 offline validation](evidence/backend-v1.4.2-validation.json) records browser measurements, native verification and stock proof equality. The [V2 deployment and accepted browser-proof settlement](evidence/v2-bank-deployment.json) are recorded separately from the historical V1 receipts.
 
+**v1.0.1 live validation:** A fresh 0.001 test STRK round completed on Sepolia on 2026-11-12 using the exact published prover. The browser proof passed the unchanged native verifier and [settled successfully at block 18,027,068](https://sepolia.voyager.online/tx/0x2e618f62c67d2fc7bee45f2c90733eecfe2575cef25c33812d72a051cffd977). The losing stake accrued to the pool; wallet fees and bank balances reconcile with zero remaining escrow. Proofless settlement was rejected. [Receipts and measurements](evidence/release-v1.0.1-sepolia-coinflip.json) record the test Wallet API adapter, module hash and scope.
+
 **[Play CoinFlip on Sepolia](https://starknet-innovation.github.io/snip-36-prover-wasm/play.html)** · [Recorded replay lab](https://starknet-innovation.github.io/snip-36-prover-wasm/)
 
 Based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip-36-prover-backend/tree/main/apps/coinflip), the live demo uses your Starknet wallet to commit/deposit, reveal, and settle. A prefunded bank matches the stake; a browser Worker executes the public coinflip and generates a SNIP-36 proof. The bank checks the exact game's proof facts before settlement. GitHub Pages hosts the entire frontend; no signing backend is required.
