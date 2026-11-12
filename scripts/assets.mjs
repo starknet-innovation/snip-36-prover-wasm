@@ -5,15 +5,15 @@ import { pathToFileURL } from "node:url";
 import { responseBytes } from "./network.mjs";
 import { execFileSync } from "node:child_process";
 const repository = "starknet-innovation/snip-36-prover-wasm";
-const release = "v1.0.0";
+const release = "v1.0.1";
 const targets = Object.freeze({
   "executor.wasm": {
     path: "web/auth/browser_virtual_os_bg.wasm",
-    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v1.0.0/executor.wasm",
+    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v1.0.1/executor.wasm",
   },
   "prover.wasm": {
     path: "web/sequencer-prover.wasm",
-    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v1.0.0/prover.wasm",
+    url: "https://github.com/starknet-innovation/snip-36-prover-wasm/releases/download/v1.0.1/prover.wasm",
   },
 });
 const sha = (b) => createHash("sha256").update(b).digest("hex");

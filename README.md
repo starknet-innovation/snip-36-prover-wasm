@@ -1,6 +1,6 @@
 # SNIP-36 browser prover
 
-The source targets [backend v1.4.2](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.2) / `deps-v16`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the default prover now includes v1.4.2’s reviewed low-memory V2 optimizations. Its historical V1 module remains disabled. Build the current modules using [the source instructions](docs/build.md). Published browser release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) retains the previous stock V2 modules; stale release downloads are blocked for the new source profile. The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
+The source targets [backend v1.4.2](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.2) / `deps-v16`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the default prover now includes v1.4.2’s reviewed low-memory V2 optimizations. Its historical V1 module remains disabled. Browser release [`v1.0.1`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.1) supplies the optimized V2 modules; `npm run assets` downloads and verifies them. [Release validation](evidence/release-v1.0.1.json) records their exact CI provenance, stock proof equality and native verification. Source reproduction is in [the build instructions](docs/build.md). The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
 
 The [v1.4.2 offline validation](evidence/backend-v1.4.2-validation.json) records browser measurements, native verification and stock proof equality. The [V2 deployment and accepted browser-proof settlement](evidence/v2-bank-deployment.json) are recorded separately from the historical V1 receipts.
 
@@ -38,8 +38,7 @@ Requirements: Node.js 24+, recent Chromium with WebAssembly memory64 support, an
 
 ```sh
 npm ci --ignore-scripts
-# First build executor and prover using docs/build.md.
-npm run assets           # Verify the current source modules and receipt.
+npm run assets           # Download v1.0.1 modules and verify sizes/SHA256.
 npm test
 npm run demo:build
 npm run serve
@@ -47,7 +46,7 @@ npm run serve
 
 Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
 
-The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the V2 `v1.0.0` release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
+The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the low-memory V2 `v1.0.1` release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
 ## Daily testing
 
