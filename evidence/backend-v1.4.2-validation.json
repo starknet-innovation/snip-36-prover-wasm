@@ -1,0 +1,222 @@
+{
+  "date": "2026-11-12",
+  "backend_release_url": "https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.2",
+  "pins": {
+    "backend_release": "v1.4.2",
+    "backend": "3a2bc73774eca3d96052db937a98c95057fef661",
+    "deps_release": "deps-v16",
+    "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
+    "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "proof_version": "0x50524f4f4632",
+    "prover_profile": "low-memory-v2",
+    "low_memory_patch_sha256": "88132044b4a11cd3369d193d568eaf97d80cd9556b81e1c9445a6fa0d32359d4"
+  },
+  "source_identity": {
+    "pins_sha256": "9e3c9fd7d65814ca402b77362617c00a47a23d3cee008a7175036370098da6a8",
+    "executor_patch_sha256": "043a965d089ab187a3debd12ba01e99c4a152acffc707c6ea0ac2e1fba95e019",
+    "prover_patch_sha256": "dd2ba728b5d2b9c55a4067c3ceccd326c5779cc7939f5c54e5d76b5bc68f8b58"
+  },
+  "modules": {
+    "web/sequencer-prover.wasm": {
+      "path": "web/sequencer-prover.wasm",
+      "bytes": 76759991,
+      "sha256": "8dfb0d62298d07a3d7a813d6f09fc1563c304a15006cf3f6343224d9d08b7775"
+    },
+    "web/auth/browser_virtual_os_bg.wasm": {
+      "path": "web/auth/browser_virtual_os_bg.wasm",
+      "bytes": 36326834,
+      "sha256": "5627488ac26749946315aacdce0ae8c126c37dda93d8fadd3082e27d6ceea757"
+    },
+    "web/auth/browser_virtual_os.js": {
+      "path": "web/auth/browser_virtual_os.js",
+      "bytes": 21705,
+      "sha256": "69e0b926e6ff082259f69bc2aeecf76b07d49f8fe7f75ae04a2e8aaf679afefc"
+    }
+  },
+  "native_verifier": {
+    "revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "upstream_implementation_unchanged": true,
+    "binary_sha256": "1d78a26ddc5adf5546d1eccc765a98af41fd5c8b3379bacf94dbb980818ce31a"
+  },
+  "checks": {
+    "javascript_tests": 80,
+    "python_tests": 34,
+    "cairo_tests": 8,
+    "rust_boundary_tests": 2,
+    "wallet_ui_scenarios": 12,
+    "npm_audit_vulnerabilities": 0,
+    "executor_manifests_and_locked_graph": true,
+    "browser_native_package_provenance": true,
+    "worker_message_boundaries": true,
+    "replaced_module_rejected": true,
+    "chromium_memory64_init": true,
+    "stale_release_download_blocked": true
+  },
+  "workloads": [
+    {
+      "name": "balance",
+      "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+      "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+      "proof_bytes": 231440,
+      "byte_identical_to_stock_v2": true,
+      "native_verified": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 76759991,
+        "wasm_sha256": "8dfb0d62298d07a3d7a813d6f09fc1563c304a15006cf3f6343224d9d08b7775",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+        "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+        "proof_bytes": 231440,
+        "load_ms": 96.59000000357628,
+        "init_ms": 120.31000000238419,
+        "prove_ms": 71340.78000000119,
+        "total_ms": 71561.37999999523,
+        "wasm_linear_memory_bytes": 3203596288,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 483440591,
+        "rust_requested_peak_bytes": 2347735761,
+        "backend_release": "v1.4.2",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 71591.59000000358,
+        "harness_call_ms": 74500.48975,
+        "browser_process_peak_bytes": 3947921408,
+        "browser_process_rss_sum_bytes": 3947921408,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    },
+    {
+      "name": "coinflip-heads",
+      "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+      "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+      "proof_bytes": 235881,
+      "byte_identical_to_stock_v2": true,
+      "native_verified": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 76759991,
+        "wasm_sha256": "8dfb0d62298d07a3d7a813d6f09fc1563c304a15006cf3f6343224d9d08b7775",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+        "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+        "proof_bytes": 235881,
+        "load_ms": 96.84000000357628,
+        "init_ms": 114.71000000834465,
+        "prove_ms": 72468.0149999857,
+        "total_ms": 72683.00499999523,
+        "wasm_linear_memory_bytes": 3206610944,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 483455784,
+        "rust_requested_peak_bytes": 2347394559,
+        "backend_release": "v1.4.2",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 72706.77000001073,
+        "harness_call_ms": 74805.69320800001,
+        "browser_process_peak_bytes": 3972841472,
+        "browser_process_rss_sum_bytes": 3972841472,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    },
+    {
+      "name": "coinflip-tails",
+      "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+      "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+      "proof_bytes": 231605,
+      "byte_identical_to_stock_v2": true,
+      "native_verified": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 76759991,
+        "wasm_sha256": "8dfb0d62298d07a3d7a813d6f09fc1563c304a15006cf3f6343224d9d08b7775",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+        "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+        "proof_bytes": 231605,
+        "load_ms": 99.99500000476837,
+        "init_ms": 114.01499998569489,
+        "prove_ms": 76306.02500000596,
+        "total_ms": 76789.67499998212,
+        "wasm_linear_memory_bytes": 3215130624,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 483451508,
+        "rust_requested_peak_bytes": 2347394235,
+        "backend_release": "v1.4.2",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 76890.7350000143,
+        "harness_call_ms": 79574.50324999998,
+        "browser_process_peak_bytes": 3069198336,
+        "browser_process_rss_sum_bytes": 2654175232,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    }
+  ],
+  "stock_reference": "evidence/release-v1.0.0.json",
+  "memory_comparison": {
+    "fixture": "balance",
+    "stock_rust_requested_peak_bytes": 14146828585,
+    "optimized_rust_requested_peak_bytes": 2347735761,
+    "stock_wasm_linear_memory_bytes": 14283112448,
+    "optimized_wasm_linear_memory_bytes": 3203596288,
+    "scope": "Single fresh-worker samples versus earlier published stock-V2 validation; same committed PIE, different module builds. Host not isolated; not a speedup or throughput claim."
+  },
+  "bank_profile_read": {
+    "rpc": "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
+    "block": 18024166,
+    "bank": "0xa7326f4400c58184b197ff34a66a5b6d5acce50123d7133d85a88da482db9e",
+    "class_hash": "0x3f6bff1e0fb49450f7125b2740c22d8bf42de9890c2c2a9ad320136c83d4b24",
+    "profile": [
+      "0x50524f4f4632",
+      "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324"
+    ],
+    "compatible": true,
+    "transactions_submitted": 0
+  },
+  "network_transactions_submitted": 0,
+  "browser_release_published": false,
+  "scope": "Offline balance and CoinFlip fixture equivalence plus read-only bank profile compatibility. No new optimized on-chain CoinFlip settlement, arbitrary workload memory bound, concurrent proving guarantee or independent cryptographic audit is claimed."
+}

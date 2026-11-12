@@ -1,4 +1,4 @@
-"""Gate Pages release downloads on the committed source and binary identities."""
+"""Gate release downloads on the committed source and binary identities."""
 import importlib.util
 import json
 from pathlib import Path
@@ -14,11 +14,11 @@ def verify(root=ROOT):
     manifest = json.loads((root / "assets.json").read_text())
     release = manifest.get("release", "")
     if manifest.get("release_status") != "published" or not re.fullmatch(r"v\d+\.\d+\.\d+", release):
-        raise ValueError("Pages requires a published, validated release")
+        raise ValueError("Release downloads require a published, validated release")
     evidence = json.loads((root / "evidence" / f"release-{release}.json").read_text())
     source_assets.ROOT = root
     if evidence.get("release") != release or evidence.get("source_identity") != source_assets.identity():
-        raise ValueError("Release source profile differs from current pins or patches; validate a new release")
+        raise ValueError("Release source profile differs from current pins or patches; build both modules with scripts/build.sh or validate a new release")
     records = {a["path"]: {k: a[k] for k in ["path", "bytes", "sha256"]} for a in manifest["assets"]}
     if len(records) != len(manifest["assets"]) or records != evidence.get("modules"):
         raise ValueError("Release module identities differ from validation evidence")

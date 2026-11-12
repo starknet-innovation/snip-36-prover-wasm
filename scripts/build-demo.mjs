@@ -39,6 +39,7 @@ try {
   if (error.code !== "ENOENT") throw error;
 }
 if (moduleManifest) execFileSync("python3", ["scripts/source-assets.py", "verify"], { stdio: "inherit" });
+else execFileSync("python3", ["scripts/check-release-profile.py"], { stdio: "inherit" });
 const releaseManifest = JSON.parse(await readFile("assets.json"));
 const proverAsset = moduleManifest?.assets["web/sequencer-prover.wasm"] ??
   releaseManifest.assets.find((asset) => asset.name === "prover.wasm");

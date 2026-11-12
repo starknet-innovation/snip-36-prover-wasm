@@ -1,3 +1,5 @@
+> Historical V1 instructions. The current default is backend v1.4.2 low-memory V2; these V1 build modes remain unavailable. See [current builds](../build.md).
+
 # Optional memory-saving prover
 
 The unchanged pinned prover is the default source build. The slower memory-saving

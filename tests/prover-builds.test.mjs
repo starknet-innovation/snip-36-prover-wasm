@@ -12,14 +12,13 @@ test("only the compatible V2 build is recommended regardless of device RAM", () 
   assert.deepEqual(Object.keys(PROVER_BUILDS), ["standard", "memory"]);
 });
 
-test("build identities match the release manifest", () => {
-  const assets = JSON.parse(readFileSync("assets.json", "utf8")).assets;
-  for (const b of Object.values(PROVER_BUILDS).filter((build) => build.available)) {
-    const asset = assets.find((a) => "./" + a.path.slice(4) === b.url);
-    assert.ok(asset, b.url);
-    assert.equal(b.sha256, asset.sha256);
-    assert.equal(b.bytes, asset.bytes);
-  }
+test("the supported card reports the recorded optimized V2 balance measurement", () => {
+  const record = JSON.parse(readFileSync("evidence/backend-v1.4.2-validation.json", "utf8"));
+  const report = record.workloads.find((entry) => entry.name === "balance").browser_report;
+  assert.match(PROVER_BUILDS.standard.label, /Memory-optimised V2/);
+  assert.equal(PROVER_BUILDS.standard.peak_bytes, report.rust_requested_peak_bytes);
+  assert.equal(PROVER_BUILDS.standard.linear_bytes, report.wasm_linear_memory_bytes);
+  assert.equal(PROVER_BUILDS.standard.prove_ms, Math.round(report.prove_ms));
 });
 
 test("legacy memory module is blocked before any fetch", async () => {

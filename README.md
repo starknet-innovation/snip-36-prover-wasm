@@ -1,8 +1,8 @@
 # SNIP-36 browser prover
 
-The source targets [backend v1.4.0](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.0) / `deps-v15`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the build picker disables its historical V1 memory module until a V2 port is validated. Release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) supplies both V2 Wasm modules; `npm run assets` downloads and verifies them. The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
+The source targets [backend v1.4.2](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.2) / `deps-v16`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the default prover now includes v1.4.2’s reviewed low-memory V2 optimizations. Its historical V1 module remains disabled. Build the current modules using [the source instructions](docs/build.md). Published browser release [`v1.0.0`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.0) retains the previous stock V2 modules; stale release downloads are blocked for the new source profile. The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
 
-The [V2 deployment and accepted browser-proof settlement](evidence/v2-bank-deployment.json) are recorded separately from the historical V1 receipts.
+The [v1.4.2 offline validation](evidence/backend-v1.4.2-validation.json) records browser measurements, native verification and stock proof equality. The [V2 deployment and accepted browser-proof settlement](evidence/v2-bank-deployment.json) are recorded separately from the historical V1 receipts.
 
 **[Play CoinFlip on Sepolia](https://starknet-innovation.github.io/snip-36-prover-wasm/play.html)** · [Recorded replay lab](https://starknet-innovation.github.io/snip-36-prover-wasm/)
 
@@ -30,15 +30,16 @@ The live wallet CoinFlip flow also completed: [settlement transaction](https://s
 
 A real browser-generated proof was accepted in [transaction `0x60e1…bd30d`](https://sepolia.voyager.online/tx/0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d), block **16,111,332**, on 2026-10-05. It executed STRK `balance_of(account)` through an existing account and cost **1.172821106001977728 testnet STRK**. The nonce advanced and the balance delta matched the fee. Public receipts are in [`evidence/`](evidence/).
 
-**The transaction-service prover pin matters.** v1.4.0's sequencer uses the `starkware-libs/proving` monorepo at **e0035ffc8**. Its separately bundled standalone utility remains on proving-utils **0a97f45**. The browser and native diagnostic verifier use the transaction-service V2 stack. See [`pins.json`](pins.json) and [`docs/architecture.md`](docs/architecture.md).
+**The transaction-service prover pin matters.** v1.4.2's sequencer uses the `starkware-libs/proving` monorepo at **e0035ffc8**. Its separately bundled standalone utility remains on proving-utils **0a97f45**. The browser and native diagnostic verifier use the transaction-service V2 stack. See [`pins.json`](pins.json) and [`docs/architecture.md`](docs/architecture.md).
 
 ## Run
 
-Requirements: Node.js24+, a recent Chromium with WebAssembly memory64 support, and at least16GB RAM (32GB recommended for local development).
+Requirements: Node.js 24+, recent Chromium with WebAssembly memory64 support, and at least 8 GB RAM for the recorded fixtures (32 GB recommended for source builds). Larger workloads may need more memory.
 
 ```sh
 npm ci --ignore-scripts
-npm run assets           # Download v1.0.0 modules and verify exact sizes/SHA256.
+# First build executor and prover using docs/build.md.
+npm run assets           # Verify the current source modules and receipt.
 npm test
 npm run demo:build
 npm run serve

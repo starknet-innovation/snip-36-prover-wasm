@@ -24,3 +24,5 @@ The CoinFlip contract and application flow are adapted from
 backend revision `4c8dfb1d0d63c47284e5da0ee1068415d47f9f78` (Apache-2.0).
 The browser crypto bundle uses the already listed `@scure/starknet` package;
 esbuild (MIT) is used only at build time.
+
+The active V2 low-memory patch is copied byte-for-byte from the Apache-2.0 [backend v1.4.2 low-memory profile](https://github.com/starknet-innovation/snip-36-prover-backend/tree/v1.4.2/vendor/low-memory-prover). Its SHA-256 is recorded in `pins.json`; the original proving sources and licenses remain in the prepared checkout.

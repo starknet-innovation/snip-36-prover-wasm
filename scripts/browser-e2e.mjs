@@ -9,9 +9,9 @@ const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
 await mkdir(dir, { recursive: true });
 if (process.env.STARKNET_PRIVATE_KEY)
   throw Error("Do not pass signing credentials to the browser step");
-if (totalmem() < 14 * 1024 ** 3)
+if (totalmem() < 6 * 1024 ** 3)
   throw Error(
-    "The full recursive prover needs a runner with at least 14 GiB RAM",
+    "The low-memory V2 prover needs a runner with at least 6 GiB RAM",
   );
 const input = JSON.parse(await readFile(path.join(dir, "browser-input.json")));
 const wasm = await readFile("web/sequencer-prover.wasm");

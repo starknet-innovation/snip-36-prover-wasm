@@ -1,11 +1,13 @@
 {
-  "backend_release": "v1.4.0",
-  "backend": "cf4bc4d63a3bf0819dd1a04821adc0e8ac7911c2",
-  "deps_release": "deps-v15",
+  "backend_release": "v1.4.2",
+  "backend": "3a2bc73774eca3d96052db937a98c95057fef661",
+  "deps_release": "deps-v16",
   "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
   "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
   "rust": "nightly-2026-01-15",
   "executor_wasm_bindgen": "0.2.105",
   "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
-  "proof_version": "0x50524f4f4632"
+  "proof_version": "0x50524f4f4632",
+  "prover_profile": "low-memory-v2",
+  "low_memory_patch_sha256": "88132044b4a11cd3369d193d568eaf97d80cd9556b81e1c9445a6fa0d32359d4"
 }

@@ -99,6 +99,44 @@ jobs:
         run: npm run demo:test
       - name: Check wallet UI safety scenarios
         run: npm run demo:test:live
+  proof-compatibility:
+    needs: wasm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CARGO_BUILD_JOBS: 2
+      OFFLINE_STOCK_EVIDENCE: evidence/release-v1.0.0.json
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: browser-wasm-v2
+          path: .
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24"
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y libgmp-dev
+      - name: Build the independent stock V2 verifier
+        run: ./scripts/build.sh native
+      - run: npm ci --ignore-scripts
+      - run: npm run demo:build
+      - run: npx playwright install --with-deps chromium
+      - name: Replay all three fixtures offline
+        run: node scripts/offline-proof.mjs prepare artifacts/v142-corpus
+      - name: Prove in Chromium, require stock bytes and native verification, reject tampered proofs and statements
+        run: |
+          module_sha=$(sha256sum web/sequencer-prover.wasm | cut -d ' ' -f 1)
+          node scripts/offline-proof.mjs prove artifacts/v142-corpus web/sequencer-prover.wasm "$module_sha" build/target-native/release/examples/spike_native artifacts/v142-proofs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: optimized-v2-proof-validation
+          path: artifacts/v142-*
+          if-no-files-found: error
+          retention-days: 7
   contracts:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

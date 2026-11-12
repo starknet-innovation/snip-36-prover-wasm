@@ -10,8 +10,8 @@ case "$mode" in
 esac
 if [[ $# -eq 2 && "$2" == --install ]]; then
   case "$mode" in
-    prover|prover-baseline) install=1;;
-    *) echo '--install is only available for prover profiles' >&2; exit 2;;
+    prover) install=1;;
+    *) echo '--install is only available for the default optimized prover' >&2; exit 2;;
   esac
 elif [[ $# -ne 1 ]]; then
   echo 'Usage: build.sh MODE [--install]' >&2; exit 2
@@ -39,8 +39,11 @@ case "$mode" in
   fi
   export CC_wasm64_unknown_unknown="$WASM_CC" AR_wasm64_unknown_unknown="$WASM_AR"
   rustflags --cfg 'getrandom_backend="custom"' -C target-feature=+simd128
-  CARGO_TARGET_DIR="$PWD/build/target-prover" cargo +nightly-2026-01-15 rustc --locked --release --manifest-path build/proving/Cargo.toml --target wasm64-unknown-unknown -Z build-std=std,panic_abort -p snip36-browser-prover --no-default-features -- -C link-arg=-zstack-size=8388608 -C link-arg=--max-memory=17179869184
-  module=build/target-prover/wasm64-unknown-unknown/release/snip36_browser_prover.wasm
+  source=proving
+  target=target-prover
+  if [[ "$mode" == prover-baseline ]]; then source=proving-baseline; target=target-prover-baseline; fi
+  CARGO_TARGET_DIR="$PWD/build/$target" cargo +nightly-2026-01-15 rustc --locked --release --manifest-path "build/$source/Cargo.toml" --target wasm64-unknown-unknown -Z build-std=std,panic_abort -p snip36-browser-prover --no-default-features -- -C link-arg=-zstack-size=8388608 -C link-arg=--max-memory=17179869184
+  module=build/$target/wasm64-unknown-unknown/release/snip36_browser_prover.wasm
   module_sha=$(shasum -a 256 "$module" | cut -d ' ' -f 1)
   mkdir -p build/wasm
   cp "$module" "build/wasm/$module_sha.wasm"

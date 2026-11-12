@@ -54,7 +54,10 @@ def main():
     if revision != pins['sequencer' if args.mode == 'executor' else 'transaction_service_proving']:
         raise ValueError('Source build revision differs from pins.json')
     marker = source / '.wasm-patches-complete'
-    if not check_receipt(marker, expected[args.mode + '_patch_sha256'], {source.name: source}):
+    patch_digest = expected[args.mode + '_patch_sha256']
+    if args.mode == 'prover':
+        patch_digest += ":low-memory-v2"
+    if not check_receipt(marker, patch_digest, {source.name: source}):
         raise ValueError('Source build patches differ from the prepared workspace')
     if receipt.get('source_identity') != expected:
         receipt = {'source_identity': expected, 'assets': {}}
