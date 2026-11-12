@@ -1,5 +1,5 @@
-// Backend v1.4.0 / deps-v15 transaction-service profile. Keep pins.json in sync.
-export const BACKEND_RELEASE = "v1.4.0";
+// Backend v1.4.2 / deps-v16 transaction-service profile. Keep pins.json in sync.
+export const BACKEND_RELEASE = "v1.4.2";
 export const SEQUENCER_REVISION = "148de44521b49e32c5a675e287572768932cc99e";
 export const PROVING_REVISION = "e0035ffc8e08da270b8cb4a71f3708af70c2c775";
 export const PROGRAM =

@@ -80,15 +80,16 @@ Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': s
                 self.assertFalse((self.root / 'cargo-call.json').exists())
                 self.assertEqual(self.installed.read_bytes(), b'released-default')
 
-    def test_v2_baseline_control_is_content_addressed_and_only_installs_explicitly(self):
+    def test_stock_v2_control_is_isolated_and_cannot_replace_optimized_default(self):
         result = self.run_build('prover-baseline')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.installed.read_bytes(), b'released-default')
-        digest = hashlib.sha256(b'proving-module').hexdigest()
-        self.assertEqual((self.root / f'build/wasm/{digest}.wasm').read_bytes(), b'proving-module')
+        self.assertEqual(json.loads((self.root / 'cargo-call.json').read_text())['manifest'], 'build/proving-baseline/Cargo.toml')
+        digest = hashlib.sha256(b'proving-baseline-module').hexdigest()
+        self.assertEqual((self.root / f'build/wasm/{digest}.wasm').read_bytes(), b'proving-baseline-module')
         result = self.run_build('prover-baseline', '--install')
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.installed.read_bytes(), b'proving-module')
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(self.installed.read_bytes(), b'released-default')
 
     def test_invalid_install_flags_fail_before_compiling(self):
         for args in [('native', '--install'), ('prover-memory', '--unknown'), ('prover', '--install', 'extra')]:

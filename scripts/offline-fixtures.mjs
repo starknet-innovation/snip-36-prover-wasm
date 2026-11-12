@@ -22,6 +22,13 @@ export function checkExecution(recorded, result, pie) {
     throw Error("Offline execution differs from committed PIE/public output");
 }
 
+export function checkStockProof(stock, name, pieHash, proof) {
+  const entries = stock.workloads?.filter((entry) => entry.name === name);
+  if (entries?.length !== 1 || entries[0].pie_sha256 !== pieHash ||
+      entries[0].proof_bytes !== proof.length || entries[0].proof_sha256 !== sha256(proof))
+    throw Error("Optimized proof differs from stock V2: " + name);
+}
+
 // A crash, panic or timeout is a failed test, not evidence of verifier rejection.
 // The pristine verifier exits 1 for every error, so also require its final
 // stderr line to be the verification failure, not an I/O or decode error.

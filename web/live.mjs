@@ -35,7 +35,7 @@ const builds = buildPicker(
   $("#builds"),
   (_, b) =>
     ($("#build-note").textContent =
-      `Needs ${b.need} free memory. The V1 memory-optimised module is unavailable for V2.`),
+      `Needs ${b.need} free memory. Uses the v1.4.2 low-memory V2 prover.`),
 );
 let config,
   connection,

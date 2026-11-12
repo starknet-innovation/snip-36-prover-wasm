@@ -5,7 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import path from "node:path";
 import { startServer } from "./server.mjs";
-import { corpus, sha256, expectedPreimage, sameFelts, checkExecution, isOrdinaryVerifierRejection } from "./offline-fixtures.mjs";
+import { corpus, sha256, expectedPreimage, sameFelts, checkExecution, checkStockProof, isOrdinaryVerifierRejection } from "./offline-fixtures.mjs";
 import { sampleBrowserMemory } from "./browser-memory.mjs";
 import { PROOF_TIMEOUT_MS, VERIFIER_TIMEOUT_MS } from "./proof-timeouts.mjs";
 const exec = promisify(execFile);
@@ -27,6 +27,10 @@ await save("attempt.json", attempt);
 let server, browser, browserServer, memory;
 try {
   const pins = JSON.parse(await readFile("pins.json"));
+  const stock = process.env.OFFLINE_STOCK_EVIDENCE
+    ? JSON.parse(await readFile(process.env.OFFLINE_STOCK_EVIDENCE)) : undefined;
+  if (stock && (stock.pins.program_hash !== pins.program_hash || stock.pins.proof_version !== pins.proof_version))
+    throw Error("Stock proof evidence uses a different program or proof profile");
   const proverBytes = mode === "prove" ? await readFile(wasmPath) : undefined;
   if (proverBytes && sha256(proverBytes) !== expectedHash) throw Error("Candidate WASM identity mismatch before browser launch");
   const identity = proverBytes && { sha256: expectedHash, bytes: proverBytes.length };
@@ -109,6 +113,7 @@ try {
         throw Error("Candidate identity/input/public statement mismatch");
       const proof = Buffer.from(result.proof);
       if (sha256(proof) !== result.report.proof_sha256) throw Error("Proof digest mismatch");
+      if (stock) checkStockProof(stock, name, entry.pie_sha256, proof);
       const proofFile = path.join(out, `${name}.proof.bin`);
       await writeFile(proofFile, proof, { flag: "wx" });
       await save(`${name}.proof.json`, { output_preimage: result.output_preimage, report: result.report });

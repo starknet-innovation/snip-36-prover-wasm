@@ -104,6 +104,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const manifest = JSON.parse(await readFile("assets.json", "utf8"));
     if (manifest.release_status === "unpublished")
       throw Error("V2 browser release assets are unpublished; build executor and prover with scripts/build.sh first (see docs/build.md)");
+    execFileSync("python3", ["scripts/check-release-profile.py"], { stdio: "inherit" });
     await downloadAssets(manifest);
   }
 }

@@ -1,14 +1,12 @@
-// V2 is the supported runtime. Keep the V1 memory card visible as historical
+// Backend v1.4.2 low-memory V2 is the supported runtime. Keep the V1 memory card visible as historical
 // context, but never load its incompatible circuit into the V2 proof flow.
 import { BACKEND_RELEASE, PROVING_REVISION } from "./prover-profile.mjs";
 export const PROVER_BUILDS = Object.freeze({
   standard: Object.freeze({
-    label: "Standard V2",
+    label: "Memory-optimised V2",
     available: true,
-    note: "V2 circuit · balance replay measurement",
+    note: "v1.4.2 · V2 circuit · balance replay measurement",
     url: "./sequencer-prover.wasm",
-    sha256: "173161a747692e74d7420f85f673c716304a5180bd28572d0717072852dfafca",
-    bytes: 70062417,
     peak_bytes: 14146828585,
     linear_bytes: 14283112448,
     prove_ms: 61106,
@@ -29,7 +27,7 @@ export const PROVER_BUILDS = Object.freeze({
 });
 
 // Device RAM cannot make a V1 circuit compatible with V2. Keep the recommendation
-// on the supported circuit until a V2 memory profile has been validated.
+// on the validated optimized V2 circuit.
 export function recommendedBuild() {
   return "standard";
 }

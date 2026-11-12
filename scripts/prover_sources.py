@@ -55,7 +55,7 @@ def require_pristine(trees):
 
 # V1 memory/tradeoff/kernel layers are retained as historical research artifacts.
 # They cannot be installed into the active V2 runtime.
-PROVER_PROFILES = {'prover': 'proving', 'prover-baseline': 'proving'}
+PROVER_PROFILES = {'prover': 'proving', 'prover-baseline': 'proving-baseline'}
 
 if __name__ == '__main__':
     import argparse

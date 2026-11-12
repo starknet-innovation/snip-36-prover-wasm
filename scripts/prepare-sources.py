@@ -1,6 +1,7 @@
-"""Fetch the v1.4.0 transaction-service sources and apply browser portability patches."""
+"""Fetch the v1.4.2 transaction-service sources and apply browser portability patches."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -34,9 +35,16 @@ def clone(build, name, url, revision):
     return source
 
 
-def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name):
+def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name, *, low_memory=False):
+    if low_memory:
+        optimization = patch_dir / "low-memory-v2.patch"
+        if hashlib.sha256(optimization.read_bytes()).hexdigest() != PINS["low_memory_patch_sha256"]:
+            raise ValueError("Low-memory patch differs from the reviewed backend release")
     marker = source / ".wasm-patches-complete"
     fingerprint = patch_fingerprint(patch_dir)
+    # Stock and optimized trees must never share a preparation receipt.
+    if patch_name == "proving.patch":
+        fingerprint += ":low-memory-v2" if low_memory else ":stock-v2"
     trees = {source.name: source}
     if not check_receipt(marker, fingerprint, trees):
         require_pristine(trees)
@@ -46,6 +54,9 @@ def prepare_browser(source, patch_dir, patch_name, lock_name, archive_name):
         patch = patch_dir / patch_name
         run("git", "-C", str(source), "apply", "--check", str(patch))
         run("git", "-C", str(source), "apply", str(patch))
+        if low_memory:
+            run("git", "-C", str(source), "apply", "--check", str(optimization))
+            run("git", "-C", str(source), "apply", str(optimization))
         if patch_name == "v2.patch":
             # Retain the pinned VM; migrate only its ZIP dependency/API.
             with tarfile.open(patch_dir / "cairo-vm-3.2.0.crate") as archive:
@@ -73,8 +84,6 @@ def main():
     build = args.build_dir.resolve()
     if not build.is_relative_to(ROOT / "build"):
         raise ValueError("Preparation directory must be under build/")
-    if args.mode == "prover-baseline":
-        args.mode = "prover"
     if args.mode == "executor":
         source = clone(build, "sequencer", "https://github.com/starkware-libs/sequencer.git", PINS["sequencer"])
         hashes = json.loads((source / "crates/apollo_starknet_os_program/src/program_hash.json").read_text())
@@ -82,10 +91,10 @@ def main():
             raise ValueError("Pinned virtual OS hash differs from upstream")
         prepare_browser(source, ROOT / "patches/executor", "v2.patch", "Cargo.lock", "v2-portable-vendor.tar.gz")
     else:
-        source = clone(build, "proving" if args.mode == "prover" else "native-prover",
+        source = clone(build, {"prover": "proving", "prover-baseline": "proving-baseline", "native": "native-prover"}[args.mode],
                        "https://github.com/starkware-libs/proving.git", PINS["transaction_service_proving"])
-        if args.mode == "prover":
-            prepare_browser(source, ROOT / "patches/prover", "proving.patch", "browser.Cargo.lock", "portable-vendor.tar.gz")
+        if args.mode in {"prover", "prover-baseline"}:
+            prepare_browser(source, ROOT / "patches/prover", "proving.patch", "browser.Cargo.lock", "portable-vendor.tar.gz", low_memory=args.mode == "prover")
         else:
             # Only the committed lock and the diagnostic examples may differ from upstream.
             status = subprocess.check_output(["git", "-C", str(source), "status", "--porcelain", "--untracked-files=all"], text=True).splitlines()
