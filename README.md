@@ -30,15 +30,16 @@ The live wallet CoinFlip flow also completed: [settlement transaction](https://s
 
 A real browser-generated proof was accepted in [transaction `0x60e1…bd30d`](https://sepolia.voyager.online/tx/0x60e1afba1ee97ea8523909c017e639e35ffbefd25adcee8a26cb290fb1bd30d), block **16,111,332**, on 2026-10-05. It executed STRK `balance_of(account)` through an existing account and cost **1.172821106001977728 testnet STRK**. The nonce advanced and the balance delta matched the fee. Public receipts are in [`evidence/`](evidence/).
 
-**The transaction-service prover pin matters.** v1.4.0's sequencer uses the `starkware-libs/proving` monorepo at **e0035ffc8**. Its separately bundled standalone utility remains on proving-utils **0a97f45**. The browser and native diagnostic verifier use the transaction-service V2 stack. See [`pins.json`](pins.json) and [`docs/architecture.md`](docs/architecture.md).
+**The transaction-service prover pin matters.** v1.4.2's sequencer uses the `starkware-libs/proving` monorepo at **e0035ffc8**. Its separately bundled standalone utility remains on proving-utils **0a97f45**. The browser and native diagnostic verifier use the transaction-service V2 stack. See [`pins.json`](pins.json) and [`docs/architecture.md`](docs/architecture.md).
 
 ## Run
 
-Requirements: Node.js24+, a recent Chromium with WebAssembly memory64 support, and at least16GB RAM (32GB recommended for local development).
+Requirements: Node.js 24+, recent Chromium with WebAssembly memory64 support, and at least 8 GB RAM for the recorded fixtures (32 GB recommended for source builds). Larger workloads may need more memory.
 
 ```sh
 npm ci --ignore-scripts
-npm run assets           # Download v1.0.0 modules and verify exact sizes/SHA256.
+# First build executor and prover using docs/build.md.
+npm run assets           # Verify the current source modules and receipt.
 npm test
 npm run demo:build
 npm run serve

@@ -25,3 +25,20 @@ remain in `patches/executor` and are not replaced by backend bundle locks.
 See [build instructions](build.md), the
 [upstream safety review](https://github.com/starknet-innovation/snip-36-prover-backend/blob/v1.4.2/vendor/low-memory-prover/SAFETY-REVIEW-V2-2026-11-12.md)
 and [local validation](../evidence/backend-v1.4.2-validation.json).
+
+## Reproduce the offline proof checks
+
+After building both browser modules and the native verifier as described in
+[build.md](build.md), use fresh artifact directories:
+
+```sh
+node scripts/offline-proof.mjs prepare artifacts/v142-corpus
+module_sha=$(shasum -a 256 web/sequencer-prover.wasm | cut -d ' ' -f 1)
+OFFLINE_STOCK_EVIDENCE=evidence/release-v1.0.0.json node scripts/offline-proof.mjs prove artifacts/v142-corpus web/sequencer-prover.wasm "$module_sha" build/target-native/release/examples/spike_native artifacts/v142-proofs
+```
+
+This replays the three committed executions, generates proofs in real browser
+Workers with external requests blocked, requires the stock V2 proof hashes,
+verifies with the unpatched native verifier, and rejects a mutated proof and
+public statement for every fixture. CI runs the same checks on its Linux module.
+The proof hash comparison is exact, not an approximate numerical comparison.

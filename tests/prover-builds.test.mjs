@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { PROVER_BUILDS, recommendedBuild, runtimeBuildIdentity } from "../web/prover-builds.mjs";
 
 test("only the compatible V2 build is recommended regardless of device RAM", () => {
@@ -11,10 +12,13 @@ test("only the compatible V2 build is recommended regardless of device RAM", () 
   assert.deepEqual(Object.keys(PROVER_BUILDS), ["standard", "memory"]);
 });
 
-test("the supported card uses the optimized V2 runtime, with identity supplied by its build receipt", () => {
+test("the supported card reports the recorded optimized V2 balance measurement", () => {
+  const record = JSON.parse(readFileSync("evidence/backend-v1.4.2-validation.json", "utf8"));
+  const report = record.workloads.find((entry) => entry.name === "balance").browser_report;
   assert.match(PROVER_BUILDS.standard.label, /Memory-optimised V2/);
-  assert.equal(PROVER_BUILDS.standard.url, "./sequencer-prover.wasm");
-  assert.equal(PROVER_BUILDS.standard.sha256, undefined);
+  assert.equal(PROVER_BUILDS.standard.peak_bytes, report.rust_requested_peak_bytes);
+  assert.equal(PROVER_BUILDS.standard.linear_bytes, report.wasm_linear_memory_bytes);
+  assert.equal(PROVER_BUILDS.standard.prove_ms, Math.round(report.prove_ms));
 });
 
 test("legacy memory module is blocked before any fetch", async () => {
