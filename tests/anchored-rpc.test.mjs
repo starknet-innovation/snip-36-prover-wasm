@@ -231,6 +231,15 @@ const reply = (options, body) =>
     }),
   );
 const noWait = { sleep: async () => {}, now: () => 0 };
+const chainOf = (url) =>
+  RPC_NETWORKS.mainnet.endpoints.includes(url)
+    ? RPC_NETWORKS.mainnet.chainId
+    : RPC_NETWORKS.sepolia.chainId;
+// Answers the transport's chain-ID check, then delegates.
+const node = (handler) => async (url, o) =>
+  JSON.parse(o.body).method === "starknet_chainId"
+    ? reply(o, { result: chainOf(url) })
+    : handler(url, o);
 
 test("transport only selects the exact reviewed endpoints", async () => {
   assert.deepEqual(RPC_NETWORKS.sepolia.endpoints, [
@@ -272,7 +281,7 @@ test("transport only selects the exact reviewed endpoints", async () => {
         assert.equal(options.credentials, "omit");
         // The SNF node's CORS policy allows content-type only.
         assert.deepEqual(Object.keys(options.headers), ["Content-Type"]);
-        return reply(options, { result: "0x1" });
+        return node(async (_u, o) => reply(o, { result: "0x1" }))(url, options);
       },
     });
     assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
@@ -371,6 +380,8 @@ test("failover keeps block identity: a fallback missing the anchor block fails t
           return reply(o, { result: "0.10.3" });
         return reply(o, { result: header });
       }
+      if (method === "starknet_chainId")
+        return reply(o, { result: SEPOLIA_CHAIN });
       return reply(o, { error: { code: 24, message: "Block not found" } });
     },
   });
@@ -427,10 +438,10 @@ test("SNF requests are paced under the node's per-IP limit", async () => {
   const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
     now: () => clock,
     sleep: async (ms) => (clock += ms),
-    fetchImpl: async (_u, o) => {
+    fetchImpl: node(async (_u, o) => {
       sent.push(clock);
       return reply(o, { result: "0x1" });
-    },
+    }),
   });
   for (let i = 0; i < 140; i++) await send("starknet_getNonce", {});
   // Burst 50, then about 9 per second; never more than 60 in any second
@@ -447,7 +458,7 @@ test("SNF requests are paced under the node's per-IP limit", async () => {
   const zan = liveTransport(SEPOLIA_FALLBACK_RPC_ENDPOINT, {
     now: () => clock,
     sleep: async (ms) => (clock += ms),
-    fetchImpl: async (_u, o) => reply(o, { result: "0x1" }),
+    fetchImpl: node(async (_u, o) => reply(o, { result: "0x1" })),
   });
   for (let i = 0; i < 100; i++) await zan("starknet_getNonce", {});
   assert.equal(clock, 0);
@@ -486,4 +497,111 @@ test("recomputed capture digest cannot conceal inconsistent anchor or mixed-bloc
     async () => replayProvider(await resign(mixed)),
     /another block/,
   );
+});
+
+test("a fallback first reached during discovery must report the same chain", async () => {
+  resetRpcPacing();
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (url, o) => {
+      const { method } = JSON.parse(o.body);
+      if (url === SEPOLIA_RPC_ENDPOINT)
+        return method === "starknet_chainId"
+          ? reply(o, { result: SEPOLIA_CHAIN })
+          : new Response("", { status: 503 });
+      // Fallback serves another chain.
+      if (method === "starknet_chainId")
+        return reply(o, { result: "0x534e5f4d41494e" });
+      return reply(o, { result: header });
+    },
+  });
+  const rpc = new AnchoredRpc(send);
+  await assert.rejects(() => rpc.resolve(), /another chain/);
+});
+
+test("concurrent primary failures all land on the fallback", async () => {
+  resetRpcPacing();
+  const urls = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (url, o) => {
+      urls.push(url);
+      assert.ok(RPC_NETWORKS.sepolia.endpoints.includes(url));
+      await new Promise((r) => setTimeout(r, 1));
+      return url === SEPOLIA_RPC_ENDPOINT
+        ? Promise.reject(new TypeError("down"))
+        : node(async (_u, o2) => reply(o2, { result: "0x1" }))(url, o);
+    },
+  });
+  const results = await Promise.all(
+    Array.from({ length: 5 }, () => send("starknet_getNonce", {})),
+  );
+  for (const r of results) assert.deepEqual(r, { result: "0x1" });
+  urls.length = 0;
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(urls, [SEPOLIA_FALLBACK_RPC_ENDPOINT]);
+});
+
+test("HTTP-200 -32005 from the primary is retried with backoff before failover", async () => {
+  resetRpcPacing();
+  const urls = [],
+    delays = [];
+  let limited = 1;
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => 0,
+    sleep: async (ms) => delays.push(ms),
+    fetchImpl: node(async (url, o) => {
+      urls.push(url);
+      return limited-- > 0
+        ? reply(o, { error: { code: -32005, message: "Limit exceeded" } })
+        : reply(o, { result: "0x1" });
+    }),
+  });
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT, SEPOLIA_RPC_ENDPOINT]);
+  assert.deepEqual(delays, [1000]);
+});
+
+test("retries consume pacing tokens too", async () => {
+  resetRpcPacing();
+  // Virtual clock: timers fire in order once all pending work is idle.
+  let clock = 0;
+  const timers = [];
+  const sleep = (ms) => new Promise((r) => timers.push({ at: clock + ms, r }));
+  const fetched = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => clock,
+    sleep,
+    fetchImpl: async (url, o) => {
+      if (url !== SEPOLIA_RPC_ENDPOINT)
+        return node(async (_u, o2) => reply(o2, { result: "0x1" }))(url, o);
+      if (JSON.parse(o.body).method === "starknet_chainId")
+        return reply(o, { result: SEPOLIA_CHAIN });
+      fetched.push(clock);
+      return new Response("", { status: 503 });
+    },
+  });
+  await send("starknet_chainId", []);
+  let done = false;
+  const all = Promise.all(
+    Array.from({ length: 60 }, () => send("starknet_getNonce", {})),
+  ).finally(() => (done = true));
+  while (!done) {
+    await new Promise((r) => setImmediate(r));
+    if (done || !timers.length) continue;
+    timers.sort((x, y) => x.at - y.at);
+    const t = timers.shift();
+    clock = Math.max(clock, t.at);
+    t.r();
+  }
+  await all;
+  // 60 concurrent requests, each tried twice on the primary: 120 fetches.
+  assert.equal(fetched.length, 120);
+  for (const t of fetched)
+    assert.ok(
+      fetched.filter((x) => x >= t && x < t + 1000).length <= 60,
+      "more than 60 primary fetches in one second",
+    );
+  // Burst 50, then 9/s for the other 70 fetches, retries included.
+  assert.ok(Math.max(...fetched) >= (70 / 9) * 1000 - 1);
 });

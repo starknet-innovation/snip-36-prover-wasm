@@ -130,6 +130,7 @@ function networkOf(endpoint) {
 }
 // Failures that say nothing about chain state: the next endpoint may answer.
 class Unavailable extends Error {}
+class RateLimited extends Unavailable {}
 export function liveTransport(
   endpoint,
   {
@@ -147,10 +148,15 @@ export function liveTransport(
   // The requested endpoint first, then the network's other reviewed endpoints.
   // Failover is sticky so one run reads from one node unless that node fails.
   const order = [endpoint, ...network.endpoints.filter((e) => e !== endpoint)];
+  const verified = new Map();
   let active = 0,
     id = 0;
-  const once = async (url, request, last) => {
+  // Pace every underlying fetch, retries included.
+  const pacedFetch = async (url, options) => {
     await pace(url, { now, sleep, signal });
+    return fetchImpl(url, options);
+  };
+  const once = async (url, request, attempts) => {
     let response;
     try {
       response = await fetchRpc(
@@ -164,8 +170,7 @@ export function liveTransport(
           credentials: "omit",
           redirect: "error",
         },
-        // Before failing over, retry a rate-limited primary only once.
-        { fetchImpl, sleep: (ms) => sleep(ms, signal), attempts: last ? 5 : 2 },
+        { fetchImpl: pacedFetch, sleep: (ms) => sleep(ms, signal), attempts },
       );
     } catch (error) {
       if (error?.name === "AbortError") throw error;
@@ -212,32 +217,69 @@ export function liveTransport(
       throw Error("Invalid RPC response envelope");
     if (Object.hasOwn(envelope, "error")) {
       if (envelope.error?.code === RATE_LIMITED)
-        throw new Unavailable("RPC rate limited");
+        throw new RateLimited("RPC rate limited");
       return { error: envelope.error };
     }
-    // Every reviewed endpoint of a network must report that network.
+    return { result: envelope.result };
+  };
+  // A rate-limited primary gets one backoff retry before failover; the last
+  // endpoint keeps the full budget. HTTP 429 and JSON-RPC -32005 alike.
+  const attempt = async (url, request, last) => {
+    const budget = last ? 5 : 2;
+    for (let n = 0; ; n++) {
+      try {
+        return await once(url, request, budget);
+      } catch (error) {
+        if (!(error instanceof RateLimited) || n >= budget - 1) throw error;
+        await sleep(1000 * 2 ** n, signal);
+      }
+    }
+  };
+  // Every reviewed endpoint must report this network before any of its other
+  // answers is used, including an endpoint first reached through failover.
+  const checkChain = (response) => {
     if (
-      request.method === "starknet_chainId" &&
-      felt(envelope.result) !== network.chainId
+      !Object.hasOwn(response, "result") ||
+      felt(response.result) !== network.chainId
     )
       throw Error("RPC endpoint reports another chain");
-    return { result: envelope.result };
+    return response;
+  };
+  const send = async (url, request, last) => {
+    if (request.method === "starknet_chainId") {
+      const response = checkChain(await attempt(url, request, last));
+      verified.set(url, Promise.resolve());
+      return response;
+    }
+    if (!verified.has(url)) {
+      const check = attempt(
+        url,
+        { jsonrpc: "2.0", id: ++id, method: "starknet_chainId", params: [] },
+        last,
+      ).then(checkChain);
+      verified.set(url, check);
+      // A transient failure may be retried; a wrong chain fails again anyway.
+      check.catch(() => verified.get(url) === check && verified.delete(url));
+    }
+    await verified.get(url);
+    return attempt(url, request, last);
   };
   return async (method, params) => {
     if (!METHODS.has(method))
       throw Error("Only supported read-only methods are allowed");
     cancelled(signal);
     const request = { jsonrpc: "2.0", id: ++id, method, params };
-    for (;;) {
-      const last = active === order.length - 1;
+    // Advance from the index this request tried, so concurrent failures all
+    // land on the same next endpoint instead of skipping past it.
+    for (let i = active; ;) {
+      const last = i === order.length - 1;
       try {
-        return await once(order[active], request, last);
+        return await send(order[i], request, last);
       } catch (error) {
-        if (!(error instanceof Unavailable) || last) {
-          if (error instanceof Unavailable) throw Error(error.message);
-          throw error;
-        }
-        active++;
+        if (!(error instanceof Unavailable)) throw error;
+        if (last) throw Error(error.message);
+        i++;
+        active = Math.max(active, i);
       }
     }
   };
