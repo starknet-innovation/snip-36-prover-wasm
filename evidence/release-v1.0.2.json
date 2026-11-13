@@ -1,0 +1,212 @@
+{
+  "release": "v1.0.2",
+  "date": "2026-11-13",
+  "source_base_commit": "4791ed7c1d67615b74845601ac55b7df01bccf54",
+  "source_ref": "refs/tags/v1.0.2",
+  "build_provenance": "evidence/release-v1.0.2-build-provenance.json",
+  "pins": {
+    "backend_release": "v1.4.2",
+    "backend": "3a2bc73774eca3d96052db937a98c95057fef661",
+    "deps_release": "deps-v16",
+    "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
+    "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "proof_version": "0x50524f4f4632",
+    "prover_profile": "low-memory-v2",
+    "low_memory_patch_sha256": "88132044b4a11cd3369d193d568eaf97d80cd9556b81e1c9445a6fa0d32359d4"
+  },
+  "source_identity": {
+    "pins_sha256": "9e3c9fd7d65814ca402b77362617c00a47a23d3cee008a7175036370098da6a8",
+    "executor_patch_sha256": "043a965d089ab187a3debd12ba01e99c4a152acffc707c6ea0ac2e1fba95e019",
+    "prover_patch_sha256": "dd2ba728b5d2b9c55a4067c3ceccd326c5779cc7939f5c54e5d76b5bc68f8b58"
+  },
+  "modules": {
+    "web/auth/browser_virtual_os_bg.wasm": {
+      "path": "web/auth/browser_virtual_os_bg.wasm",
+      "bytes": 36322418,
+      "sha256": "2226a5a13601d64e447160e04dc6db8b1f957d7ee1e2459b6b67c7f3b0667b1b"
+    },
+    "web/sequencer-prover.wasm": {
+      "path": "web/sequencer-prover.wasm",
+      "bytes": 76759994,
+      "sha256": "f239e10a9d46d935d81ee8516a99c43806bf303ab40f0001c37a25bc6f4db0a3"
+    }
+  },
+  "native_verifier": {
+    "source_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "upstream_lock_sha256": "c6663b3de0d96f6e45531eb3324d578ae801d2866ae0f304b5aafe5b1d207432",
+    "cli_example_sha256": "eeb90bec2b935f67bfeb21f526292da3f56755f59963e1de8fefcbe754dcb6fb",
+    "upstream_implementation_unchanged": true,
+    "executable_sha256": "1d78a26ddc5adf5546d1eccc765a98af41fd5c8b3379bacf94dbb980818ce31a"
+  },
+  "checks": {
+    "javascript_tests": 100,
+    "python_tests": 34,
+    "source_modules_and_bindings_verified": true,
+    "demo_build_passed": true,
+    "chromium_module_initialization_passed": true,
+    "recorded_round_replay_passed": true,
+    "wallet_ui_scenarios_passed": true,
+    "worker_boundaries_and_module_substitution_passed": true,
+    "all_three_executor_replays_passed": true,
+    "all_three_proofs_equal_stock_and_verify_natively": true,
+    "all_six_tamper_controls_rejected_normally": true
+  },
+  "workloads": [
+    {
+      "name": "balance",
+      "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+      "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+      "proof_bytes": 231440,
+      "native_verified": true,
+      "byte_identical_to_stock_v2": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "2026-11-13T10:40:53.709676Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-11-13T10:40:53.710055Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output digest\n2026-11-13T10:40:53.710069Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "2026-11-13T10:40:53.760952Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-11-13T10:40:53.761320Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output digest\n2026-11-13T10:40:53.761333Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 76759994,
+        "wasm_sha256": "f239e10a9d46d935d81ee8516a99c43806bf303ab40f0001c37a25bc6f4db0a3",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "0662bae8039ea9964db44ff3efe37e7d722f71e733fffa98d01c4d27ed45474e",
+        "proof_sha256": "0dd8e1aa60af2fcdd34ab2afd7b18352d941c1c21a7e4b80428bf5761000d4cc",
+        "proof_bytes": 231440,
+        "load_ms": 115.14500004053116,
+        "init_ms": 119.14999997615814,
+        "prove_ms": 70231.80000001192,
+        "total_ms": 70471.53500002623,
+        "wasm_linear_memory_bytes": 3203596288,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 483440591,
+        "rust_requested_peak_bytes": 2347735761,
+        "backend_release": "v1.4.2",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 70507.094999969,
+        "harness_call_ms": 73359.824667,
+        "browser_process_peak_bytes": 3565535232,
+        "browser_process_rss_sum_bytes": 3275653120,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    },
+    {
+      "name": "coinflip-heads",
+      "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+      "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+      "proof_bytes": 235881,
+      "native_verified": true,
+      "byte_identical_to_stock_v2": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "2026-11-13T10:42:07.227848Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-11-13T10:42:07.228174Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output digest\n2026-11-13T10:42:07.228187Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "2026-11-13T10:42:07.280692Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-11-13T10:42:07.281038Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output digest\n2026-11-13T10:42:07.281051Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 76759994,
+        "wasm_sha256": "f239e10a9d46d935d81ee8516a99c43806bf303ab40f0001c37a25bc6f4db0a3",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "b1f45fdd39f26fa25dde218fed754bd4e9088e06ac5ac95b6b19e339013ce58c",
+        "proof_sha256": "987ed9989369bd53859aeee4e637591f3e1fd376e9b29f023a3a1f0ae7556a47",
+        "proof_bytes": 235881,
+        "load_ms": 100.4200000166893,
+        "init_ms": 110.68500000238419,
+        "prove_ms": 70944.80000001192,
+        "total_ms": 71160.04499995708,
+        "wasm_linear_memory_bytes": 3206610944,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 483455784,
+        "rust_requested_peak_bytes": 2347394559,
+        "backend_release": "v1.4.2",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 71184.54500001669,
+        "harness_call_ms": 73315.98400000001,
+        "browser_process_peak_bytes": 3439476736,
+        "browser_process_rss_sum_bytes": 3203940352,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    },
+    {
+      "name": "coinflip-tails",
+      "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+      "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+      "proof_bytes": 231605,
+      "native_verified": true,
+      "byte_identical_to_stock_v2": true,
+      "negative_controls": {
+        "proof": {
+          "rejected": true,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "2026-11-13T10:43:19.254286Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-11-13T10:43:19.254613Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output digest\n2026-11-13T10:43:19.254624Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+        },
+        "statement": {
+          "rejected": true,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "2026-11-13T10:43:19.303550Z  INFO verify_privacy_circuit: privacy_circuit_verify: Decompress and deserialize the proof\n2026-11-13T10:43:19.303869Z  INFO verify_privacy_circuit: privacy_circuit_verify: Compute the output digest\n2026-11-13T10:43:19.303879Z  INFO verify_privacy_circuit: privacy_circuit_verify: Call the verifier\nError: \"Verification failed\"\n"
+        }
+      },
+      "browser_report": {
+        "runtime": "browser Worker memory64",
+        "prover_build": "standard",
+        "wasm_bytes": 76759994,
+        "wasm_sha256": "f239e10a9d46d935d81ee8516a99c43806bf303ab40f0001c37a25bc6f4db0a3",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+        "pie_sha256": "8a120a0c7594a55f05acffa433e612708fa2e5509ab1d5749c36fc3ec61e9b8b",
+        "proof_sha256": "28011a17b4118e2ce7b72f2315107aa2249a2234bb8758d5139faf7b7e0ccdb2",
+        "proof_bytes": 231605,
+        "load_ms": 97,
+        "init_ms": 114.77999997138977,
+        "prove_ms": 69396.38499999046,
+        "total_ms": 69611.92000001669,
+        "wasm_linear_memory_bytes": 3215130624,
+        "webcrypto_random_calls": 0,
+        "webcrypto_random_bytes": 0,
+        "rust_requested_live_bytes": 483451508,
+        "rust_requested_peak_bytes": 2347394235,
+        "backend_release": "v1.4.2",
+        "proving_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+        "scope": "V2 recursive proving in browser; native verification separate",
+        "fresh_worker_ms": 69636.93000000715,
+        "harness_call_ms": 71829.996167,
+        "browser_process_peak_bytes": 3504799744,
+        "browser_process_rss_sum_bytes": 3326132224,
+        "browser_process_memory_error": null,
+        "browser_process_memory_scope": "500 ms sampled summed Chromium-family RSS; shared pages may be counted multiple times"
+      }
+    }
+  ],
+  "network_transactions_submitted": 0,
+  "new_bank_deployed": false,
+  "scope": "Fresh local source build from the exact v1.0.2 tag. Offline Chromium replay and proof generation for all three fixtures, byte equality with recorded stock V2 proofs, independent native verification and six tamper controls. No fresh on-chain or mainnet validation is claimed."
+}

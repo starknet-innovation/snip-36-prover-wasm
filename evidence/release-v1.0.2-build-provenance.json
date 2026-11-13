@@ -1,0 +1,62 @@
+{
+  "release": "v1.0.2",
+  "release_commit": "4791ed7c1d67615b74845601ac55b7df01bccf54",
+  "tag_object": "c6ca2b8e4344d23c0bad4326310536c6b63fc885",
+  "source_ref": "refs/tags/v1.0.2",
+  "source_url": "https://github.com/starknet-innovation/snip-36-prover-wasm/tree/4791ed7c1d67615b74845601ac55b7df01bccf54",
+  "build_origin": "fresh local detached checkout of v1.0.2; freshly compiled modules, bindings and native verifier; no prior release outputs reused",
+  "build_recorded_at": "2026-11-13T10:43:42.535561+00:00",
+  "platform": "macOS 27.2.1 arm64",
+  "compiler": "Homebrew clang version 23.1.5",
+  "rust": "rustc 1.94.0-nightly (86a49fd71 2026-01-14)",
+  "commands": [
+    "WASM_CC=/opt/homebrew/opt/llvm@23/bin/clang WASM_AR=/opt/homebrew/opt/llvm@23/bin/llvm-ar PYTHON310=python3.10 CARGO_BUILD_JOBS=4 ./scripts/build.sh executor",
+    "WASM_CC=/opt/homebrew/opt/llvm@23/bin/clang WASM_AR=/opt/homebrew/opt/llvm@23/bin/llvm-ar CARGO_BUILD_JOBS=4 ./scripts/build.sh prover",
+    "CARGO_BUILD_JOBS=2 ./scripts/build.sh native"
+  ],
+  "source_build_receipt": {
+    "source_identity": {
+      "pins_sha256": "9e3c9fd7d65814ca402b77362617c00a47a23d3cee008a7175036370098da6a8",
+      "executor_patch_sha256": "043a965d089ab187a3debd12ba01e99c4a152acffc707c6ea0ac2e1fba95e019",
+      "prover_patch_sha256": "dd2ba728b5d2b9c55a4067c3ceccd326c5779cc7939f5c54e5d76b5bc68f8b58"
+    },
+    "assets": {
+      "web/auth/browser_virtual_os_bg.wasm": {
+        "path": "web/auth/browser_virtual_os_bg.wasm",
+        "bytes": 36322418,
+        "sha256": "2226a5a13601d64e447160e04dc6db8b1f957d7ee1e2459b6b67c7f3b0667b1b"
+      },
+      "web/auth/browser_virtual_os.js": {
+        "path": "web/auth/browser_virtual_os.js",
+        "bytes": 21705,
+        "sha256": "69e0b926e6ff082259f69bc2aeecf76b07d49f8fe7f75ae04a2e8aaf679afefc"
+      },
+      "web/sequencer-prover.wasm": {
+        "path": "web/sequencer-prover.wasm",
+        "bytes": 76759994,
+        "sha256": "f239e10a9d46d935d81ee8516a99c43806bf303ab40f0001c37a25bc6f4db0a3"
+      }
+    }
+  },
+  "pins": {
+    "backend_release": "v1.4.2",
+    "backend": "3a2bc73774eca3d96052db937a98c95057fef661",
+    "deps_release": "deps-v16",
+    "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
+    "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "rust": "nightly-2026-01-15",
+    "executor_wasm_bindgen": "0.2.105",
+    "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
+    "proof_version": "0x50524f4f4632",
+    "prover_profile": "low-memory-v2",
+    "low_memory_patch_sha256": "88132044b4a11cd3369d193d568eaf97d80cd9556b81e1c9445a6fa0d32359d4"
+  },
+  "native_verifier": {
+    "source_revision": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
+    "upstream_lock_sha256": "c6663b3de0d96f6e45531eb3324d578ae801d2866ae0f304b5aafe5b1d207432",
+    "cli_example_sha256": "eeb90bec2b935f67bfeb21f526292da3f56755f59963e1de8fefcbe754dcb6fb",
+    "upstream_implementation_unchanged": true,
+    "executable_sha256": "1d78a26ddc5adf5546d1eccc765a98af41fd5c8b3379bacf94dbb980818ce31a"
+  },
+  "note": "Release tag source retains its original v1.0.1 downloader pin; the attached assets.json describes these newly built v1.0.2 outputs."
+}
