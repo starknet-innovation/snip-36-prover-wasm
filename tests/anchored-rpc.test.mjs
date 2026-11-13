@@ -653,3 +653,48 @@ test("Retry-After is honoured and capped", async () => {
   assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
   assert.deepEqual(delays, [20000]);
 });
+
+test("any abort reason is a cancellation, never a failover", async () => {
+  for (const reason of [
+    new DOMException("Timed out", "TimeoutError"),
+    new Error("user closed the page"),
+  ]) {
+    resetRpcPacing();
+    const controller = new AbortController(),
+      urls = [];
+    const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+      ...noWait,
+      signal: controller.signal,
+      fetchImpl: async (url) => {
+        urls.push(url);
+        controller.abort(reason);
+        throw reason;
+      },
+    });
+    await assert.rejects(() => send("starknet_getNonce", {}), {
+      name: "AbortError",
+    });
+    assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT]);
+  }
+});
+
+test("a connection reset while reading the body fails over", async () => {
+  resetRpcPacing();
+  const urls = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: node(async (url, o) => {
+      urls.push(url);
+      if (url !== SEPOLIA_RPC_ENDPOINT) return reply(o, { result: "0x1" });
+      return new Response(
+        new ReadableStream({
+          pull(c) {
+            c.error(new TypeError("ECONNRESET"));
+          },
+        }),
+      );
+    }),
+  });
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT, SEPOLIA_FALLBACK_RPC_ENDPOINT]);
+});

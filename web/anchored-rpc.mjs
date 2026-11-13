@@ -181,6 +181,8 @@ export function liveTransport(
         { fetchImpl: pacedFetch, attempts: 1 },
       );
     } catch (error) {
+      // Any abort reason (timeout, custom error) is a cancellation, not an outage.
+      cancelled(signal);
       if (error?.name === "AbortError") throw error;
       throw new Unavailable(
         `RPC transport failure: ${error?.message ?? error}`,
@@ -188,7 +190,7 @@ export function liveTransport(
     }
     if (response.status === 429 || response.status >= 500) {
       const retryAfter = Number(response.headers?.get("retry-after"));
-      await response.body?.cancel();
+      await response.body?.cancel().catch(() => {});
       if (RETRY_STATUS.has(response.status))
         throw new RateLimited(`RPC HTTP ${response.status}`, retryAfter);
       throw new Unavailable(`RPC HTTP ${response.status}`);
@@ -199,7 +201,18 @@ export function liveTransport(
     const chunks = [];
     try {
       for (;;) {
-        const { done, value } = await reader.read();
+        let chunk;
+        try {
+          chunk = await reader.read();
+        } catch (error) {
+          // A connection reset mid-body is an outage; limits and parsing are not.
+          cancelled(signal);
+          if (error?.name === "AbortError") throw error;
+          throw new Unavailable(
+            `RPC response read failure: ${error?.message ?? error}`,
+          );
+        }
+        const { done, value } = chunk;
         if (done) break;
         size += value.byteLength;
         if (size > maxBytes) throw Error("RPC response exceeds byte limit");
@@ -207,7 +220,8 @@ export function liveTransport(
         cancelled(signal);
       }
     } catch (error) {
-      await reader.cancel();
+      // Best-effort cleanup must not replace the original classification.
+      await reader.cancel().catch(() => {});
       throw error;
     }
     const bytes = new Uint8Array(size);
