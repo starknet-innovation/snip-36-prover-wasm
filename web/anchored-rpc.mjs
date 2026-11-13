@@ -1,7 +1,40 @@
 import { fetchRpc } from "./rpc-retry.mjs";
 // Read-only transport and replay. RPC values stay provisional until verified against proofs.
+// Exact endpoint allowlist per network, in preference order: the Starknet
+// Foundation node first, ZAN's public node as fallback (the SNF node has no SLA).
 export const SEPOLIA_RPC_ENDPOINT =
+  "https://sepolia.nodes.starknet.org/rpc/v0_10";
+export const SEPOLIA_FALLBACK_RPC_ENDPOINT =
   "https://api.zan.top/public/starknet-sepolia/rpc/v0_10";
+export const MAINNET_RPC_ENDPOINT =
+  "https://mainnet.nodes.starknet.org/rpc/v0_10";
+export const MAINNET_FALLBACK_RPC_ENDPOINT =
+  "https://api.zan.top/public/starknet-mainnet/rpc/v0_10";
+export const RPC_NETWORKS = Object.freeze({
+  sepolia: Object.freeze({
+    chainId: "0x534e5f5345504f4c4941",
+    endpoints: Object.freeze([
+      SEPOLIA_RPC_ENDPOINT,
+      SEPOLIA_FALLBACK_RPC_ENDPOINT,
+    ]),
+  }),
+  mainnet: Object.freeze({
+    chainId: "0x534e5f4d41494e",
+    endpoints: Object.freeze([
+      MAINNET_RPC_ENDPOINT,
+      MAINNET_FALLBACK_RPC_ENDPOINT,
+    ]),
+  }),
+});
+// SNF node limits per client IP: about 10 req/s, burst 60, 3,060 per 5 min.
+// Pace below that so one proving run does not trip HTTP 429 / -32005.
+const PACED = new Map(
+  [SEPOLIA_RPC_ENDPOINT, MAINNET_RPC_ENDPOINT].map((e) => [
+    e,
+    { rate: 9, burst: 50 },
+  ]),
+);
+const RATE_LIMITED = -32005;
 const PRIME = (1n << 251n) + 17n * (1n << 192n) + 1n;
 const METHODS = new Set([
   "starknet_chainId",
@@ -52,32 +85,98 @@ export class RpcError extends Error {
     this.data = error.data;
   }
 }
+const buckets = new Map();
+function abortableSleep(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted)
+      return reject(new DOMException("Cancelled", "AbortError"));
+    const t = setTimeout(() => {
+      signal?.removeEventListener("abort", stop);
+      resolve();
+    }, ms);
+    const stop = () => {
+      clearTimeout(t);
+      reject(new DOMException("Cancelled", "AbortError"));
+    };
+    signal?.addEventListener("abort", stop, { once: true });
+  });
+}
+// Token bucket shared by every transport in this realm (one per Worker).
+async function pace(endpoint, { now, sleep, signal }) {
+  const limit = PACED.get(endpoint);
+  if (!limit) return;
+  let b = buckets.get(endpoint);
+  if (!b) buckets.set(endpoint, (b = { tokens: limit.burst, at: now() }));
+  for (;;) {
+    const t = now();
+    b.tokens = Math.min(
+      limit.burst,
+      b.tokens + ((t - b.at) * limit.rate) / 1000,
+    );
+    b.at = t;
+    if (b.tokens >= 1) {
+      b.tokens -= 1;
+      return;
+    }
+    await sleep(Math.ceil(((1 - b.tokens) * 1000) / limit.rate), signal);
+  }
+}
+export function resetRpcPacing() {
+  buckets.clear();
+}
+function networkOf(endpoint) {
+  for (const [name, net] of Object.entries(RPC_NETWORKS))
+    if (net.endpoints.includes(endpoint)) return { name, ...net };
+}
+// Failures that say nothing about chain state: the next endpoint may answer.
+class Unavailable extends Error {}
 export function liveTransport(
   endpoint,
-  { fetchImpl = fetch, signal, maxBytes = 64 * 1024 * 1024 } = {},
+  {
+    fetchImpl = fetch,
+    signal,
+    maxBytes = 64 * 1024 * 1024,
+    now = () => performance.now(),
+    sleep = abortableSleep,
+  } = {},
 ) {
   // Select a reviewed endpoint, including its path. HTTPS alone does not stop
   // a pasted request from targeting another service on the user's network.
-  if (endpoint !== SEPOLIA_RPC_ENDPOINT)
-    throw Error("Use the supported public Sepolia RPC endpoint");
-  let id = 0;
-  return async (method, params) => {
-    if (!METHODS.has(method))
-      throw Error("Only supported read-only methods are allowed");
-    cancelled(signal);
-    const request = { jsonrpc: "2.0", id: ++id, method, params };
-    const response = await fetchRpc(
-      SEPOLIA_RPC_ENDPOINT,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-        signal,
-        credentials: "omit",
-        redirect: "error",
-      },
-      { fetchImpl },
-    );
+  const network = networkOf(endpoint);
+  if (!network) throw Error("Use a supported public Starknet RPC endpoint");
+  // The requested endpoint first, then the network's other reviewed endpoints.
+  // Failover is sticky so one run reads from one node unless that node fails.
+  const order = [endpoint, ...network.endpoints.filter((e) => e !== endpoint)];
+  let active = 0,
+    id = 0;
+  const once = async (url, request, last) => {
+    await pace(url, { now, sleep, signal });
+    let response;
+    try {
+      response = await fetchRpc(
+        url,
+        {
+          method: "POST",
+          // content-type is the only header the SNF node's CORS policy allows.
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(request),
+          signal,
+          credentials: "omit",
+          redirect: "error",
+        },
+        // Before failing over, retry a rate-limited primary only once.
+        { fetchImpl, sleep: (ms) => sleep(ms, signal), attempts: last ? 5 : 2 },
+      );
+    } catch (error) {
+      if (error?.name === "AbortError") throw error;
+      throw new Unavailable(
+        `RPC transport failure: ${error?.message ?? error}`,
+      );
+    }
+    if (response.status === 429 || response.status >= 500) {
+      await response.body?.cancel();
+      throw new Unavailable(`RPC HTTP ${response.status}`);
+    }
     if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
     const reader = response.body.getReader();
     let size = 0;
@@ -111,9 +210,36 @@ export function liveTransport(
       Object.hasOwn(envelope, "result") === Object.hasOwn(envelope, "error")
     )
       throw Error("Invalid RPC response envelope");
-    return Object.hasOwn(envelope, "error")
-      ? { error: envelope.error }
-      : { result: envelope.result };
+    if (Object.hasOwn(envelope, "error")) {
+      if (envelope.error?.code === RATE_LIMITED)
+        throw new Unavailable("RPC rate limited");
+      return { error: envelope.error };
+    }
+    // Every reviewed endpoint of a network must report that network.
+    if (
+      request.method === "starknet_chainId" &&
+      felt(envelope.result) !== network.chainId
+    )
+      throw Error("RPC endpoint reports another chain");
+    return { result: envelope.result };
+  };
+  return async (method, params) => {
+    if (!METHODS.has(method))
+      throw Error("Only supported read-only methods are allowed");
+    cancelled(signal);
+    const request = { jsonrpc: "2.0", id: ++id, method, params };
+    for (;;) {
+      const last = active === order.length - 1;
+      try {
+        return await once(order[active], request, last);
+      } catch (error) {
+        if (!(error instanceof Unavailable) || last) {
+          if (error instanceof Unavailable) throw Error(error.message);
+          throw error;
+        }
+        active++;
+      }
+    }
   };
 }
 function normalizedQuery(query) {
