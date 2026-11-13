@@ -130,7 +130,14 @@ function networkOf(endpoint) {
 }
 // Failures that say nothing about chain state: the next endpoint may answer.
 class Unavailable extends Error {}
-class RateLimited extends Unavailable {}
+class RateLimited extends Unavailable {
+  constructor(message, retryAfter) {
+    super(message);
+    this.retryAfter = retryAfter;
+  }
+}
+// Same retryable statuses and Retry-After cap as rpc-retry.mjs.
+const RETRY_STATUS = new Set([429, 502, 503, 504]);
 export function liveTransport(
   endpoint,
   {
@@ -156,7 +163,7 @@ export function liveTransport(
     await pace(url, { now, sleep, signal });
     return fetchImpl(url, options);
   };
-  const once = async (url, request, attempts) => {
+  const once = async (url, request) => {
     let response;
     try {
       response = await fetchRpc(
@@ -170,7 +177,8 @@ export function liveTransport(
           credentials: "omit",
           redirect: "error",
         },
-        { fetchImpl: pacedFetch, sleep: (ms) => sleep(ms, signal), attempts },
+        // One fetch per call: `attempt` owns the shared retry budget.
+        { fetchImpl: pacedFetch, attempts: 1 },
       );
     } catch (error) {
       if (error?.name === "AbortError") throw error;
@@ -179,7 +187,10 @@ export function liveTransport(
       );
     }
     if (response.status === 429 || response.status >= 500) {
+      const retryAfter = Number(response.headers?.get("retry-after"));
       await response.body?.cancel();
+      if (RETRY_STATUS.has(response.status))
+        throw new RateLimited(`RPC HTTP ${response.status}`, retryAfter);
       throw new Unavailable(`RPC HTTP ${response.status}`);
     }
     if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
@@ -216,22 +227,36 @@ export function liveTransport(
     )
       throw Error("Invalid RPC response envelope");
     if (Object.hasOwn(envelope, "error")) {
-      if (envelope.error?.code === RATE_LIMITED)
-        throw new RateLimited("RPC rate limited");
+      const e = envelope.error;
+      if (
+        !e ||
+        typeof e !== "object" ||
+        !Number.isInteger(e.code) ||
+        typeof e.message !== "string"
+      )
+        throw Error("Invalid RPC error object");
+      if (e.code === RATE_LIMITED) throw new RateLimited("RPC rate limited");
       return { error: envelope.error };
     }
     return { result: envelope.result };
   };
-  // A rate-limited primary gets one backoff retry before failover; the last
-  // endpoint keeps the full budget. HTTP 429 and JSON-RPC -32005 alike.
+  // One budget per endpoint per request, shared by HTTP 429/502/503/504 and
+  // JSON-RPC -32005: a rate-limited primary gets one backoff retry before
+  // failover, the last endpoint five attempts in all. Retry-After is honoured.
   const attempt = async (url, request, last) => {
     const budget = last ? 5 : 2;
     for (let n = 0; ; n++) {
       try {
-        return await once(url, request, budget);
+        return await once(url, request);
       } catch (error) {
         if (!(error instanceof RateLimited) || n >= budget - 1) throw error;
-        await sleep(1000 * 2 ** n, signal);
+        const ra = error.retryAfter;
+        await sleep(
+          Number.isFinite(ra) && ra > 0
+            ? Math.min(ra * 1000, 20000)
+            : 1000 * 2 ** n,
+          signal,
+        );
       }
     }
   };

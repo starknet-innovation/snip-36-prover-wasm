@@ -347,6 +347,10 @@ test("semantic errors and bad responses never fail over", async () => {
     (o) =>
       new Response(JSON.stringify({ jsonrpc: "2.0", id: 999, result: "0x0" })),
     (o) => reply(o, { result: "0x534e5f4d41494e" }),
+    // Malformed rate-limit errors are bad responses, not outages.
+    (o) => reply(o, { error: { code: -32005 } }),
+    (o) => reply(o, { error: { code: "-32005", message: "x" } }),
+    (o) => reply(o, { error: null }),
   ]) {
     resetRpcPacing();
     const urls = [];
@@ -604,4 +608,48 @@ test("retries consume pacing tokens too", async () => {
     );
   // Burst 50, then 9/s for the other 70 fetches, retries included.
   assert.ok(Math.max(...fetched) >= (70 / 9) * 1000 - 1);
+});
+
+test("HTTP and JSON-RPC rate limits share one retry budget per endpoint", async () => {
+  resetRpcPacing();
+  const urls = [],
+    delays = [];
+  let n = 0;
+  const limited = (o) =>
+    n++ % 2
+      ? reply(o, { error: { code: -32005, message: "Limit exceeded" } })
+      : new Response("", { status: 429 });
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => 0,
+    sleep: async (ms) => delays.push(ms),
+    fetchImpl: async (url, o) => {
+      urls.push(url);
+      return limited(o);
+    },
+  });
+  await assert.rejects(() => send("starknet_getNonce", {}), /rate limited|429/);
+  // Two fetches on the primary, five on the fallback, never more.
+  assert.equal(urls.filter((u) => u === SEPOLIA_RPC_ENDPOINT).length, 2);
+  assert.equal(
+    urls.filter((u) => u === SEPOLIA_FALLBACK_RPC_ENDPOINT).length,
+    5,
+  );
+  assert.deepEqual(delays, [1000, 1000, 2000, 4000, 8000]);
+});
+
+test("Retry-After is honoured and capped", async () => {
+  resetRpcPacing();
+  const delays = [];
+  let n = 0;
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => 0,
+    sleep: async (ms) => delays.push(ms),
+    fetchImpl: node(async (_u, o) =>
+      n++ === 0
+        ? new Response("", { status: 429, headers: { "retry-after": "999" } })
+        : reply(o, { result: "0x1" }),
+    ),
+  });
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(delays, [20000]);
 });
