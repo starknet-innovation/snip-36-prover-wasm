@@ -5,6 +5,11 @@ import {
   AnchoredRpc,
   RpcError,
   SEPOLIA_RPC_ENDPOINT,
+  SEPOLIA_FALLBACK_RPC_ENDPOINT,
+  MAINNET_RPC_ENDPOINT,
+  MAINNET_FALLBACK_RPC_ENDPOINT,
+  RPC_NETWORKS,
+  resetRpcPacing,
   canonical,
   digest,
   felt,
@@ -216,31 +221,251 @@ test("transport forbids writes and rejects wrong response ids and oversized payl
   await assert.rejects(() => large("starknet_chainId", []), /byte limit/);
 });
 
-test("transport only selects the exact reviewed Sepolia URL", async () => {
+const SEPOLIA_CHAIN = "0x534e5f5345504f4c4941";
+const reply = (options, body) =>
+  new Response(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: JSON.parse(options.body).id,
+      ...body,
+    }),
+  );
+const noWait = { sleep: async () => {}, now: () => 0 };
+const chainOf = (url) =>
+  RPC_NETWORKS.mainnet.endpoints.includes(url)
+    ? RPC_NETWORKS.mainnet.chainId
+    : RPC_NETWORKS.sepolia.chainId;
+// Answers the transport's chain-ID check, then delegates.
+const node = (handler) => async (url, o) =>
+  JSON.parse(o.body).method === "starknet_chainId"
+    ? reply(o, { result: chainOf(url) })
+    : handler(url, o);
+
+test("transport only selects the exact reviewed endpoints", async () => {
+  assert.deepEqual(RPC_NETWORKS.sepolia.endpoints, [
+    "https://sepolia.nodes.starknet.org/rpc/v0_10",
+    "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
+  ]);
+  assert.deepEqual(RPC_NETWORKS.mainnet.endpoints, [
+    "https://mainnet.nodes.starknet.org/rpc/v0_10",
+    "https://api.zan.top/public/starknet-mainnet/rpc/v0_10",
+  ]);
+  for (const base of [SEPOLIA_RPC_ENDPOINT, SEPOLIA_FALLBACK_RPC_ENDPOINT])
+    for (const endpoint of [
+      "https://example.com",
+      "http://127.0.0.1",
+      "https://127.0.0.1",
+      base.replace("https://", "http://"),
+      base.replace(/^https:\/\/([^/]+)/, "https://$1.attacker.example"),
+      base + "/",
+      base + "/../admin",
+      base + "?redirect=https://example.com",
+      base + "#fragment",
+      base.replace("https://", "https://user:password@"),
+      base.replace("v0_10", "v0_9"),
+      base.toUpperCase(),
+    ])
+      assert.throws(() => liveTransport(endpoint), /supported public Starknet/);
   for (const endpoint of [
-    "https://example.com",
-    "http://127.0.0.1",
-    "https://127.0.0.1",
-    "https://api.zan.top.attacker.example/public/starknet-sepolia/rpc/v0_10",
-    SEPOLIA_RPC_ENDPOINT + "/../admin",
-    SEPOLIA_RPC_ENDPOINT + "?redirect=https://example.com",
-    SEPOLIA_RPC_ENDPOINT + "#fragment",
-    SEPOLIA_RPC_ENDPOINT.replace("https://", "https://user:password@"),
-    SEPOLIA_RPC_ENDPOINT.replace("sepolia", "mainnet"),
-  ])
-    assert.throws(() => liveTransport(endpoint), /supported public Sepolia/);
+    SEPOLIA_RPC_ENDPOINT,
+    SEPOLIA_FALLBACK_RPC_ENDPOINT,
+    MAINNET_RPC_ENDPOINT,
+    MAINNET_FALLBACK_RPC_ENDPOINT,
+  ]) {
+    resetRpcPacing();
+    const send = liveTransport(endpoint, {
+      ...noWait,
+      fetchImpl: async (url, options) => {
+        assert.equal(url, endpoint);
+        assert.equal(options.redirect, "error");
+        assert.equal(options.credentials, "omit");
+        // The SNF node's CORS policy allows content-type only.
+        assert.deepEqual(Object.keys(options.headers), ["Content-Type"]);
+        return node(async (_u, o) => reply(o, { result: "0x1" }))(url, options);
+      },
+    });
+    assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  }
+});
+
+test("transport rejects an endpoint that reports another chain", async () => {
+  resetRpcPacing();
   const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
-    fetchImpl: async (url, options) => {
-      assert.equal(url, SEPOLIA_RPC_ENDPOINT);
-      assert.equal(options.redirect, "error");
-      assert.equal(options.credentials, "omit");
-      const { id } = JSON.parse(options.body);
-      return new Response(
-        JSON.stringify({ jsonrpc: "2.0", id, result: "0x1" }),
-      );
+    ...noWait,
+    fetchImpl: async (_u, o) => reply(o, { result: "0x534e5f4d41494e" }),
+  });
+  await assert.rejects(() => send("starknet_chainId", []), /another chain/);
+  const ok = liveTransport(MAINNET_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (_u, o) => reply(o, { result: "0x534e5f4d41494e" }),
+  });
+  assert.deepEqual(await ok("starknet_chainId", []), {
+    result: "0x534e5f4d41494e",
+  });
+});
+
+for (const [name, primary] of [
+  ["network failure", async () => Promise.reject(new TypeError("CORS"))],
+  ["HTTP 429", async () => new Response("", { status: 429 })],
+  ["HTTP 500", async () => new Response("", { status: 500 })],
+  ["HTTP 503", async () => new Response("", { status: 503 })],
+  [
+    "JSON-RPC -32005",
+    async (_u, o) =>
+      reply(o, { error: { code: -32005, message: "Limit exceeded" } }),
+  ],
+])
+  test(`primary ${name} fails over to ZAN and stays there`, async () => {
+    resetRpcPacing();
+    const urls = [];
+    const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+      ...noWait,
+      fetchImpl: async (url, o) => {
+        urls.push(url);
+        return url === SEPOLIA_RPC_ENDPOINT
+          ? primary(url, o)
+          : reply(o, { result: SEPOLIA_CHAIN });
+      },
+    });
+    assert.deepEqual(await send("starknet_chainId", []), {
+      result: SEPOLIA_CHAIN,
+    });
+    assert.deepEqual(await send("starknet_chainId", []), {
+      result: SEPOLIA_CHAIN,
+    });
+    assert.equal(urls.at(-1), SEPOLIA_FALLBACK_RPC_ENDPOINT);
+    assert.equal(urls.at(-2), SEPOLIA_FALLBACK_RPC_ENDPOINT);
+    assert.ok(urls.filter((u) => u === SEPOLIA_RPC_ENDPOINT).length <= 2);
+  });
+
+test("semantic errors and bad responses never fail over", async () => {
+  for (const primary of [
+    (o) => reply(o, { error: { code: 24, message: "Block not found" } }),
+    (o) => reply(o, { error: { code: 20, message: "Contract not found" } }),
+    () => new Response("", { status: 400 }),
+    () => new Response("not json"),
+    (o) =>
+      new Response(JSON.stringify({ jsonrpc: "2.0", id: 999, result: "0x0" })),
+    (o) => reply(o, { result: "0x534e5f4d41494e" }),
+    // Malformed rate-limit errors are bad responses, not outages.
+    (o) => reply(o, { error: { code: -32005 } }),
+    (o) => reply(o, { error: { code: "-32005", message: "x" } }),
+    (o) => reply(o, { error: null }),
+  ]) {
+    resetRpcPacing();
+    const urls = [];
+    const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+      ...noWait,
+      fetchImpl: async (url, o) => {
+        urls.push(url);
+        return primary(o);
+      },
+    });
+    try {
+      const r = await send("starknet_chainId", []);
+      assert.ok(Object.hasOwn(r, "error"));
+    } catch {}
+    assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT]);
+  }
+});
+
+test("failover keeps block identity: a fallback missing the anchor block fails the run", async () => {
+  resetRpcPacing();
+  let primaryUp = true;
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (url, o) => {
+      const { method } = JSON.parse(o.body);
+      if (url === SEPOLIA_RPC_ENDPOINT) {
+        if (!primaryUp) return new Response("", { status: 503 });
+        if (method === "starknet_chainId")
+          return reply(o, { result: SEPOLIA_CHAIN });
+        if (method === "starknet_specVersion")
+          return reply(o, { result: "0.10.3" });
+        return reply(o, { result: header });
+      }
+      if (method === "starknet_chainId")
+        return reply(o, { result: SEPOLIA_CHAIN });
+      return reply(o, { error: { code: 24, message: "Block not found" } });
     },
   });
-  assert.deepEqual(await send("starknet_chainId", []), { result: "0x1" });
+  const rpc = new AnchoredRpc(send);
+  await rpc.resolve();
+  primaryUp = false;
+  await assert.rejects(
+    () => rpc.read({ kind: "nonce", address: "0x1" }),
+    (e) => e instanceof RpcError && e.code === 24,
+  );
+});
+
+test("both endpoints unavailable fails after bounded retries", async () => {
+  resetRpcPacing();
+  const urls = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (url) => {
+      urls.push(url);
+      return new Response("", { status: 429 });
+    },
+  });
+  await assert.rejects(() => send("starknet_getNonce", {}), /RPC HTTP 429/);
+  assert.equal(urls.filter((u) => u === SEPOLIA_RPC_ENDPOINT).length, 2);
+  assert.equal(
+    urls.filter((u) => u === SEPOLIA_FALLBACK_RPC_ENDPOINT).length,
+    5,
+  );
+});
+
+test("abort is not treated as an outage", async () => {
+  resetRpcPacing();
+  const controller = new AbortController(),
+    urls = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    signal: controller.signal,
+    fetchImpl: async (url) => {
+      urls.push(url);
+      controller.abort();
+      throw new DOMException("Cancelled", "AbortError");
+    },
+  });
+  await assert.rejects(() => send("starknet_getNonce", {}), {
+    name: "AbortError",
+  });
+  assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT]);
+});
+
+test("SNF requests are paced under the node's per-IP limit", async () => {
+  resetRpcPacing();
+  let clock = 0;
+  const sent = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => clock,
+    sleep: async (ms) => (clock += ms),
+    fetchImpl: node(async (_u, o) => {
+      sent.push(clock);
+      return reply(o, { result: "0x1" });
+    }),
+  });
+  for (let i = 0; i < 140; i++) await send("starknet_getNonce", {});
+  // Burst 50, then about 9 per second; never more than 60 in any second
+  // and never above 10 per second sustained.
+  for (let i = 0; i < sent.length; i++) {
+    const inWindow = sent.filter((t) => t >= sent[i] && t < sent[i] + 1000);
+    assert.ok(inWindow.length <= 60);
+  }
+  assert.ok(clock >= ((140 - 50) / 9) * 1000 - 1);
+  assert.ok((140 - 50) / (clock / 1000) <= 10);
+  // ZAN is not paced by this limiter.
+  resetRpcPacing();
+  clock = 0;
+  const zan = liveTransport(SEPOLIA_FALLBACK_RPC_ENDPOINT, {
+    now: () => clock,
+    sleep: async (ms) => (clock += ms),
+    fetchImpl: node(async (_u, o) => reply(o, { result: "0x1" })),
+  });
+  for (let i = 0; i < 100; i++) await zan("starknet_getNonce", {});
+  assert.equal(clock, 0);
 });
 
 test("concurrent resolution cannot replace the selected block", async () => {
@@ -276,4 +501,200 @@ test("recomputed capture digest cannot conceal inconsistent anchor or mixed-bloc
     async () => replayProvider(await resign(mixed)),
     /another block/,
   );
+});
+
+test("a fallback first reached during discovery must report the same chain", async () => {
+  resetRpcPacing();
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (url, o) => {
+      const { method } = JSON.parse(o.body);
+      if (url === SEPOLIA_RPC_ENDPOINT)
+        return method === "starknet_chainId"
+          ? reply(o, { result: SEPOLIA_CHAIN })
+          : new Response("", { status: 503 });
+      // Fallback serves another chain.
+      if (method === "starknet_chainId")
+        return reply(o, { result: "0x534e5f4d41494e" });
+      return reply(o, { result: header });
+    },
+  });
+  const rpc = new AnchoredRpc(send);
+  await assert.rejects(() => rpc.resolve(), /another chain/);
+});
+
+test("concurrent primary failures all land on the fallback", async () => {
+  resetRpcPacing();
+  const urls = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: async (url, o) => {
+      urls.push(url);
+      assert.ok(RPC_NETWORKS.sepolia.endpoints.includes(url));
+      await new Promise((r) => setTimeout(r, 1));
+      return url === SEPOLIA_RPC_ENDPOINT
+        ? Promise.reject(new TypeError("down"))
+        : node(async (_u, o2) => reply(o2, { result: "0x1" }))(url, o);
+    },
+  });
+  const results = await Promise.all(
+    Array.from({ length: 5 }, () => send("starknet_getNonce", {})),
+  );
+  for (const r of results) assert.deepEqual(r, { result: "0x1" });
+  urls.length = 0;
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(urls, [SEPOLIA_FALLBACK_RPC_ENDPOINT]);
+});
+
+test("HTTP-200 -32005 from the primary is retried with backoff before failover", async () => {
+  resetRpcPacing();
+  const urls = [],
+    delays = [];
+  let limited = 1;
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => 0,
+    sleep: async (ms) => delays.push(ms),
+    fetchImpl: node(async (url, o) => {
+      urls.push(url);
+      return limited-- > 0
+        ? reply(o, { error: { code: -32005, message: "Limit exceeded" } })
+        : reply(o, { result: "0x1" });
+    }),
+  });
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT, SEPOLIA_RPC_ENDPOINT]);
+  assert.deepEqual(delays, [1000]);
+});
+
+test("retries consume pacing tokens too", async () => {
+  resetRpcPacing();
+  // Virtual clock: timers fire in order once all pending work is idle.
+  let clock = 0;
+  const timers = [];
+  const sleep = (ms) => new Promise((r) => timers.push({ at: clock + ms, r }));
+  const fetched = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => clock,
+    sleep,
+    fetchImpl: async (url, o) => {
+      if (url !== SEPOLIA_RPC_ENDPOINT)
+        return node(async (_u, o2) => reply(o2, { result: "0x1" }))(url, o);
+      if (JSON.parse(o.body).method === "starknet_chainId")
+        return reply(o, { result: SEPOLIA_CHAIN });
+      fetched.push(clock);
+      return new Response("", { status: 503 });
+    },
+  });
+  await send("starknet_chainId", []);
+  let done = false;
+  const all = Promise.all(
+    Array.from({ length: 60 }, () => send("starknet_getNonce", {})),
+  ).finally(() => (done = true));
+  while (!done) {
+    await new Promise((r) => setImmediate(r));
+    if (done || !timers.length) continue;
+    timers.sort((x, y) => x.at - y.at);
+    const t = timers.shift();
+    clock = Math.max(clock, t.at);
+    t.r();
+  }
+  await all;
+  // 60 concurrent requests, each tried twice on the primary: 120 fetches.
+  assert.equal(fetched.length, 120);
+  for (const t of fetched)
+    assert.ok(
+      fetched.filter((x) => x >= t && x < t + 1000).length <= 60,
+      "more than 60 primary fetches in one second",
+    );
+  // Burst 50, then 9/s for the other 70 fetches, retries included.
+  assert.ok(Math.max(...fetched) >= (70 / 9) * 1000 - 1);
+});
+
+test("HTTP and JSON-RPC rate limits share one retry budget per endpoint", async () => {
+  resetRpcPacing();
+  const urls = [],
+    delays = [];
+  let n = 0;
+  const limited = (o) =>
+    n++ % 2
+      ? reply(o, { error: { code: -32005, message: "Limit exceeded" } })
+      : new Response("", { status: 429 });
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => 0,
+    sleep: async (ms) => delays.push(ms),
+    fetchImpl: async (url, o) => {
+      urls.push(url);
+      return limited(o);
+    },
+  });
+  await assert.rejects(() => send("starknet_getNonce", {}), /rate limited|429/);
+  // Two fetches on the primary, five on the fallback, never more.
+  assert.equal(urls.filter((u) => u === SEPOLIA_RPC_ENDPOINT).length, 2);
+  assert.equal(
+    urls.filter((u) => u === SEPOLIA_FALLBACK_RPC_ENDPOINT).length,
+    5,
+  );
+  assert.deepEqual(delays, [1000, 1000, 2000, 4000, 8000]);
+});
+
+test("Retry-After is honoured and capped", async () => {
+  resetRpcPacing();
+  const delays = [];
+  let n = 0;
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    now: () => 0,
+    sleep: async (ms) => delays.push(ms),
+    fetchImpl: node(async (_u, o) =>
+      n++ === 0
+        ? new Response("", { status: 429, headers: { "retry-after": "999" } })
+        : reply(o, { result: "0x1" }),
+    ),
+  });
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(delays, [20000]);
+});
+
+test("any abort reason is a cancellation, never a failover", async () => {
+  for (const reason of [
+    new DOMException("Timed out", "TimeoutError"),
+    new Error("user closed the page"),
+  ]) {
+    resetRpcPacing();
+    const controller = new AbortController(),
+      urls = [];
+    const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+      ...noWait,
+      signal: controller.signal,
+      fetchImpl: async (url) => {
+        urls.push(url);
+        controller.abort(reason);
+        throw reason;
+      },
+    });
+    await assert.rejects(() => send("starknet_getNonce", {}), {
+      name: "AbortError",
+    });
+    assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT]);
+  }
+});
+
+test("a connection reset while reading the body fails over", async () => {
+  resetRpcPacing();
+  const urls = [];
+  const send = liveTransport(SEPOLIA_RPC_ENDPOINT, {
+    ...noWait,
+    fetchImpl: node(async (url, o) => {
+      urls.push(url);
+      if (url !== SEPOLIA_RPC_ENDPOINT) return reply(o, { result: "0x1" });
+      return new Response(
+        new ReadableStream({
+          pull(c) {
+            c.error(new TypeError("ECONNRESET"));
+          },
+        }),
+      );
+    }),
+  });
+  assert.deepEqual(await send("starknet_getNonce", {}), { result: "0x1" });
+  assert.deepEqual(urls, [SEPOLIA_RPC_ENDPOINT, SEPOLIA_FALLBACK_RPC_ENDPOINT]);
 });

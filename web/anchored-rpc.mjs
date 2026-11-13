@@ -1,7 +1,40 @@
 import { fetchRpc } from "./rpc-retry.mjs";
 // Read-only transport and replay. RPC values stay provisional until verified against proofs.
+// Exact endpoint allowlist per network, in preference order: the Starknet
+// Foundation node first, ZAN's public node as fallback (the SNF node has no SLA).
 export const SEPOLIA_RPC_ENDPOINT =
+  "https://sepolia.nodes.starknet.org/rpc/v0_10";
+export const SEPOLIA_FALLBACK_RPC_ENDPOINT =
   "https://api.zan.top/public/starknet-sepolia/rpc/v0_10";
+export const MAINNET_RPC_ENDPOINT =
+  "https://mainnet.nodes.starknet.org/rpc/v0_10";
+export const MAINNET_FALLBACK_RPC_ENDPOINT =
+  "https://api.zan.top/public/starknet-mainnet/rpc/v0_10";
+export const RPC_NETWORKS = Object.freeze({
+  sepolia: Object.freeze({
+    chainId: "0x534e5f5345504f4c4941",
+    endpoints: Object.freeze([
+      SEPOLIA_RPC_ENDPOINT,
+      SEPOLIA_FALLBACK_RPC_ENDPOINT,
+    ]),
+  }),
+  mainnet: Object.freeze({
+    chainId: "0x534e5f4d41494e",
+    endpoints: Object.freeze([
+      MAINNET_RPC_ENDPOINT,
+      MAINNET_FALLBACK_RPC_ENDPOINT,
+    ]),
+  }),
+});
+// SNF node limits per client IP: about 10 req/s, burst 60, 3,060 per 5 min.
+// Pace below that so one proving run does not trip HTTP 429 / -32005.
+const PACED = new Map(
+  [SEPOLIA_RPC_ENDPOINT, MAINNET_RPC_ENDPOINT].map((e) => [
+    e,
+    { rate: 9, burst: 50 },
+  ]),
+);
+const RATE_LIMITED = -32005;
 const PRIME = (1n << 251n) + 17n * (1n << 192n) + 1n;
 const METHODS = new Set([
   "starknet_chainId",
@@ -52,39 +85,134 @@ export class RpcError extends Error {
     this.data = error.data;
   }
 }
+const buckets = new Map();
+function abortableSleep(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted)
+      return reject(new DOMException("Cancelled", "AbortError"));
+    const t = setTimeout(() => {
+      signal?.removeEventListener("abort", stop);
+      resolve();
+    }, ms);
+    const stop = () => {
+      clearTimeout(t);
+      reject(new DOMException("Cancelled", "AbortError"));
+    };
+    signal?.addEventListener("abort", stop, { once: true });
+  });
+}
+// Token bucket shared by every transport in this realm (one per Worker).
+async function pace(endpoint, { now, sleep, signal }) {
+  const limit = PACED.get(endpoint);
+  if (!limit) return;
+  let b = buckets.get(endpoint);
+  if (!b) buckets.set(endpoint, (b = { tokens: limit.burst, at: now() }));
+  for (;;) {
+    const t = now();
+    b.tokens = Math.min(
+      limit.burst,
+      b.tokens + ((t - b.at) * limit.rate) / 1000,
+    );
+    b.at = t;
+    if (b.tokens >= 1) {
+      b.tokens -= 1;
+      return;
+    }
+    await sleep(Math.ceil(((1 - b.tokens) * 1000) / limit.rate), signal);
+  }
+}
+export function resetRpcPacing() {
+  buckets.clear();
+}
+function networkOf(endpoint) {
+  for (const [name, net] of Object.entries(RPC_NETWORKS))
+    if (net.endpoints.includes(endpoint)) return { name, ...net };
+}
+// Failures that say nothing about chain state: the next endpoint may answer.
+class Unavailable extends Error {}
+class RateLimited extends Unavailable {
+  constructor(message, retryAfter) {
+    super(message);
+    this.retryAfter = retryAfter;
+  }
+}
+// Same retryable statuses and Retry-After cap as rpc-retry.mjs.
+const RETRY_STATUS = new Set([429, 502, 503, 504]);
 export function liveTransport(
   endpoint,
-  { fetchImpl = fetch, signal, maxBytes = 64 * 1024 * 1024 } = {},
+  {
+    fetchImpl = fetch,
+    signal,
+    maxBytes = 64 * 1024 * 1024,
+    now = () => performance.now(),
+    sleep = abortableSleep,
+  } = {},
 ) {
   // Select a reviewed endpoint, including its path. HTTPS alone does not stop
   // a pasted request from targeting another service on the user's network.
-  if (endpoint !== SEPOLIA_RPC_ENDPOINT)
-    throw Error("Use the supported public Sepolia RPC endpoint");
-  let id = 0;
-  return async (method, params) => {
-    if (!METHODS.has(method))
-      throw Error("Only supported read-only methods are allowed");
-    cancelled(signal);
-    const request = { jsonrpc: "2.0", id: ++id, method, params };
-    const response = await fetchRpc(
-      SEPOLIA_RPC_ENDPOINT,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-        signal,
-        credentials: "omit",
-        redirect: "error",
-      },
-      { fetchImpl },
-    );
+  const network = networkOf(endpoint);
+  if (!network) throw Error("Use a supported public Starknet RPC endpoint");
+  // The requested endpoint first, then the network's other reviewed endpoints.
+  // Failover is sticky so one run reads from one node unless that node fails.
+  const order = [endpoint, ...network.endpoints.filter((e) => e !== endpoint)];
+  const verified = new Map();
+  let active = 0,
+    id = 0;
+  // Pace every underlying fetch, retries included.
+  const pacedFetch = async (url, options) => {
+    await pace(url, { now, sleep, signal });
+    return fetchImpl(url, options);
+  };
+  const once = async (url, request) => {
+    let response;
+    try {
+      response = await fetchRpc(
+        url,
+        {
+          method: "POST",
+          // content-type is the only header the SNF node's CORS policy allows.
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(request),
+          signal,
+          credentials: "omit",
+          redirect: "error",
+        },
+        // One fetch per call: `attempt` owns the shared retry budget.
+        { fetchImpl: pacedFetch, attempts: 1 },
+      );
+    } catch (error) {
+      // Any abort reason (timeout, custom error) is a cancellation, not an outage.
+      cancelled(signal);
+      if (error?.name === "AbortError") throw error;
+      throw new Unavailable(
+        `RPC transport failure: ${error?.message ?? error}`,
+      );
+    }
+    if (response.status === 429 || response.status >= 500) {
+      const retryAfter = Number(response.headers?.get("retry-after"));
+      await response.body?.cancel().catch(() => {});
+      if (RETRY_STATUS.has(response.status))
+        throw new RateLimited(`RPC HTTP ${response.status}`, retryAfter);
+      throw new Unavailable(`RPC HTTP ${response.status}`);
+    }
     if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
     const reader = response.body.getReader();
     let size = 0;
     const chunks = [];
     try {
       for (;;) {
-        const { done, value } = await reader.read();
+        let chunk;
+        try {
+          chunk = await reader.read();
+        } catch (error) {
+          // A connection reset mid-body is an outage; limits and parsing are not.
+          cancelled(signal);
+          if (error?.name === "AbortError") throw error;
+          throw new Unavailable(
+            `RPC response read failure: ${error?.message ?? error}`,
+          );
+        }
+        const { done, value } = chunk;
         if (done) break;
         size += value.byteLength;
         if (size > maxBytes) throw Error("RPC response exceeds byte limit");
@@ -92,7 +220,8 @@ export function liveTransport(
         cancelled(signal);
       }
     } catch (error) {
-      await reader.cancel();
+      // Best-effort cleanup must not replace the original classification.
+      await reader.cancel().catch(() => {});
       throw error;
     }
     const bytes = new Uint8Array(size);
@@ -111,9 +240,87 @@ export function liveTransport(
       Object.hasOwn(envelope, "result") === Object.hasOwn(envelope, "error")
     )
       throw Error("Invalid RPC response envelope");
-    return Object.hasOwn(envelope, "error")
-      ? { error: envelope.error }
-      : { result: envelope.result };
+    if (Object.hasOwn(envelope, "error")) {
+      const e = envelope.error;
+      if (
+        !e ||
+        typeof e !== "object" ||
+        !Number.isInteger(e.code) ||
+        typeof e.message !== "string"
+      )
+        throw Error("Invalid RPC error object");
+      if (e.code === RATE_LIMITED) throw new RateLimited("RPC rate limited");
+      return { error: envelope.error };
+    }
+    return { result: envelope.result };
+  };
+  // One budget per endpoint per request, shared by HTTP 429/502/503/504 and
+  // JSON-RPC -32005: a rate-limited primary gets one backoff retry before
+  // failover, the last endpoint five attempts in all. Retry-After is honoured.
+  const attempt = async (url, request, last) => {
+    const budget = last ? 5 : 2;
+    for (let n = 0; ; n++) {
+      try {
+        return await once(url, request);
+      } catch (error) {
+        if (!(error instanceof RateLimited) || n >= budget - 1) throw error;
+        const ra = error.retryAfter;
+        await sleep(
+          Number.isFinite(ra) && ra > 0
+            ? Math.min(ra * 1000, 20000)
+            : 1000 * 2 ** n,
+          signal,
+        );
+      }
+    }
+  };
+  // Every reviewed endpoint must report this network before any of its other
+  // answers is used, including an endpoint first reached through failover.
+  const checkChain = (response) => {
+    if (
+      !Object.hasOwn(response, "result") ||
+      felt(response.result) !== network.chainId
+    )
+      throw Error("RPC endpoint reports another chain");
+    return response;
+  };
+  const send = async (url, request, last) => {
+    if (request.method === "starknet_chainId") {
+      const response = checkChain(await attempt(url, request, last));
+      verified.set(url, Promise.resolve());
+      return response;
+    }
+    if (!verified.has(url)) {
+      const check = attempt(
+        url,
+        { jsonrpc: "2.0", id: ++id, method: "starknet_chainId", params: [] },
+        last,
+      ).then(checkChain);
+      verified.set(url, check);
+      // A transient failure may be retried; a wrong chain fails again anyway.
+      check.catch(() => verified.get(url) === check && verified.delete(url));
+    }
+    await verified.get(url);
+    return attempt(url, request, last);
+  };
+  return async (method, params) => {
+    if (!METHODS.has(method))
+      throw Error("Only supported read-only methods are allowed");
+    cancelled(signal);
+    const request = { jsonrpc: "2.0", id: ++id, method, params };
+    // Advance from the index this request tried, so concurrent failures all
+    // land on the same next endpoint instead of skipping past it.
+    for (let i = active; ;) {
+      const last = i === order.length - 1;
+      try {
+        return await send(order[i], request, last);
+      } catch (error) {
+        if (!(error instanceof Unavailable)) throw error;
+        if (last) throw Error(error.message);
+        i++;
+        active = Math.max(active, i);
+      }
+    }
   };
 }
 function normalizedQuery(query) {

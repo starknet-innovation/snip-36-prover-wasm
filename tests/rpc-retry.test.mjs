@@ -70,3 +70,19 @@ test("aborted request is not retried", async () => {
     { name: "AbortError" },
   );
 });
+test("attempt budget can be lowered for a primary endpoint", async () => {
+  let n = 0;
+  const delays = [];
+  const r = await fetchRpc(
+    "https://example.test",
+    options("starknet_getNonce"),
+    {
+      fetchImpl: async () => (n++, new Response("", { status: 429 })),
+      sleep: async (ms) => delays.push(ms),
+      attempts: 2,
+    },
+  );
+  assert.equal(r.status, 429);
+  assert.equal(n, 2);
+  assert.deepEqual(delays, [1000]);
+});

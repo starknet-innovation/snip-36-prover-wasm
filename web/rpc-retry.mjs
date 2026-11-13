@@ -5,6 +5,7 @@ export async function fetchRpc(
   {
     fetchImpl = fetch,
     sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
+    attempts = 5,
   } = {},
 ) {
   let method;
@@ -25,7 +26,7 @@ export async function fetchRpc(
     const response = await fetchImpl(url, options);
     if (
       !read ||
-      attempt === 4 ||
+      attempt >= attempts - 1 ||
       ![429, 502, 503, 504].includes(response.status)
     )
       return response;

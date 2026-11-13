@@ -50,6 +50,17 @@ Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block s
 
 The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the low-memory V2 `v1.0.1` release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
+## RPC endpoints
+
+Release v1.0.2 changes only browser JavaScript (this transport and `rpc-retry.mjs`); the Wasm modules are unchanged from v1.0.1, so `assets.json` still points to the v1.0.1 release. The browser read-only transport (`web/anchored-rpc.mjs`) accepts only these exact URLs, listed in preference order per network:
+
+| Network | Primary (SNF node) | Fallback (ZAN public node) |
+| --- | --- | --- |
+| Sepolia | `https://sepolia.nodes.starknet.org/rpc/v0_10` | `https://api.zan.top/public/starknet-sepolia/rpc/v0_10` |
+| Mainnet | `https://mainnet.nodes.starknet.org/rpc/v0_10` | `https://api.zan.top/public/starknet-mainnet/rpc/v0_10` |
+
+The caller's endpoint is tried first. On a transport failure, HTTP 429/5xx or JSON-RPC `-32005`, the request moves to the same network's other endpoint and the run stays there. Semantic RPC errors (for example `Block not found`), malformed responses and block-identity or chain-ID mismatches never fail over; they fail the run. All state reads stay anchored to the block hash resolved at the start, so a fallback node that does not have that block fails rather than mixing answers. The SNF node allows about 10 requests/s per IP (burst 60, 3,060 per 5 minutes); the transport paces every SNF fetch, retries included, to 9/s with a burst of 50, and retries one rate-limited response (HTTP 429 or `-32005`) with backoff before failing over. Each endpoint, including one first reached through failover, must report the network's chain ID before any of its other answers is used. Requests send only a `Content-Type` header and omit credentials. The demo and scripts still default to the Sepolia ZAN endpoint. Mainnet reads are allowed for integrators but mainnet proving is not validated here. ZAN's public mainnet node is load-balanced and sometimes answers `Block not found` for a block hash it just reported as latest; the run fails closed, so retry, or anchor a few blocks behind the head.
+
 ## Daily testing
 
 The [first GitHub-hosted run](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/runs/37282452695) passed in 3m42s: [Sepolia transaction](https://sepolia.voyager.online/tx/0x512aefe965bd263b4d5f79bc6ca65a5e91cff394ddc74c6ae505636c0e10d17), block **16,112,150**, fee **1.171282850038856832 testnet STRK**. Chromium execution took 9.45s and prover initialization/proving took 147.06s. Its proof also passed the unchanged native `3035dd` verifier after downloading the CI artifact. [Recorded evidence](evidence/first-daily-ci-run.json).
