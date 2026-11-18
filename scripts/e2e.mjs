@@ -1,5 +1,13 @@
-import { PROVING_REVISION, BACKEND_RELEASE, assertProofProfile } from "../web/prover-profile.mjs";
+import {
+  PROVING_REVISION,
+  BACKEND_RELEASE,
+  assertProofProfile,
+} from "../web/prover-profile.mjs";
 import { fetchRpc } from "../web/rpc-retry.mjs";
+import {
+  SEPOLIA_RPC_ENDPOINT,
+  SEPOLIA_FALLBACK_RPC_ENDPOINT,
+} from "../web/anchored-rpc.mjs";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -18,8 +26,11 @@ import {
   gatewayTransaction,
 } from "./transaction.mjs";
 import { validateCaptureForExecution } from "./verify-capture-inputs.mjs";
-import { responseJson } from "./network.mjs";
-const RPC = "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
+import { responseBytes, responseJson } from "./network.mjs";
+// SNF node first, ZAN public node as fallback, as in web/anchored-rpc.mjs.
+// Failover is sticky for the process and only on outages or rate limits;
+// semantic errors such as "Block not found" still fail the run.
+const ENDPOINTS = [SEPOLIA_RPC_ENDPOINT, SEPOLIA_FALLBACK_RPC_ENDPOINT],
   GATEWAY = "https://alpha-sepolia.starknet.io/gateway/add_transaction";
 const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
 await mkdir(dir, { recursive: true });
@@ -54,24 +65,74 @@ const same = (a, b) => {
     );
   return a === b;
 };
-async function rpc(method, params) {
-  const response = await fetchRpc(RPC, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // Security review (js/file-access-to-http): Intentional Sepolia RPC request from the local execution plan; fixed destination, no signing credential. See docs/security-alerts.md.
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-    signal: AbortSignal.timeout(90000),
-    credentials: "omit",
-    redirect: "error",
-  });
+let active = 0;
+const verified = new Set();
+class Unavailable extends Error {}
+async function rpcAt(endpoint, method, params, attempts) {
+  let response;
+  try {
+    response = await fetchRpc(
+      endpoint,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Security review (js/file-access-to-http): Intentional Sepolia RPC request from the local execution plan; fixed destination, no signing credential. See docs/security-alerts.md.
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        signal: AbortSignal.timeout(90000),
+        credentials: "omit",
+        redirect: "error",
+      },
+      { attempts },
+    );
+  } catch (error) {
+    throw new Unavailable(`RPC transport failure: ${error?.message ?? error}`);
+  }
+  if (response.status === 429 || response.status >= 500) {
+    await response.body?.cancel().catch(() => {});
+    throw new Unavailable(`RPC HTTP ${response.status}`);
+  }
   if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
-  const data = await responseJson(response);
+  let bytes;
+  try {
+    bytes = await responseBytes(response, 64 * 1024 * 1024);
+  } catch (error) {
+    // A reset mid-body is an outage; an oversized body is not.
+    if (/byte limit/.test(error?.message)) throw error;
+    throw new Unavailable(`RPC body read failure: ${error?.message ?? error}`);
+  }
+  const data = JSON.parse(
+    new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+  );
   if (data.error) {
     const e = Error(`RPC ${data.error.code}: ${data.error.message}`);
     e.code = data.error.code;
+    if (e.code === -32005) throw new Unavailable(e.message);
     throw e;
   }
   return data.result;
+}
+async function rpc(method, params) {
+  for (;;) {
+    const endpoint = ENDPOINTS[active],
+      last = active === ENDPOINTS.length - 1,
+      attempts = last ? 5 : 2;
+    try {
+      // Every endpoint must report Sepolia before any other answer is used.
+      if (!verified.has(endpoint)) {
+        const id = await rpcAt(endpoint, "starknet_chainId", [], attempts);
+        if (BigInt(id) !== CHAIN_ID)
+          throw Error(`Refusing non-Sepolia network at ${endpoint}`);
+        verified.add(endpoint);
+      }
+      return await rpcAt(endpoint, method, params, attempts);
+    } catch (error) {
+      if (!(error instanceof Unavailable) || last) throw error;
+      active++;
+      console.warn(
+        `${error.message} from ${endpoint}; failing over to ${ENDPOINTS[active]}`,
+      );
+    }
+  }
 }
 const nonce = (address, block = "pre_confirmed") =>
   rpc("starknet_getNonce", { block_id: block, contract_address: address });
@@ -179,7 +240,7 @@ async function prepare() {
   request.transaction = signed.transaction;
   await save(
     "browser-input.json",
-    { request, source: { endpoint: RPC, block_id: block } },
+    { request, source: { endpoint: ENDPOINTS[active], block_id: block } },
     true,
   );
   await save("preflight.json", {
