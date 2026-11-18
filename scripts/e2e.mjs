@@ -186,6 +186,22 @@ async function chain() {
   if (BigInt(await rpc("starknet_chainId", [])) !== CHAIN_ID)
     throw Error("Refusing non-Sepolia network");
 }
+// Both SNF and ZAN can report a block as latest before reads pinned to its
+// hash succeed ("RPC 24: Block not found"). Pin hash-anchored reads a few
+// closed blocks behind the head instead.
+const ANCHOR_DEPTH = 5;
+async function anchoredHeader() {
+  const head = await rpc("starknet_blockNumber", []);
+  if (!Number.isSafeInteger(head) || head < ANCHOR_DEPTH)
+    throw Error("Invalid Sepolia head block number");
+  const number = head - ANCHOR_DEPTH,
+    header = await rpc("starknet_getBlockWithTxHashes", {
+      block_id: { block_number: number },
+    });
+  if (header.block_number !== number || typeof header.block_hash !== "string")
+    throw Error("Anchor block header disagrees with requested number");
+  return header;
+}
 function checkCall(tx, address) {
   if (
     !same(tx.sender_address, address) ||
@@ -251,9 +267,7 @@ async function validateArtifacts() {
 async function prepare() {
   await chain();
   const address = hex(process.env.STARKNET_ACCOUNT_ADDRESS);
-  const header = await rpc("starknet_getBlockWithTxHashes", {
-      block_id: "latest",
-    }),
+  const header = await anchoredHeader(),
     block = { block_hash: header.block_hash };
   const n = await nonce(address, block),
     pending = await nonce(address);
@@ -300,10 +314,12 @@ async function signSubmission() {
   const header = await rpc("starknet_getBlockWithTxHashes", {
     block_id: "latest",
   });
-  if (header.block_number < pre.block_number + 10)
+  // Gas prices come from the head; the stored-hash check is pinned behind it.
+  const anchor = await anchoredHeader();
+  if (anchor.block_number < pre.block_number + 10)
     throw Error("Proof block is too recent; wait at least ten blocks");
   const stored = await rpc("starknet_getStorageAt", {
-    block_id: { block_hash: header.block_hash },
+    block_id: { block_hash: anchor.block_hash },
     contract_address: "0x1",
     key: hex(pre.block_number),
   });
