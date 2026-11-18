@@ -67,10 +67,21 @@ const same = (a, b) => {
 };
 let active = 0;
 const verified = new Set();
+// Failures that say nothing about chain state: the next endpoint may answer.
 class Unavailable extends Error {}
-async function rpcAt(endpoint, method, params, attempts) {
+// Retryable on the same endpoint (HTTP 429/502/503/504, JSON-RPC -32005).
+class RateLimited extends Unavailable {
+  constructor(message, retryAfter) {
+    super(message);
+    this.retryAfter = retryAfter;
+  }
+}
+const RETRY_STATUS = new Set([429, 502, 503, 504]);
+async function rpcOnce(endpoint, method, params) {
   let response;
   try {
+    // One fetch per call: rpcAt owns the retry budget, so HTTP and JSON-RPC
+    // rate limits draw on the same attempts.
     response = await fetchRpc(
       endpoint,
       {
@@ -82,13 +93,16 @@ async function rpcAt(endpoint, method, params, attempts) {
         credentials: "omit",
         redirect: "error",
       },
-      { attempts },
+      { attempts: 1 },
     );
   } catch (error) {
     throw new Unavailable(`RPC transport failure: ${error?.message ?? error}`);
   }
   if (response.status === 429 || response.status >= 500) {
+    const retryAfter = Number(response.headers?.get("retry-after"));
     await response.body?.cancel().catch(() => {});
+    if (RETRY_STATUS.has(response.status))
+      throw new RateLimited(`RPC HTTP ${response.status}`, retryAfter);
     throw new Unavailable(`RPC HTTP ${response.status}`);
   }
   if (!response.ok) throw Error(`RPC HTTP ${response.status}`);
@@ -104,12 +118,30 @@ async function rpcAt(endpoint, method, params, attempts) {
     new TextDecoder("utf-8", { fatal: true }).decode(bytes),
   );
   if (data.error) {
-    const e = Error(`RPC ${data.error.code}: ${data.error.message}`);
+    const message = `RPC ${data.error.code}: ${data.error.message}`;
+    if (data.error.code === -32005) throw new RateLimited(message);
+    const e = Error(message);
     e.code = data.error.code;
-    if (e.code === -32005) throw new Unavailable(e.message);
     throw e;
   }
   return data.result;
+}
+// Retry rate limits on one endpoint with the same backoff and capped
+// Retry-After as web/rpc-retry.mjs, then let the caller fail over.
+async function rpcAt(endpoint, method, params, attempts) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await rpcOnce(endpoint, method, params);
+    } catch (error) {
+      if (!(error instanceof RateLimited) || attempt >= attempts - 1)
+        throw error;
+      const delay =
+        Number.isFinite(error.retryAfter) && error.retryAfter > 0
+          ? Math.min(error.retryAfter * 1000, 20000)
+          : 1000 * 2 ** attempt;
+      await sleep(delay);
+    }
+  }
 }
 async function rpc(method, params) {
   for (;;) {
