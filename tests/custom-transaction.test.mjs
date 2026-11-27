@@ -21,6 +21,7 @@ import {
   DERIVED_OUTPUTS,
   clearDerivedOutputs,
   startDeadline,
+  assertProofMatchesExecution,
 } from "../scripts/custom-run.mjs";
 import { PROOF_TIMEOUT_MS } from "../scripts/proof-timeouts.mjs";
 import { transactionHash, selector } from "../scripts/transaction.mjs";
@@ -435,18 +436,116 @@ test("a refused run still removes an earlier request's outputs", async (t) => {
   );
   for (const name of DERIVED_OUTPUTS)
     await writeFile(path.join(dir, name), "from an earlier request");
+  const stale = async () => {
+    for (const name of DERIVED_OUTPUTS)
+      await writeFile(path.join(dir, name), "from an earlier request");
+  };
   for (const args of [[], ["--execution-only"]]) {
+    await stale();
     const refused = run("scripts/custom-run.mjs", args, { RUN_DIR: dir });
     assert.notEqual(refused.status, 0);
     assert.match(refused.stderr, /must be \{request, source\}/);
     assert.deepEqual(await readdir(dir), ["browser-input.json"]);
   }
+  // The credential refusal and a bad flag come before the input is even parsed.
+  await stale();
+  const keyed = run("scripts/custom-run.mjs", [], {
+    RUN_DIR: dir,
+    STARKNET_PRIVATE_KEY: "test-only-placeholder",
+  });
+  assert.match(keyed.stderr, /Do not pass signing credentials/);
+  assert.deepEqual(await readdir(dir), ["browser-input.json"]);
+  await stale();
+  const flag = run("scripts/custom-run.mjs", ["--prove-harder"], {
+    RUN_DIR: dir,
+  });
+  assert.match(flag.stderr, /Unknown option/);
+  assert.deepEqual(await readdir(dir), ["browser-input.json"]);
+  // --help touches nothing.
+  await stale();
+  assert.equal(
+    run("scripts/custom-run.mjs", ["--help"], { RUN_DIR: dir }).status,
+    0,
+  );
+  assert.equal((await readdir(dir)).length, 1 + DERIVED_OUTPUTS.length);
   // A directory without an input is not a run directory: nothing in it is touched.
   const other = await temp(t);
   await writeFile(path.join(other, "proof.json"), "unrelated");
   const missing = run("scripts/custom-run.mjs", [], { RUN_DIR: other });
   assert.notEqual(missing.status, 0);
   assert.deepEqual(await readdir(other), ["proof.json"]);
+});
+
+test("a proof is saved only for the execution it was generated from", () => {
+  const output = [
+    "0x5649525455414c5f534e4f5330",
+    "0x11ebc19",
+    "0xabc",
+    "0xdef",
+    "0x1",
+    "0x73e9",
+  ];
+  const execution = { run_id: "run-1", report: { pie_sha256: "aa" }, output };
+  const proof = {
+    run_id: "run-1",
+    report: { pie_sha256: "aa" },
+    output: [...output],
+    output_preimage: ["0x1", "0x8", "0x1c7be3", ...output],
+  };
+  assert.doesNotThrow(() => assertProofMatchesExecution(execution, proof));
+  // Felts compare by value, not by spelling.
+  assert.doesNotThrow(() =>
+    assertProofMatchesExecution(execution, {
+      ...proof,
+      output_preimage: [
+        "0x1",
+        "0x8",
+        "0x1c7be3",
+        ...output.map((f) => "0x0" + f.slice(2)),
+      ],
+    }),
+  );
+  assert.throws(
+    () => assertProofMatchesExecution(undefined, proof),
+    /without a saved execution/,
+  );
+  assert.throws(
+    () => assertProofMatchesExecution(execution, { ...proof, run_id: "run-2" }),
+    /another run/,
+  );
+  assert.throws(
+    () =>
+      assertProofMatchesExecution(execution, {
+        ...proof,
+        report: { pie_sha256: "bb" },
+      }),
+    /another PIE/,
+  );
+  const otherMessage = [...output.slice(0, 5), "0x1234"];
+  assert.throws(
+    () =>
+      assertProofMatchesExecution(execution, {
+        ...proof,
+        output_preimage: ["0x1", "0x8", "0x1c7be3", ...otherMessage],
+      }),
+    /does not match the execution output/,
+  );
+  assert.throws(
+    () =>
+      assertProofMatchesExecution(execution, {
+        ...proof,
+        output: otherMessage,
+      }),
+    /does not match the execution output/,
+  );
+  assert.throws(
+    () =>
+      assertProofMatchesExecution(execution, {
+        ...proof,
+        output_preimage: output,
+      }),
+    /does not match the execution output/,
+  );
 });
 
 test("the deadline starts before browser start-up and bounds every later step", () => {

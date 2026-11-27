@@ -156,9 +156,10 @@ export function summarizeResources(pieResources, receipt = {}) {
 }
 
 // Everything this script derives from browser-input.json. A run removes all of them as
-// soon as it has read that file, whatever its mode and before any other check:
-// otherwise an --execution-only run, or one refused or failed later, would leave an
-// earlier request's proof files next to the new request.
+// soon as it has found that file, whatever its mode and before every check, the
+// credential refusal and argument parsing included: otherwise an --execution-only run,
+// or one refused or failed later, would leave an earlier request's proof files next to
+// the new request.
 export const DERIVED_OUTPUTS = [
   "execution.json",
   "cairo-pie.zip",
@@ -190,17 +191,60 @@ export function startDeadline(timeoutMs, now = Date.now) {
   };
 }
 
+// The proof receipt must be about the execution that was just saved: same run, same
+// PIE, and a statement whose payload is that execution's virtual OS output. The module
+// hash in the receipt only identifies the prover bytes that ran, not what they proved,
+// and proof-facts.txt is derived from the receipt's output preimage.
+export function assertProofMatchesExecution(execution, proof) {
+  const sameFelts = (a, b) =>
+    Array.isArray(a) &&
+    Array.isArray(b) &&
+    a.length === b.length &&
+    a.every((felt, i) => {
+      try {
+        return BigInt(felt) === BigInt(b[i]);
+      } catch {
+        return false;
+      }
+    });
+  if (!execution)
+    throw Error("Proof receipt arrived without a saved execution receipt");
+  if (execution.run_id === undefined || execution.run_id !== proof.run_id)
+    throw Error("Proof receipt belongs to another run than the execution");
+  if (
+    typeof execution.report?.pie_sha256 !== "string" ||
+    execution.report.pie_sha256 !== proof.report?.pie_sha256
+  )
+    throw Error("Proof was generated for another PIE than the saved execution");
+  if (
+    !Array.isArray(execution.output) ||
+    execution.output.length === 0 ||
+    !sameFelts(proof.output, execution.output) ||
+    !Array.isArray(proof.output_preimage) ||
+    !sameFelts(proof.output_preimage.slice(3), execution.output)
+  )
+    throw Error("Proof statement does not match the execution output");
+}
+
 async function main() {
-  // Before reading any input or writing any artifact.
+  const argv = process.argv.slice(2);
+  // The only invocation that touches nothing.
+  if (argv.includes("--help")) return console.log(USAGE);
+  const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
+  // If this is a run directory its input may have been replaced: nothing derived from
+  // an earlier input may survive this invocation, even one refused just below.
+  let text, unreadable;
+  try {
+    text = await readFile(path.join(dir, "browser-input.json"), "utf8");
+    await clearDerivedOutputs(dir);
+  } catch (error) {
+    unreadable = error;
+  }
+  // Before anything is written or any browser is started.
   if (process.env.STARKNET_PRIVATE_KEY)
     throw Error("Do not pass signing credentials to the browser step");
-  const options = parseRunArgs(process.argv.slice(2));
-  if (options.help) return console.log(USAGE);
-  const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
-  const text = await readFile(path.join(dir, "browser-input.json"), "utf8");
-  // This is a run directory and its input may have been replaced: nothing derived
-  // from an earlier input may survive, even if this run is refused below.
-  await clearDerivedOutputs(dir);
+  const options = parseRunArgs(argv);
+  if (unreadable) throw unreadable;
   const input = checkInput(JSON.parse(text));
   const save = (name, data) =>
     writeFile(path.join(dir, name), data, { mode: 0o600 });
@@ -234,6 +278,7 @@ async function main() {
     import("../web/prover-profile.mjs"),
   ]);
 
+  let savedExecution;
   async function saveExecution(page, index) {
     // The receipt carries the PIE as a number array; pull the bytes out in base64
     // chunks instead of one large message. execution.json keeps everything else.
@@ -270,6 +315,7 @@ async function main() {
       throw Error("PIE bytes do not match the Worker's receipt");
     await save("cairo-pie.zip", pie);
     await save("execution.json", JSON.stringify(rest));
+    savedExecution = rest;
     const summary = summarizeResources(
       JSON.parse(unzipEntry(pie, "execution_resources.json").toString()),
       rest,
@@ -295,6 +341,7 @@ async function main() {
       createHash("sha256").update(proof).digest("hex") !== report.proof_sha256
     )
       throw Error("Proof bytes do not match the Worker's receipt");
+    assertProofMatchesExecution(savedExecution, receipt);
     const facts = proofFacts(receipt.output_preimage);
     await save("proof.json", JSON.stringify(receipt));
     // The two files `sncast invoke --proof-file / --proof-facts-file` read.

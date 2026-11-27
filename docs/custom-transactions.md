@@ -27,7 +27,7 @@ npm run custom:run -- --timeout-minutes 60
 | Option | Meaning |
 | --- | --- |
 | `--network sepolia\|mainnet` | Chain ID, fee tokens and endpoint allow-list. Default `sepolia`. |
-| `--sender`, `--nonce` | Account that runs the virtual transaction and its nonce at the chosen block. |
+| `--sender`, `--nonce` | Account that runs the virtual transaction and its nonce at the chosen block. The virtual execution does not check the nonce strictly, so a nonce above the account's current one still executes and proves. If the proof-bearing transaction is to be this same invocation sent again by this same account, as in the repository's own flows, the nonce must be the account's exact nonce or the network will reject it. When another account submits the proof, the two nonces are unrelated. |
 | `--block-hash` or `--block-number` | The fixed block the proof is anchored to. Exactly one is required. |
 | `--to`, `--function` or `--selector`, `--calldata` or `--calldata-file` | One call, encoded as an `Array<Call>` of length one: `[1, to, selector, len, ...calldata]`. |
 | `--raw-calldata-file` | A JSON array holding the account's whole `__execute__` calldata, for several calls or a non-standard account. |
@@ -42,14 +42,14 @@ Felts are `0x` hex or decimal. Prices and tip are always zero, as the executor r
 
 ## Outputs
 
-As soon as a run has read `browser-input.json`, and before any other check, it deletes all of the files below from `RUN_DIR`, in either mode. The directory therefore never mixes the outputs of two requests: after `--execution-only`, or after a run that is refused or fails, no proof file is present. A directory without `browser-input.json` is left untouched.
+As soon as a run has found `browser-input.json`, and before every check (the credential refusal and argument parsing included), it deletes all of the files below from `RUN_DIR`, in either mode. Only `--help` touches nothing. The directory therefore never mixes the outputs of two requests: after `--execution-only`, or after a run that is refused or fails, no proof file is present. A directory without `browser-input.json` is left untouched.
 
 | File | Content |
 | --- | --- |
 | `execution.json` | Execution receipt without the PIE bytes: request, RPC capture, anchor, executor report, virtual OS output. |
 | `cairo-pie.zip` | The Cairo PIE; its SHA-256 is checked against the receipt. |
 | `execution-resources.json` | `virtual_os`: steps, memory holes and builtin instance counts of the whole virtual OS run, which is what the prover's trace must hold. `transaction`: Blockifier's figures for the transaction alone, with gas and per-call builtin and syscall counts summed over validate, execute and inner calls. |
-| `proof.json` | Proof receipt (not written with `--execution-only`). |
+| `proof.json` | Proof receipt (not written with `--execution-only`). The three proof files are written only if the receipt is for the saved execution: same run, same PIE hash, and an output preimage whose payload equals the virtual OS output in `execution.json`. |
 | `proof.base64` | The proof as one base64 string. |
 | `proof-facts.txt` | Comma-separated proof facts, from `proofFacts()` in `scripts/transaction.mjs`. |
 
