@@ -38,11 +38,11 @@ npm run custom:run -- --timeout-minutes 60
 
 Felts are `0x` hex or decimal. Prices and tip are always zero, as the executor requires on input. `custom-input.mjs` also exports `buildInput()` and `callArray()` for use from another script. The account's `__validate__` runs as part of execution, so a request for an account that checks a signature needs a real one: sign the request yourself, outside these scripts, and pass it with `--signature`.
 
-`custom:run` refuses to start when `STARKNET_PRIVATE_KEY` is set. `--timeout-minutes` bounds the whole browser run (default 20). When proving, it hashes `web/sequencer-prover.wasm`, serves exactly those bytes, and requires the proof receipt to name them (`PROVER_SHA256` pins an expected hash). It does not run the offline-replay or invalid-signature controls of `browser-e2e.mjs`: the second requires an account that rejects a bad signature, which a caller's account may not do. To replay a saved run offline, use `{"request": ..., "source": {"capture": ...}}` built from its `execution.json`.
+`custom:run` refuses to start when `STARKNET_PRIVATE_KEY` is set. `--timeout-minutes` bounds the whole browser run, from before Chromium is launched (default 20). When proving, it hashes `web/sequencer-prover.wasm`, serves exactly those bytes, and requires the proof receipt to name them (`PROVER_SHA256` pins an expected hash). It does not run the offline-replay or invalid-signature controls of `browser-e2e.mjs`: the second requires an account that rejects a bad signature, which a caller's account may not do. To replay a saved run offline, use `{"request": ..., "source": {"capture": ...}}` built from its `execution.json`.
 
 ## Outputs
 
-Each run first deletes all of the files below from `RUN_DIR`, in either mode, so the directory never mixes the outputs of two requests: after `--execution-only`, or after a run that fails, no proof file is present.
+As soon as a run has read `browser-input.json`, and before any other check, it deletes all of the files below from `RUN_DIR`, in either mode. The directory therefore never mixes the outputs of two requests: after `--execution-only`, or after a run that is refused or fails, no proof file is present. A directory without `browser-input.json` is left untouched.
 
 | File | Content |
 | --- | --- |

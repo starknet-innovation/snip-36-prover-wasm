@@ -155,9 +155,10 @@ export function summarizeResources(pieResources, receipt = {}) {
   return summary;
 }
 
-// Everything this script derives from browser-input.json. A run removes all of them
-// first, whatever its mode: otherwise an --execution-only run, or a failed one, would
-// leave an earlier request's proof files next to the new request.
+// Everything this script derives from browser-input.json. A run removes all of them as
+// soon as it has read that file, whatever its mode and before any other check:
+// otherwise an --execution-only run, or one refused or failed later, would leave an
+// earlier request's proof files next to the new request.
 export const DERIVED_OUTPUTS = [
   "execution.json",
   "cairo-pie.zip",
@@ -173,6 +174,22 @@ export async function clearDerivedOutputs(dir) {
   );
 }
 
+// One deadline for the whole browser run, started before the browser is launched.
+// remainingMs() is what is left of it, for the browser start-up calls that take their
+// own timeout, and throws once it is spent.
+export function startDeadline(timeoutMs, now = Date.now) {
+  const started = now();
+  return {
+    elapsedMs: () => now() - started,
+    remainingMs() {
+      const left = timeoutMs - (now() - started);
+      if (left <= 0)
+        throw Error(`Browser run exceeded ${timeoutMs / 60000} minutes`);
+      return Math.ceil(left);
+    },
+  };
+}
+
 async function main() {
   // Before reading any input or writing any artifact.
   if (process.env.STARKNET_PRIVATE_KEY)
@@ -180,9 +197,11 @@ async function main() {
   const options = parseRunArgs(process.argv.slice(2));
   if (options.help) return console.log(USAGE);
   const dir = path.resolve(process.env.RUN_DIR ?? "artifacts/run");
-  const input = checkInput(
-    JSON.parse(await readFile(path.join(dir, "browser-input.json"), "utf8")),
-  );
+  const text = await readFile(path.join(dir, "browser-input.json"), "utf8");
+  // This is a run directory and its input may have been replaced: nothing derived
+  // from an earlier input may survive, even if this run is refused below.
+  await clearDerivedOutputs(dir);
+  const input = checkInput(JSON.parse(text));
   const save = (name, data) =>
     writeFile(path.join(dir, name), data, { mode: 0o600 });
   const json = (value) => JSON.stringify(value, null, 2) + "\n";
@@ -203,9 +222,6 @@ async function main() {
     )
       throw Error("Candidate WASM replaced before validation");
   }
-  // The input and the prover module are acceptable: nothing from an earlier run may
-  // survive into this one.
-  await clearDerivedOutputs(dir);
   const [
     { chromium },
     { startServer },
@@ -289,19 +305,26 @@ async function main() {
   }
 
   const server = await startServer(0, { proverBytes });
+  const deadline = startDeadline(options.timeoutMs);
   let browser;
   try {
     browser = await chromium.launch({
       headless: true,
+      timeout: deadline.remainingMs(),
       args: ["--disable-dev-shm-usage"],
       env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" },
     });
     const page = await browser.newPage();
     page.on("pageerror", (e) => console.error("Browser error:", e.message));
-    await page.goto(`http://127.0.0.1:${server.address().port}/`);
-    await page.waitForFunction(() => typeof window.startRun === "function");
-    const started = Date.now();
-    const elapsed = () => ((Date.now() - started) / 1000).toFixed(0) + " s";
+    await page.goto(`http://127.0.0.1:${server.address().port}/`, {
+      timeout: deadline.remainingMs(),
+    });
+    await page.waitForFunction(
+      () => typeof window.startRun === "function",
+      undefined,
+      { timeout: deadline.remainingMs() },
+    );
+    const elapsed = () => (deadline.elapsedMs() / 1000).toFixed(0) + " s";
     await page.evaluate(
       ({ input, options }) => {
         window.startRun(input.request, input.source, options);
@@ -333,10 +356,7 @@ async function main() {
         else await saveProof(page, saved);
       if (state.error) throw Error(state.error);
       if (state.done) break;
-      if (Date.now() - started > options.timeoutMs)
-        throw Error(
-          `Browser run exceeded ${options.timeoutMs / 60000} minutes`,
-        );
+      deadline.remainingMs();
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
     if (saved !== (options.executionOnly ? 1 : 2))

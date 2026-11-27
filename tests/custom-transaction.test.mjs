@@ -20,6 +20,7 @@ import {
   summarizeResources,
   DERIVED_OUTPUTS,
   clearDerivedOutputs,
+  startDeadline,
 } from "../scripts/custom-run.mjs";
 import { PROOF_TIMEOUT_MS } from "../scripts/proof-timeouts.mjs";
 import { transactionHash, selector } from "../scripts/transaction.mjs";
@@ -423,6 +424,42 @@ test("a run clears every derived output of an earlier run, and nothing else", as
   // Clearing an already clean directory is not an error.
   await clearDerivedOutputs(dir);
   assert.deepEqual((await readdir(dir)).sort(), kept);
+});
+
+test("a refused run still removes an earlier request's outputs", async (t) => {
+  const dir = await temp(t);
+  // A replaced input that is refused before the browser starts.
+  await writeFile(
+    path.join(dir, "browser-input.json"),
+    JSON.stringify({ request: fixture.request }),
+  );
+  for (const name of DERIVED_OUTPUTS)
+    await writeFile(path.join(dir, name), "from an earlier request");
+  for (const args of [[], ["--execution-only"]]) {
+    const refused = run("scripts/custom-run.mjs", args, { RUN_DIR: dir });
+    assert.notEqual(refused.status, 0);
+    assert.match(refused.stderr, /must be \{request, source\}/);
+    assert.deepEqual(await readdir(dir), ["browser-input.json"]);
+  }
+  // A directory without an input is not a run directory: nothing in it is touched.
+  const other = await temp(t);
+  await writeFile(path.join(other, "proof.json"), "unrelated");
+  const missing = run("scripts/custom-run.mjs", [], { RUN_DIR: other });
+  assert.notEqual(missing.status, 0);
+  assert.deepEqual(await readdir(other), ["proof.json"]);
+});
+
+test("the deadline starts before browser start-up and bounds every later step", () => {
+  let clock = 1_000;
+  const deadline = startDeadline(60_000, () => clock);
+  assert.equal(deadline.remainingMs(), 60_000);
+  clock += 45_000; // slow browser launch and page load
+  assert.equal(deadline.elapsedMs(), 45_000);
+  assert.equal(deadline.remainingMs(), 15_000);
+  clock += 14_999.5;
+  assert.equal(deadline.remainingMs(), 1); // never 0, which Playwright reads as "none"
+  clock += 0.5;
+  assert.throws(() => deadline.remainingMs(), /exceeded 1 minutes/);
 });
 
 test("resource summary reads the PIE and totals per-call builtins and syscalls", () => {
