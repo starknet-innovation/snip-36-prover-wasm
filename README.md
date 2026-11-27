@@ -1,6 +1,6 @@
 # SNIP-36 browser prover
 
-The source targets [backend v1.4.2](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.2) / `deps-v16`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the default prover now includes v1.4.2’s reviewed low-memory V2 optimizations. Its historical V1 module remains disabled. Browser release [`v1.0.2`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.2) supplies the optimized V2 modules; `npm run assets` downloads and verifies them. [Release validation](evidence/release-v1.0.2.json) records their fresh tagged-source build provenance, stock proof equality and native verification. Source reproduction is in [the build instructions](docs/build.md). The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
+The source targets [backend v1.4.2](https://github.com/starknet-innovation/snip-36-prover-backend/releases/tag/v1.4.2) / `deps-v16`: sequencer `148de44521`, proving `e0035ffc8`, and the updated 0.14.4 V2 circuit. Proof facts use `PROOF2` and virtual-OS program `0x1c7be3…fd324`. The latest wallet, saved-round and progress UI remains available; the default prover now includes v1.4.2’s reviewed low-memory V2 optimizations. Its historical V1 module remains disabled. The executor now compiles Sierra with Cairo 2.22.0, so classes declared as Sierra 1.10.0 load. Build the current modules using [the source instructions](docs/build.md). Published browser release [`v1.0.2`](https://github.com/starknet-innovation/snip-36-prover-wasm/releases/tag/v1.0.2) retains the previous Cairo 2.19.6 executor with the same optimized prover; stale release downloads are blocked for the new source profile. [Release validation](evidence/release-v1.0.2.json) records that release's tagged-source build provenance, stock proof equality and native verification. The Sepolia bank is deployed and funded for V2; its class and proof profile are checked on-chain before new play. Earlier V1 rounds remain on their original bank through the separate recovery view.
 
 The [v1.4.2 offline validation](evidence/backend-v1.4.2-validation.json) records browser measurements, native verification and stock proof equality. The [V2 deployment and accepted browser-proof settlement](evidence/v2-bank-deployment.json) are recorded separately from the historical V1 receipts.
 
@@ -12,7 +12,7 @@ Based on [the upstream CoinFlip app](https://github.com/starknet-innovation/snip
 
 The wallet must support **Wallet API 0.10.3+ proof-bearing invocation**. Unsupported versions are blocked before deposit. Advertising that version is necessary but does not guarantee a wallet implementation accepts arbitrary CoinFlip proofs. E2E automation uses a Wallet API adapter backed by the existing sncast account, not an installed wallet extension. Test tokens only, maximum stake 0.01 test STRK, 24-hour reveal deadline. Block-hash-derived seeds are not certified unbiased randomness. See [architecture, recovery and compatibility](docs/live-coinflip.md).
 
-Run `npm ci --ignore-scripts && npm run demo:build && npm run serve` to use the verified release modules, or rebuild them with [the source instructions](docs/build.md). Full proving requires recent memory64-capable desktop Chromium. Execution alone is much lighter. CI builds both pinned modules and verifies their source-build receipts. Pages requires the published release to match the current pins, patches and module hashes, then replays the recorded rounds and initializes the prover in Chromium. No account keys or signing secrets are included in the website or Pages workflow.
+Build both modules with [the source instructions](docs/build.md), then run `npm ci --ignore-scripts && npm run demo:build && npm run serve`. Full proving requires recent memory64-capable desktop Chromium. Execution alone is much lighter. CI and Pages build both pinned modules and verify their source-build receipts; Pages then replays the recorded rounds and initializes the prover in Chromium. No account keys or signing secrets are included in the website or Pages workflow.
 
 [![CI](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/ci.yml)
 [![Daily Sepolia Browser E2E](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml/badge.svg)](https://github.com/starknet-innovation/snip-36-prover-wasm/actions/workflows/daily-sepolia.yml)
@@ -40,7 +40,8 @@ Requirements: Node.js 24+, recent Chromium with WebAssembly memory64 support, an
 
 ```sh
 npm ci --ignore-scripts
-npm run assets           # Download v1.0.2 modules and verify sizes/SHA256.
+# First build executor and prover using docs/build.md.
+npm run assets           # Verify the current source modules and receipt.
 npm test
 npm run demo:build
 npm run serve
@@ -48,7 +49,7 @@ npm run serve
 
 Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
 
-The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the low-memory V2 `v1.0.2` release; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
+The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the low-memory V2 `v1.0.2` release, built before the Cairo 2.22 executor; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
 ## RPC endpoints
 
