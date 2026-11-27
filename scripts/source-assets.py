@@ -22,6 +22,7 @@ def identity():
         'pins_sha256': hashlib.sha256((ROOT / 'pins.json').read_bytes()).hexdigest(),
         'executor_patch_sha256': patch_fingerprint(ROOT / 'patches/executor'),
         'prover_patch_sha256': patch_fingerprint(ROOT / 'patches/prover'),
+        'wasm_bindgen_patch_sha256': patch_fingerprint(ROOT / 'patches/wasm-bindgen'),
     }
 
 

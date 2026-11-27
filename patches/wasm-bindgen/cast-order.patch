@@ -1,0 +1,24 @@
+--- a/src/wit/mod.rs
++++ b/src/wit/mod.rs
+@@ -175,13 +175,21 @@
+             // access to them while processing programs.
+             self.descriptors.extend(descriptors);
+ 
++            // Backport of the upstream fix (0.2.127 sorts too): `cast_imports` is a
++            // HashMap, so iterate it in signature order. Otherwise the import
++            // order, and every function index after it, varies between runs.
++            let mut sorted_casts = Vec::with_capacity(cast_imports.len());
+             for (descriptor, orig_func_ids) in cast_imports {
+                 let signature = descriptor.unwrap_function();
+                 let [arg] = &signature.arguments[..] else {
+                     bail!("Cast function must take exactly one argument");
+                 };
+                 let sig_comment = format!("{arg:?} -> {:?}", &signature.ret);
++                sorted_casts.push((sig_comment, signature, orig_func_ids));
++            }
++            sorted_casts.sort_by(|a, b| a.0.cmp(&b.0));
+ 
++            for (sig_comment, signature, orig_func_ids) in sorted_casts {
+                 // Hash the descriptor string to produce a stable import name.
+                 let mut hasher = DefaultHasher::default();
+                 sig_comment.hash(&mut hasher);
