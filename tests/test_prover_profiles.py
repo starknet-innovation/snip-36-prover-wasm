@@ -100,6 +100,7 @@ Path('cargo-call.json').write_text(json.dumps({'manifest': manifest, 'target': s
     def test_executor_installs_native_bindgen_without_wasm_backend_flags(self):
         (self.root / 'scripts/prepare-compiler.py').write_text('pass\n')
         (self.root / 'scripts/check-compiler.py').write_text('pass\n')
+        (self.root / 'scripts/prepare-wasm-bindgen.py').write_text('pass\n')
         compiler = self.root / 'build/compiler-venv/bin'
         compiler.mkdir(parents=True)
         (compiler / 'python').symlink_to(sys.executable)

@@ -71,7 +71,9 @@ case "$mode" in
   rustflags --cfg 'getrandom_backend="wasm_js"'
   CARGO_TARGET_DIR="$PWD/build/target-executor" cargo +1.96.1 rustc --locked --release --manifest-path build/sequencer/Cargo.toml -p browser_virtual_os --target wasm32-unknown-unknown -- -C link-arg=-zstack-size=8388608
   # This tool runs on the host; target-only getrandom backends break a clean install.
-  env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo +1.96.1 install wasm-bindgen-cli --version 0.2.105 --locked --root build/tools
+  # The pinned CLI with a backported deterministic cast-import order (see the script).
+  "$source_python" scripts/prepare-wasm-bindgen.py
+  env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo +1.96.1 install --path build/wasm-bindgen-source/wasm-bindgen-cli-0.2.105 --locked --force --root build/tools
   build/tools/bin/wasm-bindgen --target web --out-dir web/auth build/target-executor/wasm32-unknown-unknown/release/browser_virtual_os.wasm
   ;;
  native)
