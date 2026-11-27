@@ -42,6 +42,8 @@ Felts are `0x` hex or decimal. Prices and tip are always zero, as the executor r
 
 ## Outputs
 
+Each run first deletes all of the files below from `RUN_DIR`, in either mode, so the directory never mixes the outputs of two requests: after `--execution-only`, or after a run that fails, no proof file is present.
+
 | File | Content |
 | --- | --- |
 | `execution.json` | Execution receipt without the PIE bytes: request, RPC capture, anchor, executor report, virtual OS output. |

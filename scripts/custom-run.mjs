@@ -4,7 +4,7 @@
 //
 // Unlike browser-e2e.mjs it runs no invalid-signature control: that control needs an
 // account that validates a signature, which a caller's account may not do.
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { totalmem } from "node:os";
 import path from "node:path";
@@ -155,6 +155,24 @@ export function summarizeResources(pieResources, receipt = {}) {
   return summary;
 }
 
+// Everything this script derives from browser-input.json. A run removes all of them
+// first, whatever its mode: otherwise an --execution-only run, or a failed one, would
+// leave an earlier request's proof files next to the new request.
+export const DERIVED_OUTPUTS = [
+  "execution.json",
+  "cairo-pie.zip",
+  "execution-resources.json",
+  "proof.json",
+  "proof.base64",
+  "proof-facts.txt",
+];
+
+export async function clearDerivedOutputs(dir) {
+  await Promise.all(
+    DERIVED_OUTPUTS.map((name) => rm(path.join(dir, name), { force: true })),
+  );
+}
+
 async function main() {
   // Before reading any input or writing any artifact.
   if (process.env.STARKNET_PRIVATE_KEY)
@@ -185,6 +203,9 @@ async function main() {
     )
       throw Error("Candidate WASM replaced before validation");
   }
+  // The input and the prover module are acceptable: nothing from an earlier run may
+  // survive into this one.
+  await clearDerivedOutputs(dir);
   const [
     { chromium },
     { startServer },

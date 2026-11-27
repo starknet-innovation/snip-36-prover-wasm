@@ -18,6 +18,8 @@ import {
   checkInput,
   unzipEntry,
   summarizeResources,
+  DERIVED_OUTPUTS,
+  clearDerivedOutputs,
 } from "../scripts/custom-run.mjs";
 import { PROOF_TIMEOUT_MS } from "../scripts/proof-timeouts.mjs";
 import { transactionHash, selector } from "../scripts/transaction.mjs";
@@ -406,6 +408,22 @@ function zip(entries) {
   end.writeUInt32LE(offset, 16);
   return Buffer.concat([...locals, directory, end]);
 }
+
+test("a run clears every derived output of an earlier run, and nothing else", async (t) => {
+  const dir = await temp(t);
+  const kept = ["browser-input.json", "notes.txt"];
+  for (const name of [...kept, ...DERIVED_OUTPUTS])
+    await writeFile(path.join(dir, name), "from an earlier request");
+  // The proof files are what `sncast invoke` would submit: none may outlive the
+  // request they were derived from, in either mode.
+  for (const name of ["proof.json", "proof.base64", "proof-facts.txt"])
+    assert.ok(DERIVED_OUTPUTS.includes(name));
+  await clearDerivedOutputs(dir);
+  assert.deepEqual((await readdir(dir)).sort(), kept);
+  // Clearing an already clean directory is not an error.
+  await clearDerivedOutputs(dir);
+  assert.deepEqual((await readdir(dir)).sort(), kept);
+});
 
 test("resource summary reads the PIE and totals per-call builtins and syscalls", () => {
   const resources = {
