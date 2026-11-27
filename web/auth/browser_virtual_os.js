@@ -53,21 +53,6 @@ function getArrayU8FromWasm0(ptr, len) {
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
-/**
- * @returns {string}
- */
-export function allocation_metrics() {
-    let deferred1_0;
-    let deferred1_1;
-    try {
-        const ret = wasm.allocation_metrics();
-        deferred1_0 = ret[0];
-        deferred1_1 = ret[1];
-        return getStringFromWasm0(ret[0], ret[1]);
-    } finally {
-        wasm.__wbindgen_free_command_export(deferred1_0, deferred1_1, 1);
-    }
-}
 
 let WASM_VECTOR_LEN = 0;
 
@@ -84,50 +69,27 @@ function takeFromExternrefTable0(idx) {
     return value;
 }
 /**
- * @param {Uint8Array} hints_json
- * @returns {ExecutionResult}
- */
-export function run_virtual_os(hints_json) {
-    const ptr0 = passArray8ToWasm0(hints_json, wasm.__wbindgen_malloc_command_export);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.run_virtual_os(ptr0, len0);
-    if (ret[2]) {
-        throw takeFromExternrefTable0(ret[1]);
-    }
-    return ExecutionResult.__wrap(ret[0]);
-}
-
-export function install_panic_hook() {
-    wasm.install_panic_hook();
-}
-
-/**
- * Regenerates transaction call information from a complete local state snapshot.
- * The input may have an empty tx_execution_infos array; it is never used by this stage.
- * @param {Uint8Array} hints_json
- * @param {Uint8Array} snapshot_json
+ * @param {Uint8Array} bytes
  * @returns {string}
  */
-export function prepare_transaction(hints_json, snapshot_json) {
-    let deferred4_0;
-    let deferred4_1;
+export function sign_public_demo_request(bytes) {
+    let deferred3_0;
+    let deferred3_1;
     try {
-        const ptr0 = passArray8ToWasm0(hints_json, wasm.__wbindgen_malloc_command_export);
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(snapshot_json, wasm.__wbindgen_malloc_command_export);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.prepare_transaction(ptr0, len0, ptr1, len1);
-        var ptr3 = ret[0];
-        var len3 = ret[1];
+        const ret = wasm.sign_public_demo_request(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
         if (ret[3]) {
-            ptr3 = 0; len3 = 0;
+            ptr2 = 0; len2 = 0;
             throw takeFromExternrefTable0(ret[2]);
         }
-        deferred4_0 = ptr3;
-        deferred4_1 = len3;
-        return getStringFromWasm0(ptr3, len3);
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
     } finally {
-        wasm.__wbindgen_free_command_export(deferred4_0, deferred4_1, 1);
+        wasm.__wbindgen_free_command_export(deferred3_0, deferred3_1, 1);
     }
 }
 
@@ -161,6 +123,40 @@ export function prepare_rpc_transaction(hints_json, snapshot_json, rpc_json) {
         return getStringFromWasm0(ptr4, len4);
     } finally {
         wasm.__wbindgen_free_command_export(deferred5_0, deferred5_1, 1);
+    }
+}
+
+/**
+ * @param {Uint8Array} hints_json
+ * @returns {ExecutionResult}
+ */
+export function run_virtual_os(hints_json) {
+    const ptr0 = passArray8ToWasm0(hints_json, wasm.__wbindgen_malloc_command_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.run_virtual_os(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ExecutionResult.__wrap(ret[0]);
+}
+
+export function install_panic_hook() {
+    wasm.install_panic_hook();
+}
+
+/**
+ * @returns {string}
+ */
+export function allocation_metrics() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.allocation_metrics();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free_command_export(deferred1_0, deferred1_1, 1);
     }
 }
 
@@ -200,44 +196,21 @@ export function prepare_rpc_with_witness(hints_json, snapshot_json, rpc_json, da
 }
 
 /**
- * @param {Uint8Array} bytes
+ * Regenerates transaction call information from a complete local state snapshot.
+ * The input may have an empty tx_execution_infos array; it is never used by this stage.
+ * @param {Uint8Array} hints_json
+ * @param {Uint8Array} snapshot_json
  * @returns {string}
  */
-export function convert_public_proof(bytes) {
-    let deferred3_0;
-    let deferred3_1;
-    try {
-        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc_command_export);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.convert_public_proof(ptr0, len0);
-        var ptr2 = ret[0];
-        var len2 = ret[1];
-        if (ret[3]) {
-            ptr2 = 0; len2 = 0;
-            throw takeFromExternrefTable0(ret[2]);
-        }
-        deferred3_0 = ptr2;
-        deferred3_1 = len2;
-        return getStringFromWasm0(ptr2, len2);
-    } finally {
-        wasm.__wbindgen_free_command_export(deferred3_0, deferred3_1, 1);
-    }
-}
-
-/**
- * @param {Uint8Array} proof_bytes
- * @param {Uint8Array} classes_bytes
- * @returns {string}
- */
-export function prepare_public_state(proof_bytes, classes_bytes) {
+export function prepare_transaction(hints_json, snapshot_json) {
     let deferred4_0;
     let deferred4_1;
     try {
-        const ptr0 = passArray8ToWasm0(proof_bytes, wasm.__wbindgen_malloc_command_export);
+        const ptr0 = passArray8ToWasm0(hints_json, wasm.__wbindgen_malloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(classes_bytes, wasm.__wbindgen_malloc_command_export);
+        const ptr1 = passArray8ToWasm0(snapshot_json, wasm.__wbindgen_malloc_command_export);
         const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.prepare_public_state(ptr0, len0, ptr1, len1);
+        const ret = wasm.prepare_transaction(ptr0, len0, ptr1, len1);
         var ptr3 = ret[0];
         var len3 = ret[1];
         if (ret[3]) {
@@ -249,6 +222,31 @@ export function prepare_public_state(proof_bytes, classes_bytes) {
         return getStringFromWasm0(ptr3, len3);
     } finally {
         wasm.__wbindgen_free_command_export(deferred4_0, deferred4_1, 1);
+    }
+}
+
+/**
+ * @param {Uint8Array} bytes
+ * @returns {string}
+ */
+export function compile_captured_class(bytes) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc_command_export);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.compile_captured_class(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free_command_export(deferred3_0, deferred3_1, 1);
     }
 }
 
@@ -284,27 +282,30 @@ export function public_witness_control(proof_bytes, classes_bytes, diff_bytes) {
 }
 
 /**
- * @param {Uint8Array} bytes
+ * @param {Uint8Array} proof_bytes
+ * @param {Uint8Array} classes_bytes
  * @returns {string}
  */
-export function sign_public_demo_request(bytes) {
-    let deferred3_0;
-    let deferred3_1;
+export function prepare_public_state(proof_bytes, classes_bytes) {
+    let deferred4_0;
+    let deferred4_1;
     try {
-        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc_command_export);
+        const ptr0 = passArray8ToWasm0(proof_bytes, wasm.__wbindgen_malloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.sign_public_demo_request(ptr0, len0);
-        var ptr2 = ret[0];
-        var len2 = ret[1];
+        const ptr1 = passArray8ToWasm0(classes_bytes, wasm.__wbindgen_malloc_command_export);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.prepare_public_state(ptr0, len0, ptr1, len1);
+        var ptr3 = ret[0];
+        var len3 = ret[1];
         if (ret[3]) {
-            ptr2 = 0; len2 = 0;
+            ptr3 = 0; len3 = 0;
             throw takeFromExternrefTable0(ret[2]);
         }
-        deferred3_0 = ptr2;
-        deferred3_1 = len2;
-        return getStringFromWasm0(ptr2, len2);
+        deferred4_0 = ptr3;
+        deferred4_1 = len3;
+        return getStringFromWasm0(ptr3, len3);
     } finally {
-        wasm.__wbindgen_free_command_export(deferred3_0, deferred3_1, 1);
+        wasm.__wbindgen_free_command_export(deferred4_0, deferred4_1, 1);
     }
 }
 
@@ -312,13 +313,13 @@ export function sign_public_demo_request(bytes) {
  * @param {Uint8Array} bytes
  * @returns {string}
  */
-export function compile_captured_class(bytes) {
+export function convert_public_proof(bytes) {
     let deferred3_0;
     let deferred3_1;
     try {
         const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc_command_export);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.compile_captured_class(ptr0, len0);
+        const ret = wasm.convert_public_proof(ptr0, len0);
         var ptr2 = ret[0];
         var len2 = ret[1];
         if (ret[3]) {
@@ -513,6 +514,14 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_node_905d3e251edff8a2 = function(arg0) {
         const ret = arg0.node;
+        return ret;
+    };
+    imports.wbg.__wbg_now_2c95c9de01293173 = function(arg0) {
+        const ret = arg0.now();
+        return ret;
+    };
+    imports.wbg.__wbg_performance_7a3ffd0b17f663ad = function(arg0) {
+        const ret = arg0.performance;
         return ret;
     };
     imports.wbg.__wbg_process_dc0fbacc7c1c06f7 = function(arg0) {

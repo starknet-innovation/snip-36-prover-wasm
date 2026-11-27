@@ -40,15 +40,22 @@ with `--locked`. It neither compiles the resolver placeholders nor changes the
 reviewed lock. Dependency updates still need the build and browser/native
 validation appropriate to the affected targets before release promotion.
 
-The V2 portability patch is consolidated in `v2.patch`. `v2-portable-vendor.tar.gz` contains Cairo 2.19.6 with the wasm32 wire-encoding fix and the Wasm-compatible zstd C sources, each with its upstream license. The resolver mirror stores their manifests; source preparation extracts their implementations.
+The V2 portability patch is consolidated in `v2.patch`. `v2-portable-vendor.tar.gz` contains `cairo-lang-starknet-classes` 2.22.0 with the wasm32 wire-encoding fix and the Wasm-compatible zstd C sources, each with its upstream license. The Cairo crate is the crates.io archive (SHA256 `33da80d4e34febfc31451947be469a6c931145c71b4ef2dfdb1a441f492169f5`) with one changed file, `src/felt252_serde.rs`: `BranchTarget` writes and reads the fallthrough sentinel as `u64::MAX` instead of `usize::MAX` and converts ordinary indices with a checked `usize::try_from`. The other Cairo crates come unmodified from crates.io at 2.22.0, the first release that accepts Sierra 1.10.0. The resolver mirror stores their manifests; source preparation extracts their implementations.
 
 `cairo-vm-3.2.0.crate` is the original Apache-2.0 crate archive (SHA256
 `38fb2559063ab5f35c1596b6b79a8a18809306a419a3cbd141c2149639386da9`).
 Preparation extracts it under `browser-vendor/` and applies the reviewable
 `cairo-vm-zip.patch`: its ZIP dependency and the writer's options type change.
 An `unused_parens` lint allowance permits the existing upstream expressions to
-compile as a path dependency on the pinned nightly (registry dependencies have
+compile as a path dependency (registry dependencies have
 Cargo's lint cap). The VM execution code is unchanged. Both this crate and the browser adapter use
 ZIP 9.0.5 with default features disabled and the flate2 DEFLATE backend; AES and
 filesystem extraction are not used. The separately pinned prover/native graphs
 are outside this executor update and remain unchanged.
+
+Cairo 2.22's dependency graph (salsa 0.28) declares `rust-version = "1.95"`, so the
+executor builds with Rust 1.96.1 (`executor_rust` in `pins.json`), the release the
+pinned sequencer selects in its own `rust-toolchain.toml`. The prover and native
+verifier keep `nightly-2026-01-15`. The lock update for Cairo 2.22 also moves the
+unbuilt optional `cairo-native` entry to 0.9.0-rc.10, the release matching these
+Cairo crates; the browser executor never enables it.

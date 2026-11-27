@@ -1,5 +1,5 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index 00bd0e5..7c1ac4d 100644
+index 00bd0e5..954a2db 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -3,124 +3,7 @@
@@ -253,12 +253,17 @@ index 00bd0e5..7c1ac4d 100644
  cached = "0.44.0"
 -cairo-air = "1.1.0"
 -cairo-felt = "0.9.1"
- cairo-lang-casm = "2.19.6"
- cairo-lang-runner = "2.19.6"
- cairo-lang-sierra = "2.19.6"
+-cairo-lang-casm = "2.19.6"
+-cairo-lang-runner = "2.19.6"
+-cairo-lang-sierra = "2.19.6"
 -cairo-lang-sierra-to-casm = "2.19.6"
- cairo-lang-starknet-classes = "2.19.6"
- cairo-lang-utils = "2.19.6"
+-cairo-lang-starknet-classes = "2.19.6"
+-cairo-lang-utils = "2.19.6"
++cairo-lang-casm = "2.22.0"
++cairo-lang-runner = "2.22.0"
++cairo-lang-sierra = "2.22.0"
++cairo-lang-starknet-classes = "2.22.0"
++cairo-lang-utils = "2.22.0"
  cairo-native = "0.9.0-rc.8"
 -cairo-program-runner-lib = "1.1.0"
  cairo-vm = "3.2.0"
@@ -433,7 +438,7 @@ index 00bd0e5..7c1ac4d 100644
 +
 +[patch.crates-io]
 +cairo-vm = { path = "browser-vendor/cairo-vm-3.2.0" }
-+cairo-lang-starknet-classes = { path = "browser-vendor/cairo-lang-starknet-classes-2.19.6" }
++cairo-lang-starknet-classes = { path = "browser-vendor/cairo-lang-starknet-classes-2.22.0" }
 +
 +num-prime = { path = "browser-vendor/num-prime-0.4.4" }
 +

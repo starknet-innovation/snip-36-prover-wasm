@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import hashlib
+import json
 import subprocess
 import sys
 import tarfile
@@ -106,6 +107,43 @@ class ExecutorManifestTests(unittest.TestCase):
                 b"zip::write::FileOptions::default()", b"zip::write::SimpleFileOptions::default()"))
             self.assertEqual((source / "Cargo.toml").read_bytes(),
                              (root / "browser-vendor/cairo-vm-3.2.0/Cargo.toml").read_bytes())
+
+    def test_executor_compiles_sierra_with_one_pinned_cairo_release(self):
+        root = Path(__file__).resolve().parents[1] / "patches/executor"
+        workspace = tomllib.loads((root / "Cargo.toml").read_text())
+        cairo = {name: version for name, version in workspace["workspace"]["dependencies"].items()
+                 if name.startswith("cairo-lang-")}
+        self.assertEqual(cairo, dict.fromkeys(["cairo-lang-casm", "cairo-lang-runner", "cairo-lang-sierra",
+                                               "cairo-lang-starknet-classes", "cairo-lang-utils"], "2.22.0"))
+        vendored = "browser-vendor/cairo-lang-starknet-classes-2.22.0"
+        self.assertEqual(workspace["patch"]["crates-io"]["cairo-lang-starknet-classes"], {"path": vendored})
+        locked = {package["version"] for package in tomllib.loads((root / "Cargo.lock").read_text())["package"]
+                  if package["name"] in {*cairo, "cairo-lang-sierra-to-casm"}}
+        self.assertEqual(locked, {"2.22.0"})
+        with tarfile.open(root / "v2-portable-vendor.tar.gz") as archive:
+            names = archive.getnames()
+            self.assertEqual({name.split("/")[1] for name in names},
+                             {"cairo-lang-starknet-classes-2.22.0", "zstd-sys-2.0.16+zstd.1.5.7"})
+            self.assertEqual(archive.extractfile(vendored + "/Cargo.toml").read(),
+                             (root / vendored / "Cargo.toml").read_bytes())
+            serde = archive.extractfile(vendored + "/src/felt252_serde.rs").read().decode()
+        # wasm32 must keep the 64-bit fallthrough sentinel, or compiled class hashes change.
+        self.assertIn("Self::Fallthrough => u64::MAX.serialize(output),", serde)
+        self.assertIn("let idx = u64::deserialize(input)?;\n        if idx == u64::MAX {", serde)
+        self.assertNotIn("usize::MAX", serde)
+
+    def test_only_the_executor_leaves_the_pinned_nightly(self):
+        root = Path(__file__).resolve().parents[1]
+        pins = json.loads((root / "pins.json").read_text())
+        lines = [line for line in (root / "scripts/build.sh").read_text().splitlines()
+                 if "cargo +" in line or "rustup toolchain install" in line]
+        executor = [line for line in lines if "build/sequencer" in line or "wasm-bindgen-cli" in line
+                    or "rust-src" not in line and "rustup" in line]
+        self.assertEqual((len(executor), len(lines)), (3, 6))
+        for line in lines:
+            expected, other = ("executor_rust", "rust") if line in executor else ("rust", "executor_rust")
+            self.assertIn(" +" + pins[expected] + " " if "cargo" in line else " install " + pins[expected] + " ", line)
+            self.assertNotIn(pins[other], line)
 
 
 if __name__ == "__main__":
