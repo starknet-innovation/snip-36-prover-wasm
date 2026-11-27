@@ -512,19 +512,20 @@ index d8a528e..e014b8b 100644
  serde_json.workspace = true
  tempfile.workspace = true
 diff --git a/crates/apollo_starknet_os_program/build/compile_program.rs b/crates/apollo_starknet_os_program/build/compile_program.rs
-index 22ae476..1de7043 100644
+index 22ae476..c0b4951 100644
 --- a/crates/apollo_starknet_os_program/build/compile_program.rs
 +++ b/crates/apollo_starknet_os_program/build/compile_program.rs
-@@ -9,6 +9,8 @@ pub async fn compile_and_output_program(
+@@ -9,6 +9,9 @@ pub async fn compile_and_output_program(
      program_name: &str,
      cairo_root: Option<PathBuf>,
  ) {
-+    let temporary_root =
-+        cairo_root.as_ref().map(|root| format!("{}/", root.to_str().expect("UTF-8 Cairo root")));
++    let temporary_root = cairo_root
++        .as_ref()
++        .map(|root| python_json_escape(&format!("{}/", root.to_str().expect("UTF-8 Cairo root"))));
      let cairo_root = cairo_root.unwrap_or_else(cairo_root_path);
      println!("cargo::warning=Compiling {program_name} program...");
      let bytes = match compile_cairo0_program(
-@@ -31,6 +33,30 @@ pub async fn compile_and_output_program(
+@@ -31,6 +34,31 @@ pub async fn compile_and_output_program(
      println!(
          "cargo::warning=Done compiling {program_name}. Writing compiled bytes to output directory."
      );
@@ -534,7 +535,8 @@ index 22ae476..1de7043 100644
 +        use std::io::{Read, Write};
 +        // A temporary Cairo root (the virtual OS) has a random path that the compiler records
 +        // in debug_info filenames. Use a fixed name so identical sources give identical bytes.
-+        // Only debug_info changes, so the program hash is unaffected.
++        // Only debug_info changes, so the program hash is unaffected. The root is matched in
++        // its JSON-escaped form, as the compiler writes it.
 +        let browser_bytes=if let Some(root)=&temporary_root {
 +            let json=String::from_utf8(bytes.clone()).expect("UTF-8 compiled program");
 +            assert!(json.contains(root.as_str()),"compiled program does not name its Cairo root");
@@ -555,6 +557,38 @@ index 22ae476..1de7043 100644
      let bytes_path = out_dir.join(format!("{program_name}_bytes"));
      std::fs::write(&bytes_path, &bytes).unwrap_or_else(|error| {
          panic!("Failed to write the compiled {program_name} bytes to {bytes_path:?}: {error}.")
+@@ -55,6 +83,31 @@ pub async fn compile_test_contracts(out_dir: PathBuf) {
+     task_set.join_all().await;
+ }
+ 
++/// Escapes text as Python's `json.dump` does by default (`ensure_ascii=True`), which is how
++/// the Cairo 0 compiler writes paths into its output.
++fn python_json_escape(text: &str) -> String {
++    let mut escaped = String::with_capacity(text.len());
++    for character in text.chars() {
++        match character {
++            '"' => escaped.push_str("\\\""),
++            '\\' => escaped.push_str("\\\\"),
++            '\n' => escaped.push_str("\\n"),
++            '\r' => escaped.push_str("\\r"),
++            '\t' => escaped.push_str("\\t"),
++            '\u{8}' => escaped.push_str("\\b"),
++            '\u{c}' => escaped.push_str("\\f"),
++            ' '..='~' => escaped.push(character),
++            _ => {
++                let mut units = [0u16; 2];
++                for unit in character.encode_utf16(&mut units) {
++                    escaped.push_str(&format!("\\u{unit:04x}"));
++                }
++            }
++        }
++    }
++    escaped
++}
++
+ pub fn cairo_root_path() -> PathBuf {
+     PathBuf::from(compile_time_cargo_manifest_dir!()).join("src/cairo")
+ }
 diff --git a/crates/apollo_starknet_os_program/build/dump_source.rs b/crates/apollo_starknet_os_program/build/dump_source.rs
 index 53319bf..a291253 100644
 --- a/crates/apollo_starknet_os_program/build/dump_source.rs
