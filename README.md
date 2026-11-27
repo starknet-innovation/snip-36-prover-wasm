@@ -47,7 +47,7 @@ npm run demo:build
 npm run serve
 ```
 
-Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md).
+Open `http://127.0.0.1:8767`, paste a signed execution request and fixed-block source (or saved RPC capture), then choose **Execute and prove**. The replay lab performs read-only RPC acquisition. The separate live page submits transactions only through your connected wallet. For the automated flow, see [`docs/daily-e2e.md`](docs/daily-e2e.md). To execute and prove a virtual transaction against another contract from the command line, see [`docs/custom-transactions.md`](docs/custom-transactions.md).
 
 The source is distributed as pinned upstream checkouts plus browser portability patches. Modules remain outside Git. [`assets.json`](assets.json) records the low-memory V2 `v1.0.2` release, built before the Cairo 2.22 executor; source builds record platform-specific checksums and source identities in `build/source-assets.json`. See [`docs/build.md`](docs/build.md) for source reproduction and optional native verification.
 
