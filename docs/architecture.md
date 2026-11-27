@@ -1,6 +1,6 @@
 # Architecture and provenance
 
-The browser's wasm32 executor authenticates the captured header hash, Patricia nodes/paths, contract leaves, storage reads and class commitments, compiles Sierra with the pinned Cairo compiler, and invokes pinned Blockifier/virtual OS code. Missing cache entries produce explicit demand reads; unknown state never becomes an assumed zero. Every live read and storage proof uses one block hash. Captures have canonical SHA256 identities and support offline replay.
+The browser's wasm32 executor authenticates the captured header hash, Patricia nodes/paths, contract leaves, storage reads and class commitments, compiles Sierra with the pinned Cairo 2.22.0 compiler (Sierra up to 1.10.0) and requires the result to match the compiled class hash committed in state, and invokes pinned Blockifier/virtual OS code. Missing cache entries produce explicit demand reads; unknown state never becomes an assumed zero. Every live read and storage proof uses one block hash. Captures have canonical SHA256 identities and support offline replay.
 
 Execution, witnesses and PIE are generated in a browser Worker. The PIE moves to a separate memory64 Worker running `privacy_recursive_prove`. This includes the privacy bootloader, Cairo proof, recursive circuit construction/proof, upstream blinding, version prefix and compression. Portability changes replace a temporary file with an in-memory sink, avoid native thread-pool wrappers in Wasm, and provide an explicit memory64 ABI with bounded views. No remote/native prover supplies browser proving work.
 

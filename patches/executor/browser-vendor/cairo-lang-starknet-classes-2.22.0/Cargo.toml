@@ -12,7 +12,7 @@
 [package]
 edition = "2024"
 name = "cairo-lang-starknet-classes"
-version = "2.19.6"
+version = "2.22.0"
 build = false
 autolib = false
 autobins = false
@@ -30,28 +30,28 @@ name = "cairo_lang_starknet_classes"
 path = "src/lib.rs"
 
 [dependencies.cairo-lang-casm]
-version = "=2.19.6"
+version = "=2.22.0"
 features = ["serde"]
 default-features = true
 
 [dependencies.cairo-lang-sierra]
-version = "=2.19.6"
+version = "=2.22.0"
 
 [dependencies.cairo-lang-sierra-to-casm]
-version = "=2.19.6"
+version = "=2.22.0"
 
 [dependencies.cairo-lang-sierra-type-size]
-version = "=2.19.6"
+version = "=2.22.0"
 
 [dependencies.cairo-lang-utils]
-version = "=2.19.6"
+version = "=2.22.0"
 features = ["tracing"]
 
 [dependencies.convert_case]
-version = "0.11.0"
+version = "0.12.0"
 
 [dependencies.itertools]
-version = "0.14.0"
+version = "0.15.0"
 default-features = true
 
 [dependencies.num-bigint]

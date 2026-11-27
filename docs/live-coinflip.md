@@ -31,7 +31,7 @@ It signs locally with the named sncast account (or `STARKNET_ACCOUNT_ADDRESS`/`S
 
 ## Contracts and tests
 
-Public addresses and class hashes: `web/live-config.json`. V2 deployment and accepted settlement: `evidence/v2-bank-deployment.json`. Historical V1 receipts: `evidence/live-deployment.json`. The bank uses Cairo/Scarb 2.18 for Sierra 1.8's proof-facts syscall. The public executor uses Scarb 2.15.2 / Cairo 2.15.0 for compatibility with the pinned browser compiler. The original recorded CoinFlip contract remains deployed unchanged.
+Public addresses and class hashes: `web/live-config.json`. V2 deployment and accepted settlement: `evidence/v2-bank-deployment.json`. Historical V1 receipts: `evidence/live-deployment.json`. The bank uses Cairo/Scarb 2.18 for Sierra 1.8's proof-facts syscall. The public executor was declared with Scarb 2.15.2 / Cairo 2.15.0, when the browser compiler was pinned to an earlier Cairo; the current Cairo 2.22.0 browser compiler still reproduces the compiled class hashes of these classes and also loads Sierra 1.10.0 classes. The original recorded CoinFlip contract remains deployed unchanged.
 
 `npm test` checks statement binding, recovery and amount boundaries. `npm run demo:test:live` runs browser checks for unsupported wallets, wrong networks and pending-transaction recovery, without submitting transactions.
 

@@ -5,6 +5,7 @@
   "sequencer": "148de44521b49e32c5a675e287572768932cc99e",
   "transaction_service_proving": "e0035ffc8e08da270b8cb4a71f3708af70c2c775",
   "rust": "nightly-2026-01-15",
+  "executor_rust": "1.96.1",
   "executor_wasm_bindgen": "0.2.105",
   "program_hash": "0x1c7be3225dfb33359b3ba9ffbe1542b7da27879b6d89f47b967e512463fd324",
   "proof_version": "0x50524f4f4632",
